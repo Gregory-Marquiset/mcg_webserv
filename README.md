@@ -62,7 +62,7 @@ Pour garantir un processus de développement professionnel et fluide, la straté
 Pour assurer une collaboration efficace :
 
 - Respectez la convention de nommage établie en amont du projet.
-- Utilisez les pull requests pour les revues de code avant toute fusion dans la branche `dev`.
+- Utilisez les pull requests pour les revues de code avant toute fusion dans les branches `main` et `develop`.
 - Communiquez sur les progrès lors de points d'équipe réguliers.
 
 ---
