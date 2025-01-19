@@ -63,4 +63,4 @@ Ou si vous êtes actuellement ou anciennement étudiant à 42 via l'intra.
 
 ---
 
-Pour plus d'informations et de détails sur le projet et notre méthode de travail, référez-vous au [Wiki](https://github.com/Gregory-Marquiset/mcg_webserv/wiki/Bienvenue-sur-le-Wiki-de-Webserv) de ce même repository.
+Pour plus d'informations et de détails sur le projet et notre méthode de travail, référez-vous au [Wiki](https://github.com/Gregory-Marquiset/mcg_webserv/wiki/Home) de ce même repository.
