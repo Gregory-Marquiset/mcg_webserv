@@ -35,38 +35,6 @@ Ce projet vise à aider les membres de l'équipe à :
 
 ---
 
-## ⚙️ Stratégie de Développement (CI/CD)
-
-Pour garantir un processus de développement professionnel et fluide, la stratégie CI/CD suivante sera mise en place :
-
-1. **Intégration Continue :**
-
-   - Compilation automatique du code et exécution automatisée des tests à chaque push sur les branches `main` et `develop`.
-   - Vérification des fuites mémoire avec Valgrind.
-   - Analyse statique pour garantir le respect de la norme C++ 98 et des bonnes pratiques de codage.
-
-2. **Déploiement Continu :**
-
-   - Déploiement des versions de test dans un environnement de staging pour des tests manuels et automatisés avec des navigateurs.
-   - Ajout progressif des fonctionnalités via des branches dédiées, fusionnées uniquement après validation de tous les contrôles CI.
-
-3. **Mises à Jour de la Documentation :**
-
-   - Mise à jour d'une documentation pour les fonctionnalités, configurations et tests.
-   - Mise à jour régulière de cette section au fur et à mesure de l'évolution de la stratégie pendant le cycle de vie du projet.
-
----
-
-## 🤝 Contribution
-
-Pour assurer une collaboration efficace :
-
-- Respectez la convention de nommage établie en amont du projet.
-- Utilisez les pull requests pour les revues de code avant toute fusion dans les branches `main` et `develop`.
-- Communiquez sur les progrès lors de points d'équipe réguliers.
-
----
-
 ## 📊 Statistiques du Projet
 
 ![Nombre de commits](https://img.shields.io/github/commit-activity/m/Gregory-Marquiset/mcg_webserv)
