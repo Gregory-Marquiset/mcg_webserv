@@ -60,3 +60,7 @@ Ou si vous êtes actuellement ou anciennement étudiant à 42 via l'intra.
     <img src="https://badge.mediaplus.ma/greenbinary/gmarquis?1337Badge=off&UM6P=off" alt="Greg's 42 Badge" />
   </a>
 </p>
+
+---
+
+Pour plus d'informations et de détails sur le projet et notre méthode de travail, référez-vous au [Wiki](https://github.com/Gregory-Marquiset/mcg_webserv/wiki/Bienvenue-sur-le-Wiki-de-Webserv) de ce même repository.
