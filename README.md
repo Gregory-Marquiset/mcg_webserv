@@ -77,10 +77,9 @@ Pour assurer une collaboration efficace :
 
 ## 📞 Contact
 
-Pour toute question ou suggestion, n'hésitez pas à nous contacter via le dépôt GitHub du projet.
+Pour toute question ou suggestion, n'hésitez pas à nous contacter via le dépôt GitHub du projet nos github personnel [**Marie Langlois**](https://github.com/mlanglois26) (malanglo), [**Charles-Louis Dutel**](https://github.com/WPMad51) (cdutel), [Gregory Marquiset](https://github.com/Gregory-Marquiset) (gmarquis).
 
 Ou si vous êtes actuellement ou anciennement étudiant à 42 via l'intra.
-
 
 <p align="center">
   <a href="https://profile.intra.42.fr/users/malanglo">
