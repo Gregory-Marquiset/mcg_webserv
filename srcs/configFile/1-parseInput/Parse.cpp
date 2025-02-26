@@ -44,116 +44,121 @@ std::string Parse::storeConfigFile(char *file) {
 /* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */
 
 void Parse::fillConfigBlockClass(std::string file) {
-    
+     
     std::string content;
     std::istringstream iss(file);
-
-    std::string key;
-    std::string value;
-
+    
     Block parentBlock;
     Block childBlock;
+    
+    int parentFlag = 0; 
+    int childFlag = 0;
 
     Block tmpFirstParent;
     tmpFirstParent.setName("testName");
     this->_configBlocks.push_back(tmpFirstParent);
-
-    int parentFlag = 0; 
-    int childFlag = 0;
-
+    
     while (getline(iss, content)) {
         if (content.empty())
             continue ;
 
         for (size_t i = 0; i < content.size(); ++i) {
             
+            // entree d un block 
             if (content[i] == '{') {
-                std::string tmpName = content.substr(0, i);
-                std::string cleanName = trim(tmpName);
-
-                if (parentFlag == 0) {
-                        
-                    tmpFirstParent.setName(cleanName);
-                    parentBlock.setName(cleanName);
-                    parentFlag += 1;
-                }
-                else  {
-                    childBlock.setName(cleanName);
-                    childFlag += 1;
-                }
-
-            }
-            if (content[i] == '}') {
-
-                if (parentFlag == 1 && childFlag == 0) {
-
-                    if (this->_configBlocks.back().getName() == "testName") {
-                        parentBlock = tmpFirstParent;
-                        this->_configBlocks.erase(this->_configBlocks.begin());
-                    }
-          
-                    this->_configBlocks.push_back(parentBlock);
-                    parentBlock = Block();
-                    parentFlag -= 1;
-                    
-                }
-                else { // la je suis dans un enfant 
-                    
-                    if (this->_configBlocks.back().getName() == "testName") {
-                        tmpFirstParent.addChildBlock(childBlock);
-                    }
-                    else {
-                        parentBlock.addChildBlock(childBlock);
-                    }
-                    childBlock = Block();
-                    childFlag -= 1;
-                }
+               handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
             }
 
-            if (content[i] == '#') {
-                std::string comment = content.substr(i);
-                for (size_t i = 0; i < comment.size(); ++i) {
-                    std::cout << comment[i] << std::endl;
-                }
-                std::cout << comment << std::endl;
-            }
+            // sortie d un block
+            if (content[i] == '}') 
+                handleExitBlock(parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
 
+            // ignorer les commentaires 
+            if (content[i] == '#')
+                continue ;
+
+            // init directives
             if (content[i] == ';') {
-                std::string tmpDirective = content.substr(0, i);
-                std::string cleanDirective = trim(tmpDirective);
-
-                key = "";
-                value = "";
-
-                int isKey = true;
-                for (size_t j = 0; j < cleanDirective.size(); ++j) {
-                    if (isspace(cleanDirective[j])) {
-                        isKey = false ;
-                        j++;
-                    }
-                    if (isKey)
-                        key += cleanDirective[j];
-                    else
-                        value += cleanDirective[j];
-                }
-
-                if (childFlag == 0) {
-                
-                    if (this->_configBlocks.back().getName() == "testName") {
-                        tmpFirstParent.setDirective(key, value);
-                    }
-                    else {
-                        parentBlock.setDirective(key, value);
-                    }
-                }
-                else {
-                    childBlock.setDirective(key, value);
-                }
+                handleDirectives(content, i, childFlag, tmpFirstParent, parentBlock, childBlock);
             }
         }
     }
 }
 
-// get blocks and comments -> exctraction 
-// get data -> clean to use 
+/* gestion de l entree */
 
+void Parse::handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
+
+    std::string tmpName = content.substr(0, i);
+    std::string cleanName = trim(tmpName);
+
+    if (parentFlag == 0) {
+            
+        tmpFirstParent.setName(cleanName);
+        parentBlock.setName(cleanName);
+        parentFlag += 1;
+    }
+    else  {
+        childBlock.setName(cleanName);
+        childFlag += 1;
+    }
+}
+
+/* gestion de la sortie */
+
+void Parse::handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
+
+    if (parentFlag == 1 && childFlag == 0) { // la je suis dans un parent 
+
+        if (this->_configBlocks.back().getName() == "testName") {
+            parentBlock = tmpFirstParent;
+            this->_configBlocks.erase(this->_configBlocks.begin());
+        }
+        this->_configBlocks.push_back(parentBlock);
+        parentBlock = Block();
+        parentFlag -= 1;
+    }
+    else { // la je suis dans un enfant 
+        
+        if (this->_configBlocks.back().getName() == "testName") {
+            tmpFirstParent.addChildBlock(childBlock);
+        }
+        else {
+            parentBlock.addChildBlock(childBlock);
+        }
+        childBlock = Block();
+        childFlag -= 1;
+    }
+}
+
+/* initialisation des directives */
+
+void Parse::handleDirectives(std::string content, size_t i, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block &childBlock) {
+
+    std::string key = "";
+    std::string value = "";
+    int isKey = 1;
+    std::string tmpDirective = content.substr(0, i);
+    std::string cleanDirective = trim(tmpDirective);
+
+    for (size_t j = 0; j < cleanDirective.size(); ++j) {
+        if (isspace(cleanDirective[j])) {
+            isKey = 0 ;
+            j++;
+        }
+        if (isKey)
+            key += cleanDirective[j];
+        else
+            value += cleanDirective[j];
+    }
+   
+    if (childFlag == 0) {
+    
+        if (this->_configBlocks.back().getName() == "testName")
+            tmpFirstParent.setDirective(key, value);
+        else 
+            parentBlock.setDirective(key, value);
+    }
+    else 
+        childBlock.setDirective(key, value);
+}

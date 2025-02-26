@@ -4,6 +4,8 @@
 
 Block::Block() : _name(""), _directive(), _childBlock() {};
 
+Block::Block(const Block& copy) : _name(copy._name), _directive(copy._directive), _childBlock(copy._childBlock) {};
+
 Block::~Block() {};
 
 /* ================= SETTERS ======================== */

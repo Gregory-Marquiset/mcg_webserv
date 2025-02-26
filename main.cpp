@@ -9,10 +9,8 @@
 int main(int argc, char **argv) {
 
     if (argc == 2) {
-
+        
         /* ================= PARSE & GET DATA FROM CONFIG FILE ======================== */
-
-        std::cout << "Starting..." << std::endl;
 
         Parse rawConfig;
 
@@ -34,5 +32,5 @@ int main(int argc, char **argv) {
         }
     }
     else
-        std::cerr << "Invalid Args" << std::endl;
+        std::cerr << "Invalid Args: usage: ./webserv file.conf" << std::endl;
 }

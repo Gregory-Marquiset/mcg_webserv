@@ -13,6 +13,7 @@ class Block {
     public:
         
         Block();
+        Block(const Block& copy);
         ~Block();
         
         /* setters */
