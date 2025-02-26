@@ -45,10 +45,3 @@ void ASocket::testConnection(int item) {
 //   std::cout << "Port = " << this->address.sin_port << std::endl;
 //   std::cout << "Interface = " << this->address.sin_addr.s_addr << std::endl;
 // }
-
-
-
-
-
-
-

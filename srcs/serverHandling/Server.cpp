@@ -165,7 +165,7 @@ void Server::responseFromServer(int clientFd, const std::string& request, std::s
 
     std::cout << "Méthode : " << method << ", Chemin : " << path << std::endl;
     (void)root;
-    // (void)index;
+    // // (void)index;
     if (method == "GET") {
         std::string filePath = index;
         std::cout << "------> " << filePath << std::endl;

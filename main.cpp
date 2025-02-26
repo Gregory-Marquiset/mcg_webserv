@@ -4,65 +4,35 @@
 #include "includes/configFile/Block.hpp"
 #include "includes/configFile/Parse.hpp"
 #include "includes/configFile/utils.hpp"
+#include "includes/assignValues/ConfigData.hpp"
 
 int main(int argc, char **argv) {
 
     if (argc == 2) {
 
-        /* ================= WORK IN PROGRESS ======================== */
+        /* ================= PARSE & GET DATA FROM CONFIG FILE ======================== */
 
         std::cout << "Starting..." << std::endl;
 
-        Parse config;
+        Parse rawConfig;
 
-        std::string confFile = config.storeConfigFile(argv[1]);
-        config.fillConfigBlockClass(confFile);
+        std::string confFile = rawConfig.storeConfigFile(argv[1]);
+        rawConfig.fillConfigBlockClass(confFile);
 
-        int port;
-        std::string root;
-        std::string index;
+        ConfigData data;
 
-        std::vector<Block> blocks = config.getConfigBlocks();
-
-        std::vector<Block>::const_iterator it;
-        for (it = blocks.begin(); it != blocks.end(); it++) {
-          
-            std::map<std::string, std::string> parentDirectives = it->getDirective();
-            if (parentDirectives.find("listen") != parentDirectives.end()) {
-                port = myStoi(parentDirectives["listen"]);
-                std::cout << "port = " << port << std::endl;
-
-                const std::vector<Block>& children = it->getChildBlock();            
-                
-                std::vector<Block>::const_iterator itChild;
-                for (itChild = children.begin(); itChild != children.end(); itChild++) {
-                    std::cout << "ICI" << std::endl;
-                    std::map<std::string, std::string> childDirectives = itChild->getDirective();
-                    printMap(itChild->getDirective());
-
-                    if (childDirectives.find("root") != childDirectives.end()) {
-
-                        root = childDirectives["root"];
-                        std::cout << "root = " << root << std::endl;
-                    }
-                    
-                    if (childDirectives.find("index") != childDirectives.end()) {
-                        index = childDirectives["index"];
-                        std::cout << "index = " << index << std::endl;
-                    }
-                }
-            }
-        }
+        data.setConfigData(rawConfig);
 
         /* ================================================================ */
 
-        Server server(AF_INET, SOCK_STREAM, 0, port, INADDR_ANY, 3);
+        Server server(AF_INET, SOCK_STREAM, 0, data.getListen(), INADDR_ANY, 3);
         
         while (1) {
             std::cout << "======= WAITING =======" << std::endl;
-            server.serverHandlingEvents(root, index);
+            server.serverHandlingEvents(data.getRoot(), data.getIndex());
             std::cout << "======= EVENT HANDLING DONE =======" << std::endl;
         }
-
     }
+    else
+        std::cerr << "Invalid Args" << std::endl;
 }

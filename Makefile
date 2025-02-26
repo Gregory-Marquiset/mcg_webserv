@@ -11,7 +11,7 @@ SRCS :=		main.cpp\
 			srcs/configFile/1-parseInput/Block.cpp\
 			srcs/configFile/1-parseInput/Parse.cpp\
 			srcs/configFile/1-parseInput/utils.cpp\
-			# srcs/configFile/2-assignValues.cpp\
+			srcs/configFile/2-assignValues/ConfigData.cpp\
 			
 OBJS := $(SRCS:.cpp=.o)
 

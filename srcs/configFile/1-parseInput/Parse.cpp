@@ -44,6 +44,7 @@ std::string Parse::storeConfigFile(char *file) {
 /* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */
 
 void Parse::fillConfigBlockClass(std::string file) {
+    
     std::string content;
     std::istringstream iss(file);
 
@@ -62,9 +63,10 @@ void Parse::fillConfigBlockClass(std::string file) {
 
     while (getline(iss, content)) {
         if (content.empty())
-            continue;
+            continue ;
 
         for (size_t i = 0; i < content.size(); ++i) {
+            
             if (content[i] == '{') {
                 std::string tmpName = content.substr(0, i);
                 std::string cleanName = trim(tmpName);
@@ -108,6 +110,14 @@ void Parse::fillConfigBlockClass(std::string file) {
                 }
             }
 
+            if (content[i] == '#') {
+                std::string comment = content.substr(i);
+                for (size_t i = 0; i < comment.size(); ++i) {
+                    std::cout << comment[i] << std::endl;
+                }
+                std::cout << comment << std::endl;
+            }
+
             if (content[i] == ';') {
                 std::string tmpDirective = content.substr(0, i);
                 std::string cleanDirective = trim(tmpDirective);
@@ -144,4 +154,6 @@ void Parse::fillConfigBlockClass(std::string file) {
     }
 }
 
+// get blocks and comments -> exctraction 
+// get data -> clean to use 
 
