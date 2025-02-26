@@ -3,7 +3,7 @@
 
 #include "../WebServ.hpp"
 #include "../configFile/Block.hpp"
-#include "../configFile/Parse.hpp"
+#include "../configFile/Recup.hpp"
 #include "../configFile/utils.hpp"
 
 class ConfigData {
@@ -46,7 +46,7 @@ class ConfigData {
 
         /* set the full object config data */
 
-        void setConfigData(Parse rawConfig);
+        void setConfigData(Recup rawConfig);
       
 };
 

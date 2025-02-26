@@ -1,25 +1,25 @@
-#ifndef PARSE_HPP
-#define PARSE_HPP
+#ifndef RECUP_HPP
+#define RECUP_HPP
 
 #include "../WebServ.hpp"
 #include "Block.hpp"
 
-class Parse {
+class Recup {
 
     private:
         std::vector<Block> _configBlocks;
 
     public:
         
-        Parse();
-        ~Parse();
+        Recup();
+        ~Recup();
 
         std::vector<Block>& getConfigBlocks();
 
-        /* fonctions pour parse */
+        /* fonctions pour Recup */
         
         std::string storeConfigFile(char *file);
-        void fillConfigBlockClass(std::string file);
+        void recupBlocks(std::string file);
         
         void handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock);
         void handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock);

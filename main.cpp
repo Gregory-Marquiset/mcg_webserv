@@ -2,7 +2,7 @@
 #include "includes/socketInit/ListeningSocket.hpp"
 #include "includes/serverHandling/Server.hpp"
 #include "includes/configFile/Block.hpp"
-#include "includes/configFile/Parse.hpp"
+#include "includes/configFile/Recup.hpp"
 #include "includes/configFile/utils.hpp"
 #include "includes/assignValues/ConfigData.hpp"
 
@@ -12,10 +12,10 @@ int main(int argc, char **argv) {
         
         /* ================= PARSE & GET DATA FROM CONFIG FILE ======================== */
 
-        Parse rawConfig;
+        Recup rawConfig;
 
         std::string confFile = rawConfig.storeConfigFile(argv[1]);
-        rawConfig.fillConfigBlockClass(confFile);
+        rawConfig.recupBlocks(confFile);
 
         ConfigData data;
 
@@ -32,5 +32,5 @@ int main(int argc, char **argv) {
         }
     }
     else
-        std::cerr << "Invalid Args: usage: ./webserv file.conf" << std::endl;
+        std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
 }

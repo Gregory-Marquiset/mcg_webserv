@@ -1,20 +1,20 @@
-#include "../../../includes/configFile/Parse.hpp"
+#include "../../../includes/configFile/Recup.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-Parse::Parse() {};
+Recup::Recup() {};
 
-Parse::~Parse() {};
+Recup::~Recup() {};
 
 /* ================= GETTERS ======================== */
 
-std::vector<Block>& Parse::getConfigBlocks() {
+std::vector<Block>& Recup::getConfigBlocks() {
     return (this->_configBlocks);
 }
 
-/* ================= WORK IN PROGRESS ======================== */
+/* ================= RECUP DATA ======================== */
 
-std::string Parse::storeConfigFile(char *file) {
+std::string Recup::storeConfigFile(char *file) {
 
     std::string ret;
     std::string content;
@@ -28,22 +28,9 @@ std::string Parse::storeConfigFile(char *file) {
     return (ret);
 }
 
-// un bloc c est forcement un nom + {}
-// des directives c est forcement une cle et une valeur 
+/* fonction principale pour recuperer les blocks */
 
-// read file line by line 
-// -> look for {
-// then look for }
-
-// if another { alors block enfant 
-
-// store everything that is in between
-// get what is on same line that { -> should be name
-// then get directives 
-
-/* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */
-
-void Parse::fillConfigBlockClass(std::string file) {
+void Recup::recupBlocks(std::string file) {
      
     std::string content;
     std::istringstream iss(file);
@@ -87,7 +74,7 @@ void Parse::fillConfigBlockClass(std::string file) {
 
 /* gestion de l entree */
 
-void Parse::handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
+void Recup::handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
 
     std::string tmpName = content.substr(0, i);
     std::string cleanName = trim(tmpName);
@@ -106,7 +93,7 @@ void Parse::handleEntranceBlock(std::string content, size_t i, int &parentFlag, 
 
 /* gestion de la sortie */
 
-void Parse::handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
+void Recup::handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
 
     if (parentFlag == 1 && childFlag == 0) { // la je suis dans un parent 
 
@@ -133,7 +120,7 @@ void Parse::handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstPare
 
 /* initialisation des directives */
 
-void Parse::handleDirectives(std::string content, size_t i, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block &childBlock) {
+void Recup::handleDirectives(std::string content, size_t i, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block &childBlock) {
 
     std::string key = "";
     std::string value = "";
@@ -162,3 +149,20 @@ void Parse::handleDirectives(std::string content, size_t i, int &childFlag, Bloc
     else 
         childBlock.setDirective(key, value);
 }
+
+
+
+// un bloc c est forcement un nom + {}
+// des directives c est forcement une cle et une valeur 
+
+// read file line by line 
+// -> look for {
+// then look for }
+
+// if another { alors block enfant 
+
+// store everything that is in between
+// get what is on same line that { -> should be name
+// then get directives 
+
+/* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */

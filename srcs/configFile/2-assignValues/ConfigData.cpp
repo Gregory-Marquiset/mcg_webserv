@@ -76,7 +76,7 @@ std::string ConfigData::getCgiExtension() const {
 
 /* ================= SET OBJECT CONFIG DATA ======================== */
 
-void ConfigData::setConfigData(Parse rawConfig) {
+void ConfigData::setConfigData(Recup rawConfig) {
 
     std::vector<Block> blocks = rawConfig.getConfigBlocks();
 
