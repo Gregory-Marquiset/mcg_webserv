@@ -3,23 +3,26 @@
 
 #include "../WebServ.hpp"
 #include "ListeningSocket.hpp"
-#include "../configFile/ReadyBlock.hpp"
+#include "../configFile/ServerBlock.hpp"
 
 class Server {
 
   private:
-    ListeningSocket* _listeningSocket;
-    ReadyBlock* _readyBlock;
-    char _buffer[1024];
+    ServerBlock _serverBlock;
+    ListeningSocket _listeningSocket;
 
   public:
-    Server(int domain, int service, int protocol, u_long interface, int bcklg);
+    Server(const ServerBlock& serverBlock);
     ~Server();
 
     /* getters */
 
-    ListeningSocket *getListeningSocket();
-    ReadyBlock *getReadyBlock();
+    ListeningSocket getListeningSocket() const;
+    ServerBlock getServerBlock() const;
+    static std::vector<Server> getAllServers(const std::vector<ServerBlock>& serverBlocks);
+
+    void printServerInfo() const;
+
 };
 
 #endif

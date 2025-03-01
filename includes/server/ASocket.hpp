@@ -17,7 +17,7 @@ class ASocket {
     /* getters */
     
     struct sockaddr_in& getAddress();
-    int getSockFd();
+    int getSockFd() const;
     int getConnection();
     
     /* setter */
@@ -31,7 +31,6 @@ class ASocket {
     /* helper */
 
     void printSocketInfos(int domain, int service, int protocol);
-
 };
 
 #endif

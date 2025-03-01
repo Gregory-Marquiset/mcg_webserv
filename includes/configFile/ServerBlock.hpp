@@ -1,26 +1,25 @@
-#ifndef READYBLOCK_HPP
-#define READYBLOCK_HPP
+#ifndef SERVERBLOCK_HPP
+#define SERVERBLOCK_HPP
 
 #include "../WebServ.hpp"
 #include "Block.hpp"
 #include "RecupBlockContent.hpp"
-// #include "../configFile/utils.hpp"
 
-class ReadyBlock {
+class ServerBlock {
 
     private:
        std::string _server;
        int _listen;
        std::string _serverName;
-       std::string _location;
+       std::string _location; // ca en faire une nouvelle classe
        std::string _root;
        std::string _index;
        std::string _allowMethods;
        std::string _cgiExtension;
 
     public:
-        ReadyBlock();
-        ~ReadyBlock();
+        ServerBlock();
+        ~ServerBlock();
 
         /* setters */
 
@@ -44,10 +43,13 @@ class ReadyBlock {
         std::string getAllowMethods() const;
         std::string getCgiExtension() const;
 
-        /* set the full object config data */
+        /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
 
-        void setReadyBlock(RecupBlockContent rawConfig);
-      
+        void setServerBlock(RecupBlockContent rawConfig); // ca va degager ca je pense -> inutile
+        
+        std::vector<ServerBlock> getAllServerBlocks(RecupBlockContent rawConfig);
+
+        void printServerBlockInfo() const;
 };
 
 #endif

@@ -2,12 +2,13 @@ NAME := webserv
 
 CXX := c++
 
-CXXFLAGS += -Wall -Wextra -Werror -std=c++98 -g3
+CXXFLAGS += -Wall -Wextra -Werror -std=c++11 -g3
 
 SRCS :=		main.cpp\
 			srcs/configFile/Block.cpp\
-			srcs/configFile/ReadyBlock.cpp\
 			srcs/configFile/RecupBlockContent.cpp\
+			srcs/configFile/LocationBlock.cpp\
+			srcs/configFile/ServerBlock.cpp\
 			srcs/server/ASocket.cpp\
 			srcs/server/ListeningSocket.cpp\
 			srcs/server/Server.cpp\

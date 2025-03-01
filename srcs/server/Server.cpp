@@ -2,41 +2,46 @@
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-Server::Server(int domain, int service, int protocol, u_long interface, int bcklg) {
-    
-    memset(this->_buffer, 0, (sizeof(this->_buffer)));
+Server::Server(const ServerBlock& serverBlock)
+    : _serverBlock(serverBlock),
+      _listeningSocket(AF_INET, SOCK_STREAM, 0, _serverBlock.getListen(), INADDR_ANY, 3)
+{
+    std::cout << "Initialisation du serveur " << _serverBlock.getServerName() << " sur le port " << _serverBlock.getListen() << std::endl;
+}
 
-    this->_readyBlock = new ReadyBlock();
-
-    int port = getListen(); // il va falloir que je reussisse a choper le bon block 
-    
-    this->_listeningSocket = new ListeningSocket(domain, service, protocol, port, interface, bcklg);
-
-    
-    /* j ajoute la socket serveur a la struct de control pollfd */ // -> ca va devoir passer dans EPollManager
-    pollfd newSocket;
-    newSocket.fd = this->getListeningSocket()->getSockFd();
-    newSocket.events = POLLIN; // POLLIN = des donnees en attente de lecture
-    this->_allSockets.push_back(newSocket);
-};
-
-Server::~Server() {
-    delete (this->_listeningSocket);
-    delete (this->_readyBlock);
-};
+Server::~Server() {};
 
 /* ================= GETTERS ======================== */
 
-ListeningSocket* Server::getListeningSocket() const {
+ListeningSocket Server::getListeningSocket() const {
     return (this->_listeningSocket);
 }
 
-char* Server::getBuffer() {
-    return (this->_buffer);
+// je sais plus ou je dois mettre ca 
+// char* Server::getBuffer() {
+//     return (this->_buffer);
+// }
+
+ServerBlock Server::getServerBlock() const {
+    return (this->_serverBlock);
 }
 
-ReadyBlock* ReadyBlock::getReadyBlock() const {
-    return (this->_readyBlock);
+std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& serverBlocks) {
+    std::vector<Server> servers;
+
+    for (std::vector<ServerBlock>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it) {
+        servers.push_back(Server(*it)); 
+    }
+
+    return servers;
 }
 
-
+void Server::printServerInfo() const {
+    std::cout << "===== Server Info =====" << std::endl;
+    std::cout << "Server Socket: " << this->_listeningSocket.getSockFd() << std::endl;
+    std::cout << "Server Name: " << this->_serverBlock.getServerName() << std::endl;
+    std::cout << "Port: " << this->_serverBlock.getListen() << std::endl;
+    std::cout << "Root: " << this->_serverBlock.getRoot() << std::endl;
+    std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
+    std::cout << "=======================\n" << std::endl;
+}

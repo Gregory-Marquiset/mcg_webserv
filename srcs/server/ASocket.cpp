@@ -21,7 +21,7 @@ struct sockaddr_in& ASocket::getAddress() {
   return (this->_address);
 }
 
-int ASocket::getSockFd() {
+int ASocket::getSockFd() const {
   return (this->_sockFd);
 }
 

@@ -7,7 +7,7 @@
 class RecupBlockContent {
 
     private:
-        std::vector<Block> _serverBlocks;
+        std::vector<Block> _serverBlocks; // (changer le nom , c est trompeur, les server ne sont pas encore exploitables)
 
     public:
         
@@ -18,16 +18,15 @@ class RecupBlockContent {
 
         std::vector<Block> getServerBlocks();
 
-        /* fonctions pour Recup les blocks servers */
+        /* fonctions pour organiser les blocks */
         
         std::string storeConfigFile(char *file);
         
-        void createServerBlocks(std::string file);
+        void createTree(std::string file);
         
         void handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock);
         void handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock);
         void handleDirectives(std::string content, size_t i, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block &childBlock);
-
 };
 
 std::string trim(const std::string& str);

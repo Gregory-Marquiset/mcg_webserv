@@ -12,7 +12,7 @@ std::vector<Block> RecupBlockContent::getServerBlocks() {
     return (this->_serverBlocks);
 }
 
-/* ================= RECUP SERVER BLOCKS ======================== */
+/* ================= RECUP / HIERARCHISE BLOCKS ======================== */
 
 /* stock le fichier .conf */
 
@@ -30,9 +30,24 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
     return (ret);
 }
 
-/* fonction principale pour recuperer les blocks servers */
+std::string trim(const std::string& str) {
 
-void RecupBlockContent::createServerBlocks(std::string file) {
+    size_t start = 0;
+    while (start < str.size() && isspace(str[start])) {
+        ++start;
+    }
+
+    size_t end = str.size();
+    while (end > start && isspace(str[end - 1])) {
+        --end;
+    }
+
+    return str.substr(start, end - start);
+}
+
+/* fonction principale pour hierarchiser les blocks (arbre parents - enfants) */
+
+void RecupBlockContent::createTree(std::string file) {
      
     std::string content;
     std::istringstream iss(file);
@@ -44,7 +59,7 @@ void RecupBlockContent::createServerBlocks(std::string file) {
     int childFlag = 0;
 
     Block tmpFirstParent;
-    tmpFirstParent.setName("testName");
+    tmpFirstParent.setName("tmpBlock");
     this->_serverBlocks.push_back(tmpFirstParent);
     
     while (getline(iss, content)) {
@@ -74,7 +89,7 @@ void RecupBlockContent::createServerBlocks(std::string file) {
     }
 }
 
-/* gestion de l entree */
+/* gestion de l entree d un block */
 
 void RecupBlockContent::handleEntranceBlock(std::string content, size_t i, int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
 
@@ -93,13 +108,13 @@ void RecupBlockContent::handleEntranceBlock(std::string content, size_t i, int &
     }
 }
 
-/* gestion de la sortie */
+/* gestion de la sortie d un block */
 
 void RecupBlockContent::handleExitBlock(int &parentFlag, int &childFlag, Block &tmpFirstParent, Block &parentBlock, Block& childBlock) {
 
     if (parentFlag == 1 && childFlag == 0) { // la je suis dans un parent 
 
-        if (this->_serverBlocks.back().getName() == "testName") {
+        if (this->_serverBlocks.back().getName() == "tmpBlock") {
             parentBlock = tmpFirstParent;
             this->_serverBlocks.erase(this->_serverBlocks.begin());
         }
@@ -109,7 +124,7 @@ void RecupBlockContent::handleExitBlock(int &parentFlag, int &childFlag, Block &
     }
     else { // la je suis dans un enfant 
         
-        if (this->_serverBlocks.back().getName() == "testName") {
+        if (this->_serverBlocks.back().getName() == "tmpBlock") {
             tmpFirstParent.addChildBlock(childBlock);
         }
         else {
@@ -143,7 +158,7 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
    
     if (childFlag == 0) {
     
-        if (this->_serverBlocks.back().getName() == "testName")
+        if (this->_serverBlocks.back().getName() == "tmpBlock")
             tmpFirstParent.setDirective(key, value);
         else 
             parentBlock.setDirective(key, value);
@@ -151,8 +166,6 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     else 
         childBlock.setDirective(key, value);
 }
-
-
 
 // un bloc c est forcement un nom + {}
 // des directives c est forcement une cle et une valeur 
