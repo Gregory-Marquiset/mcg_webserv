@@ -1,0 +1,15 @@
+classe PollManager pour gerer les fd aussi bien client que server
+classe Server qui inclus la socket d ecoute 
+
+InitBlock -> def d un block
+RecupBlockContent -> extraire les data du .conf
+ReadyBlocks -> lien avec server puisque chaque block parent sera un block server
+
+il faut que la classe Server herite de la classe ListeningSocket et de la classe ReadyBlock
+
+une fois que j ai les ReadyBlocks
+je creer l objet server avec sa listening socket
+
+les sockets servers vont etre ajouter dans epoll()
+lancement de la boucle pour surveiller les eveents
+
