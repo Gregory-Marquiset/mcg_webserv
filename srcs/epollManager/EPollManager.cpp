@@ -68,7 +68,7 @@ void EPollManager::run() {
             if (!isServerSocket) {
                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
-                    handleClientRequest(fd, server->getServerBlock().getRoot(), server->getServerBlock().getIndex());
+                    handleClientRequest(fd, server);
                 } else {
                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
                     close(fd);
@@ -105,7 +105,7 @@ void EPollManager::acceptConnection(int serverFd) {
 }
 
 /*=====REECRITURE FONCTIONS PAR CHARLES=====*/
-void	EPollManager::handleClientRequest(int clientFd, std::string root, std::string index)
+void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
 	std::string		buf;
 	std::string		answer;
@@ -117,7 +117,10 @@ void	EPollManager::handleClientRequest(int clientFd, std::string root, std::stri
 		return ;
 	}
 
-	RequestParser	req_parser(buf);
+	RequestParser	req_parser(serv);
+	req_parser.parseRequest(buf);
+
+
 	ResponseMaker	resp;
 
 	answer = resp.getFinalResponse();

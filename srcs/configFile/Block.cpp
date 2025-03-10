@@ -13,7 +13,7 @@ void Block::setName(std::string name) {
 }
 
 void Block::setDirective(std::string key, std::string value) {
-    this->_directive[key] = value; 
+    this->_directive[key] = value;
 }
 
 /* ================= GETTERS ======================== */

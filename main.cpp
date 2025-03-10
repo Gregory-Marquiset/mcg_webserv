@@ -10,7 +10,7 @@
 int main(int argc, char **argv) {
 
     if (argc == 2) {
-        
+
         /* ================= Analyse le fichier et extrait les blocs ======================== */
 
         RecupBlockContent rawConfig;
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 
         ServerBlock data;
 
-        // data.setServerBlock(rawConfig); // ca je pense je vais delete cette fonction 
+        // data.setServerBlock(rawConfig); // ca je pense je vais delete cette fonction
         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
 
         // for (size_t i = 0; i < serverBlocks.size(); ++i) {
@@ -44,12 +44,12 @@ int main(int argc, char **argv) {
 
         for (size_t i = 0; i < serverBlocks.size(); ++i) {
             servers.push_back(Server(serverBlocks[i]));
-            // servers[i].printServerInfo();
+            servers[i].printServerInfo();
         }
 
-        EPollManager epollManager(servers);
+        // EPollManager epollManager(servers);
 
-        epollManager.run();
+        // epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;

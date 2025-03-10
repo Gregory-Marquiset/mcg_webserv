@@ -6,36 +6,19 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/07 15:45:09 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/10 20:41:40 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/request/RequestParser.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void)
+RequestParser::RequestParser(void) : _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
 {
 }
 
-RequestParser::RequestParser(const std::string request) : _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0) , _full_request(request), _escaped_char(ESCAPED_CHAR)
+RequestParser::RequestParser(Server *serv) : _serv_info(serv), _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
 {
-	if (request.empty())
-	{
-		this->_actual_state = RequestParser::FATAL_ERROR;
-		if (this->_error_code == 0)
-			this->setErrorCode(400);
-		return ;
-	}
-	try
-	{
-		parseRequestLine(this->_full_request);
-		//parseHeaders(this->_full_request);
-		//parseBody(this->_full_request);
-	}
-	catch (RequestParser::RequestException	&req_exc)
-	{
-		std::cerr << req_exc.what() << std::endl;
-	}
 }
 
 // RequestParser::RequestParser(std::string request, std::string root, std::string index) : _root_path(root), _index_path(index)
@@ -78,11 +61,42 @@ void	RequestParser::setErrorCode(int error)
 	this->_error_code = error;
 }
 
+void	RequestParser::setFullRequest(const std::string request)
+{
+	this->_full_request = request;
+}
+
+/* ================= PUBLIC MEMBER FUNCTIONS ======================== */
+void	RequestParser::parseRequest(const std::string request)
+{
+	if (request.empty())
+	{
+		this->_actual_state = RequestParser::FATAL_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		return ;
+	}
+	this->setFullRequest(request);
+	try
+	{
+		parseRequestLine(this->_full_request);
+		parseHeaders(this->_full_request);
+		//check si req.empty(), doit etre si get ou delete, sinon parseBody
+		//parseBody(this->_full_request);
+	}
+	catch (RequestParser::RequestException	&req_exc)
+	{
+		std::cerr << req_exc.what() << std::endl;
+	}
+}
+
+
 /* ================= PRIVATE MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequestLine(std::string &req)
 {
-	parseMethod(req);
-	parseURI(req);
+	this->parseMethod(req);
+	this->parseURI(req);
+	this->parseHTTP(req);
 }
 
 void	RequestParser::parseMethod(std::string &req)
@@ -93,7 +107,7 @@ void	RequestParser::parseMethod(std::string &req)
 	this->_actual_state = RequestParser::METHOD;
 	space_pos = req.find_first_of(" ");
 	method = req.substr(0, space_pos);
-	if (method != "GET" && method != "POST" && method != "DELETE")
+	if (method != "GET" && method != "POST" && method != "DELETE")			//A changer, a verifier dans les infos du serveur
 	{
 		if (this->_error_state == RequestParser::NO_ERROR)
 			this->_error_state = RequestParser::METHOD_ERROR;
@@ -109,7 +123,7 @@ void	RequestParser::parseMethod(std::string &req)
 	// std::cout << "*" << req << "*" << std::endl;
 }
 
-void	RequestParser::parseURI(std::string &req)
+void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir si l'uri correspond à un cgi du serveur
 {
 	std::string	uri;
 	std::string	check_encoded;
@@ -126,6 +140,7 @@ void	RequestParser::parseURI(std::string &req)
 	}
 	space_pos = req.find_first_of(" ");
 	uri = req.substr(0, space_pos);
+	req.erase(0, space_pos + 1);
 	if (uri[0] != '/' || uri.find_first_not_of(VALID_CHARSET) != std::string::npos)
 	{
 		if (this->_error_state == RequestParser::NO_ERROR)
@@ -160,4 +175,136 @@ void	RequestParser::parseURI(std::string &req)
 		}
 	}
 	this->_request_uri = uri;
+}
+
+void	RequestParser::parseHTTP(std::string &req)
+{
+	std::string	http;
+	int			i;
+	long		n;
+
+	this->_actual_state = RequestParser::HTTP;
+	if (req.find("HTTP/") != 0)
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	http += req.substr(0, 5);
+	req.erase(0, 5);
+	i = 0;
+	if (!(req[i] >= '0' && req[i] <= '9'))
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	while (req[i] && (req[i] >= '0' && req[i] <= '9'))
+		i++;
+	n = std::atoi(req.c_str());
+	if (n < 1 || n > std::numeric_limits<int>::max())
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	http += req.substr(0, i);
+	req.erase(0, i);
+	i = 0;
+	if (req[i] == '\r')
+	{
+		req.erase(0, 2);
+		return;
+	}
+	else if (req[i] != '.' || !(req[i + 1] >= '0' && req[i + 1] <= '9'))
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	http += ".";
+	req.erase(0, 1);
+	while (req[i] && (req[i] >= '0' && req[i] <= '9'))
+		i++;
+	n = std::atoi(req.c_str());
+	if (n < 0 || n > std::numeric_limits<int>::max())
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	http += req.substr(0, i);
+	req.erase(0, i);
+	if (req[0] != '\r' && req[1] != '\n')
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HTTP_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid HTTP");
+	}
+	req.erase(0, 2);
+}
+
+// void	RequestParser::printMap(void)
+// {
+//  	for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
+// 	{
+// 		std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
+// 	}
+// }
+
+void	RequestParser::parseHeaders(std::string &req)
+{
+	std::string	temp_key;
+	std::string	temp_value;
+	size_t		pos = 0;
+	size_t		end = 0;
+
+	this->_actual_state = RequestParser::HEADERS;
+	if (req.find("\r\n\r\n") == std::string::npos)
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HEADERS_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("Invalid Headers end");
+	}
+	while (!req.empty())
+	{
+		end = req.find("\r\n");
+		if (end == 0)
+			break;
+		pos = req.find_first_of(":");
+		if (pos == std::string::npos)
+		{
+			if (this->_error_state == RequestParser::NO_ERROR)
+				this->_error_state = RequestParser::HEADERS_ERROR;
+			if (this->_error_code == 0)
+				this->setErrorCode(400);
+			throw RequestParser::RequestException("Invalid Headers");
+		}
+		temp_key = req.substr(0, pos);
+		if (req[pos + 1] == ' ')
+			temp_value = req.substr(pos + 2, end - pos - 2);
+		else
+			temp_value = req.substr(pos + 1, end - pos - 1);
+		this->_request_headers.insert(std::make_pair(temp_key, temp_value));
+		req.erase(0, end + 2);
+	}
+	for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
+	{
+		std::cout << it->first << ": " << it->second << std::endl;
+	}
+	req.erase(0, 2);
 }

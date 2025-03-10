@@ -1,0 +1,9 @@
+Dans le fichier de config, on doit checker pour chaque location si il y a des methodes http(GET, POST, etc) qui sont acceptés
+sinon par defaut mettre (GET, POST, DELETE)
+
+Pour pouvoir traiter les requetes correctement, j'aurais besoin d'avoir accès aux infos du serveur,
+surtout les méthodes acceptés, les différents cgi et path de cgi pour chaque location,
+tout les root et index du serveur(pour le moment Marie j'ai l'impression que tu écrases les location,
+il n'y a que la dernière de chaque serv qui à l'air d'être stocké)
+
+

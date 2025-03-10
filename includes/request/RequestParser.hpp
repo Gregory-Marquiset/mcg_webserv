@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/07 15:37:17 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/10 18:58:07 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,8 +17,10 @@
 #include <string>
 #include <algorithm>
 #include <stdexcept>
+#include <limits>
 #include <map>
 //# include "WebServ.hpp"
+#include "../epollManager/EPollManager.hpp"
 
 # define ESCAPED_CHAR "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F\
 %10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F\
@@ -31,12 +33,14 @@ class	RequestParser
 {
 	public:
 		RequestParser(void);
-		RequestParser(const std::string request);
-		//RequestParser(std::string request, std::string root, std::string index);
+		// RequestParser(const std::string request);
+		RequestParser(Server *serv);
 		RequestParser(RequestParser const &copy);
 		~RequestParser(void);
 
 		RequestParser	&operator=(RequestParser const &inst);
+
+		void			parseRequest(const std::string request);
 
 		enum	e_parse_state
 		{
@@ -55,6 +59,7 @@ class	RequestParser
 			METHOD_ERROR,
 			URI_ERROR,
 			HTTP_ERROR,
+			REQUEST_LINE_ERROR,
 			HEADERS_ERROR,
 			BODY_ERROR,
 			FATAL_ERROR
@@ -75,11 +80,13 @@ class	RequestParser
 		};
 
 	private:
+		Server			*_serv_info;
 		int				_actual_state;
 		int				_error_state;
 		int				_error_code;
 		std::string		_full_request;
 		std::string		_escaped_char;
+		bool			_is_uri_cgi;
 		// Struct de la REQUEST
 		// Request-Line
 		std::string		_request_method;		//GET, POST, DELETE....
@@ -94,15 +101,18 @@ class	RequestParser
 		void			parseRequestLine(std::string &req);
 		void			parseMethod(std::string &req);
 		void			parseURI(std::string &req);
-		//void			parseHTTP(std::string &req);
+		void			parseHTTP(std::string &req);
 
 		//Parsing des Headers
-		//void			parseHeaders(std::string &req);
+		void			parseHeaders(std::string &req);
 
 		//Parsing du body
 		//void			parseBody(std::string &req);
 
 		void			setErrorCode(int error);
+		void			setFullRequest(const std::string request);
+
+		void			printMap(void);
 };
 
 #endif
