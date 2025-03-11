@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/10 20:41:40 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/11 11:03:55 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,29 @@ void	RequestParser::setErrorCode(int error)
 void	RequestParser::setFullRequest(const std::string request)
 {
 	this->_full_request = request;
+}
+
+
+/* ================= NON MEMBER FUNCTIONS ======================== */
+static bool	is_non_printable(char c)
+{
+	return (!std::isprint(static_cast<unsigned char>(c)));
+}
+
+static bool	is_space(char c)
+{
+	return (std::isspace(static_cast<unsigned char>(c)));
+}
+
+static bool	is_value_valid(char c)
+{
+	if (c == ' ' || c == '\t')
+		return (false);
+	if (!std::isprint(static_cast<unsigned char>(c)))
+		return (true);
+	if (std::isspace(static_cast<unsigned char>(c)))
+		return (true);
+	return (false);
 }
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
@@ -266,10 +289,12 @@ void	RequestParser::parseHTTP(std::string &req)
 
 void	RequestParser::parseHeaders(std::string &req)
 {
-	std::string	temp_key;
-	std::string	temp_value;
-	size_t		pos = 0;
-	size_t		end = 0;
+	std::string::iterator	it;
+	std::string::iterator	its;
+	std::string				temp_key;
+	std::string				temp_value;
+	size_t					pos = 0;
+	size_t					end = 0;
 
 	this->_actual_state = RequestParser::HEADERS;
 	if (req.find("\r\n\r\n") == std::string::npos)
@@ -286,25 +311,46 @@ void	RequestParser::parseHeaders(std::string &req)
 		if (end == 0)
 			break;
 		pos = req.find_first_of(":");
-		if (pos == std::string::npos)
+		if (pos == std::string::npos || pos > end)
 		{
 			if (this->_error_state == RequestParser::NO_ERROR)
 				this->_error_state = RequestParser::HEADERS_ERROR;
 			if (this->_error_code == 0)
 				this->setErrorCode(400);
-			throw RequestParser::RequestException("Invalid Headers");
+			throw RequestParser::RequestException("Invalid Headers Key");
 		}
 		temp_key = req.substr(0, pos);
-		if (req[pos + 1] == ' ')
-			temp_value = req.substr(pos + 2, end - pos - 2);
-		else
+		it = std::find_if(temp_key.begin(), temp_key.end(), is_non_printable);
+		its = std::find_if(temp_key.begin(), temp_key.end(), is_space);
+		if (it != temp_key.end() || its != temp_key.end())
+		{
+			if (this->_error_state == RequestParser::NO_ERROR)
+				this->_error_state = RequestParser::HEADERS_ERROR;
+			if (this->_error_code == 0)
+				this->setErrorCode(400);
+			throw RequestParser::RequestException("Invalid Headers Key2");
+		}
+		if (req.find_first_not_of(" \t", pos + 1) == pos + 1)
 			temp_value = req.substr(pos + 1, end - pos - 1);
+		else if (req.find_first_not_of(" \t", pos + 1) == end)
+			temp_value = "";
+		else
+		{
+			pos = req.find_first_not_of(" \t", pos + 1);
+			temp_value = req.substr(pos, end - pos);
+		}
+		its = std::find_if(temp_value.begin(), temp_value.end(), is_value_valid);
+		if (its != temp_value.end())
+		{
+			std::cout << "*" << temp_value << "*" << std::endl;
+			throw RequestParser::RequestException("Invalid Headers Value");
+		}
 		this->_request_headers.insert(std::make_pair(temp_key, temp_value));
 		req.erase(0, end + 2);
 	}
 	for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
 	{
-		std::cout << it->first << ": " << it->second << std::endl;
+		std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
 	}
 	req.erase(0, 2);
 }
