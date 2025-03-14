@@ -108,17 +108,29 @@ void EPollManager::acceptConnection(int serverFd) {
 void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
 	std::string		buf;
+	std::string		request;
 	std::string		answer;
-	ssize_t			bytes_read = recv(clientFd, &buf, sizeof(buf), 0);
+	ssize_t			bytes_read;
 
-	if (bytes_read <= 0)
+	while (buf.find("\r\n\r\n") == std::string::npos)
 	{
-		close(clientFd);
-		return ;
+		bytes_read = recv(clientFd, &buf, sizeof(buf), 0);
+		if (bytes_read <= 0)
+		{
+			//close(clientFd);
+			break;
+		}
+		request += buf;
 	}
 
+	// if (bytes_read <= 0)
+	// {
+	// 	close(clientFd);
+	// 	return ;
+	// }
+
 	RequestParser	req_parser(serv);
-	req_parser.parseRequest(buf);
+	req_parser.parseRequest(request, clientFd);
 
 
 	ResponseMaker	resp;

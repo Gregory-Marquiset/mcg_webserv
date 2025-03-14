@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/11 11:03:55 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/13 22:27:37 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,8 +90,10 @@ static bool	is_value_valid(char c)
 }
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
-void	RequestParser::parseRequest(const std::string request)
+void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
+	(void)clientFd;
+
 	if (request.empty())
 	{
 		this->_actual_state = RequestParser::FATAL_ERROR;
@@ -104,8 +106,9 @@ void	RequestParser::parseRequest(const std::string request)
 	{
 		parseRequestLine(this->_full_request);
 		parseHeaders(this->_full_request);
-		//check si req.empty(), doit etre si get ou delete, sinon parseBody
-		//parseBody(this->_full_request);
+		validateHeaders();
+		if (this->_request_method == "POST")
+			parseBody(this->_full_request, clientFd);
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{
@@ -342,15 +345,102 @@ void	RequestParser::parseHeaders(std::string &req)
 		its = std::find_if(temp_value.begin(), temp_value.end(), is_value_valid);
 		if (its != temp_value.end())
 		{
-			std::cout << "*" << temp_value << "*" << std::endl;
+			//std::cout << "*" << temp_value << "*" << std::endl;
 			throw RequestParser::RequestException("Invalid Headers Value");
 		}
 		this->_request_headers.insert(std::make_pair(temp_key, temp_value));
 		req.erase(0, end + 2);
 	}
-	for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
-	{
-		std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
-	}
+	// for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
+	// {
+	// 	std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
+	// }
 	req.erase(0, 2);
+}
+
+void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais pour le moment je sais pas
+{													// besoin de faire des tests avec des vrais requetes
+	std::map<std::string, std::string>::iterator	it;
+	std::string			cntt_type;
+	bool				host = 0;
+
+	for (it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
+	{
+		if (it->first == "Host")
+		{
+			host = 1;
+			this->_host = it->second;
+		}
+		else if (it->first == "Content-Length")
+		{
+			this->_cnt_lenght = 1;
+			if (it->second.find_first_not_of("0123456789") != std::string::npos)
+			{
+				if (this->_error_state == RequestParser::NO_ERROR)
+					this->_error_state = RequestParser::HEADERS_ERROR;
+				if (this->_error_code == 0)
+					this->setErrorCode(400);
+				throw RequestParser::RequestException("Invalid Header Content-Length");
+			}
+			this->_content_length = std::strtoul(it->second.c_str(), NULL, 0);
+		}
+		else if (it->first == "Transfer-Encoding")
+		{
+			this->_transfert_encoding = 1;
+			if (it->second == "identity")
+			{
+				if (this->_error_state == RequestParser::NO_ERROR)
+					this->_error_state = RequestParser::HEADERS_ERROR;
+				if (this->_error_code == 0)
+					this->setErrorCode(400);
+				throw RequestParser::RequestException("Transfer-encoding error");
+			}
+		}
+		else if (it->first == "Content-Type")
+		{
+			this->_content_type = it->second;
+		}
+	}
+	if (host == 0)
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HEADERS_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("No Host header");
+	}
+	if (this->_request_method == "POST" && this->_cnt_lenght == 0 && this->_transfert_encoding == 0)
+	{
+		if (this->_error_state == RequestParser::NO_ERROR)
+			this->_error_state = RequestParser::HEADERS_ERROR;
+		if (this->_error_code == 0)
+			this->setErrorCode(400);
+		throw RequestParser::RequestException("No body length");
+	}
+}
+
+
+void	RequestParser::parseBody(std::string &req, int clientFd)
+{
+	//A RAJOUTER !! : check dans fichier config si body size limite
+	this->_actual_state = RequestParser::BODY;
+	if (this->_content_length == 0 && this->_transfert_encoding == 0)
+		return;
+	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
+	{
+		if (this->_content_length != req.size())
+		{
+			if (this->_error_state == RequestParser::NO_ERROR)
+				this->_error_state = RequestParser::BODY_ERROR;
+			if (this->_error_code == 0)
+				this->setErrorCode(400);
+			throw RequestParser::RequestException("No body length");
+		}
+		this->_request_body = req.substr(0, this->_content_length);
+		return ;
+	}
+	if (this->_transfert_encoding == 1)
+	{
+		
+	}
 }

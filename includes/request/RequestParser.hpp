@@ -6,19 +6,20 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/11 09:18:05 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/13 22:05:22 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 
-#include <iostream>
-#include <string>
 #include <algorithm>
-#include <stdexcept>
+#include <cstdlib>
+#include <iostream>
 #include <limits>
 #include <map>
+#include <stdexcept>
+#include <string>
 //# include "WebServ.hpp"
 #include "../epollManager/EPollManager.hpp"
 
@@ -40,7 +41,7 @@ class	RequestParser
 
 		RequestParser	&operator=(RequestParser const &inst);
 
-		void			parseRequest(const std::string request);
+		void			parseRequest(const std::string request, int clientFd);
 
 		enum	e_parse_state
 		{
@@ -82,11 +83,19 @@ class	RequestParser
 	private:
 		Server			*_serv_info;
 		int				_actual_state;
+		std::string		_full_request;
 		int				_error_state;
 		int				_error_code;
-		std::string		_full_request;
 		std::string		_escaped_char;
 		bool			_is_uri_cgi;
+
+		// Stockage des infos
+		std::string		_host;
+		std::string		_content_type;
+		unsigned long	_content_length;
+		bool			_cnt_lenght;
+		bool			_transfert_encoding;
+
 		// Struct de la REQUEST
 		// Request-Line
 		std::string		_request_method;		//GET, POST, DELETE....
@@ -105,9 +114,10 @@ class	RequestParser
 
 		//Parsing des Headers
 		void			parseHeaders(std::string &req);
+		void			validateHeaders(void);
 
 		//Parsing du body
-		//void			parseBody(std::string &req);
+		void			parseBody(std::string &req, int clientFd);
 
 		void			setErrorCode(int error);
 		void			setFullRequest(const std::string request);
