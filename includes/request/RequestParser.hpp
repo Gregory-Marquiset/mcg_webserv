@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/13 22:05:22 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/17 15:38:49 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,8 +27,8 @@
 %10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F\
 %20%22%23%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3C%3D\
 %3E%3F%40%5B%5C%5D%5E%5F%60%7B%7C%7D"
-
 # define VALID_CHARSET "!$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
+# define BUFFER_SIZE 4096
 
 class	RequestParser
 {

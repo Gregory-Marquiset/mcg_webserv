@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/13 22:27:37 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/17 15:43:53 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -423,24 +423,42 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 void	RequestParser::parseBody(std::string &req, int clientFd)
 {
 	//A RAJOUTER !! : check dans fichier config si body size limite
+	std::string	buf = req;
+	std::string	temp_buf;
+	size_t		bytes_received;
+
 	this->_actual_state = RequestParser::BODY;
 	if (this->_content_length == 0 && this->_transfert_encoding == 0)
 		return;
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
 	{
-		if (this->_content_length != req.size())
+		temp_buf.resize(BUFFER_SIZE);
+		while (req.size() < this->_content_length)
 		{
-			if (this->_error_state == RequestParser::NO_ERROR)
-				this->_error_state = RequestParser::BODY_ERROR;
-			if (this->_error_code == 0)
-				this->setErrorCode(400);
-			throw RequestParser::RequestException("No body length");
+			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+			if (bytes_received <= 0)
+			{
+				if (this->_error_state == RequestParser::NO_ERROR)
+					this->_error_state = RequestParser::BODY_ERROR;
+				if (this->_error_code == 0)
+					this->setErrorCode(400);
+				throw RequestParser::RequestException("Error with body");
+			}
+			req += temp_buf;
+			if (req.size() > this->_content_length)
+			{
+				if (this->_error_state == RequestParser::NO_ERROR)
+					this->_error_state = RequestParser::BODY_ERROR;
+				if (this->_error_code == 0)
+					this->setErrorCode(400);
+				throw RequestParser::RequestException("Wrong body size");
+			}
 		}
 		this->_request_body = req.substr(0, this->_content_length);
 		return ;
 	}
 	if (this->_transfert_encoding == 1)
 	{
-		
+
 	}
 }

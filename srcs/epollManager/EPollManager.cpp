@@ -112,9 +112,10 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::string		answer;
 	ssize_t			bytes_read;
 
+	buf.resize(4096);
 	while (buf.find("\r\n\r\n") == std::string::npos)
 	{
-		bytes_read = recv(clientFd, &buf, sizeof(buf), 0);
+		bytes_read = recv(clientFd, &buf[0], 4096, 0);
 		if (bytes_read <= 0)
 		{
 			//close(clientFd);
