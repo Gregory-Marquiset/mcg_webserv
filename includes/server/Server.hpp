@@ -23,6 +23,8 @@ class Server {
 
     void printServerInfo() const;
 
+    // /* path handler */
+    // void pathHandler()
 };
 
 #endif

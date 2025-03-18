@@ -20,7 +20,7 @@ void ServerBlock::setServerName(std::string serverName) {
     this->_serverName = serverName;
 }
 
-void ServerBlock::setLocation(std::string location) {
+void ServerBlock::setLocation(std::vector<LocationBlock> location) {
     this->_location = location;
 }
 
@@ -54,7 +54,7 @@ std::string ServerBlock::getServerName() const {
     return (this->_serverName);
 }
 
-std::string ServerBlock::getLocation() const {
+std::vector<LocationBlock> ServerBlock::getLocation() const {
     return (this->_location);
 }
 
@@ -74,7 +74,7 @@ std::string ServerBlock::getCgiExtension() const {
     return (this->_cgiExtension);
 }
 
-/* ================= SET OBJECT SERVERBLOCK ======================== */
+/* ================= HELPERS ======================== */
 
 int myStoi(std::string& s) {
     int i;
@@ -82,124 +82,53 @@ int myStoi(std::string& s) {
     return i;
 }
 
-void ServerBlock::setServerBlock(RecupBlockContent rawConfig) {
-    
-    std::vector<Block> serverBlocks = rawConfig.getServerBlocks();
-
-    std::vector<Block>::const_iterator it;
-
-    /* assignation des directives parentes */
-    int i = 0;
-    for (it = serverBlocks.begin(); it != serverBlocks.end(); it++) {
-        
-        if (it->getName() == "server") {
-            std::cout << i << std::endl;
-            i++;
-            std::map<std::string, std::string> parentDirectives = it->getDirective();
-
-            if (parentDirectives.find("listen") != parentDirectives.end()) {
-                this->setListen(myStoi(parentDirectives["listen"]));
-                std::cout << myStoi(parentDirectives["listen"]) << std::endl;
-            }
-    
-            if (parentDirectives.find("server_name") != parentDirectives.end()) {
-                this->setServerName(parentDirectives["server_name"]);
-            }
-    
-            if (parentDirectives.find("location") != parentDirectives.end()) {
-                this->setServerName(parentDirectives["location"]);
-            }
-    
-            /* assignation des directives enfants */
-    
-            const std::vector<Block>& children = it->getChildBlock();            
-            
-            std::vector<Block>::const_iterator itChild;
-            
-            for (itChild = children.begin(); itChild != children.end(); itChild++) {
-            
-                std::map<std::string, std::string> childDirectives = itChild->getDirective();
-    
-                if (childDirectives.find("root") != childDirectives.end()) {
-                    this->setRoot(childDirectives["root"]);
-                }
-                
-                if (childDirectives.find("index") != childDirectives.end()) {
-                    this->setIndex(childDirectives["index"]);
-                }
-    
-                if (childDirectives.find("allow_methods") != childDirectives.end()) {
-                    this->setAllowMethods(childDirectives["allow_methods"]);
-                }
-                
-                if (childDirectives.find("cgi_extension") != childDirectives.end()) {
-                    this->setCgiExtension(childDirectives["cgi_extension"]);
-                }
-            }
-        }
-    }
+void ServerBlock::addLocationBlock(const LocationBlock& location) {
+    this->_location.push_back(location);
 }
 
-std::vector<ServerBlock> ServerBlock::getAllServerBlocks(RecupBlockContent rawConfig) {
-    
-    std::vector<ServerBlock> cleanServers;
+/* ================= SET OBJECT SERVERBLOCK ======================== */
 
+std::vector<ServerBlock> ServerBlock::getAllServerBlocks(RecupBlockContent rawConfig) {
+    std::vector<ServerBlock> cleanServers;
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
-    for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); it++) {
-        
+    for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
         if (it->getName() == "server") {
-
             ServerBlock oneServerBlock;
+            std::map<std::string, std::string> directive = it->getDirective();
 
-            std::map<std::string, std::string> parentDirectives = it->getDirective();
-    
-            if (parentDirectives.find("listen") != parentDirectives.end()) {
-                int port = myStoi(parentDirectives["listen"]);
-                oneServerBlock.setListen(port); 
+            if (directive.find("listen") != directive.end()) {
+                oneServerBlock.setListen(myStoi(directive["listen"]));
             }
-    
-            if (parentDirectives.find("server_name") != parentDirectives.end()) {
-                oneServerBlock.setServerName(parentDirectives["server_name"]);
+            if (directive.find("server_name") != directive.end()) {
+                oneServerBlock.setServerName(directive["server_name"]);
             }
-    
-            if (parentDirectives.find("location") != parentDirectives.end()) {
-                oneServerBlock.setServerName(parentDirectives["location"]);
-            }
-    
-            const std::vector<Block>& children = it->getChildBlock();
-            for (std::vector<Block>::const_iterator itChild = children.begin(); itChild != children.end(); ++itChild) {
-                std::map<std::string, std::string> childDirectives = itChild->getDirective();
-    
-                if (childDirectives.find("root") != childDirectives.end()) {
-                    oneServerBlock.setRoot(childDirectives["root"]);
+
+            const std::vector<Block>& locations = it->getChildBlock();
+            for (std::vector<Block>::const_iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
+                LocationBlock locBlock;
+                std::map<std::string, std::string> locationDirective = itLocation->getDirective();
+
+                if (locationDirective.find("root") != locationDirective.end()) {
+                    locBlock.setRoot(locationDirective["root"]);
                 }
-                
-                if (childDirectives.find("index") != childDirectives.end()) {
-                    oneServerBlock.setIndex(childDirectives["index"]);
+                if (locationDirective.find("index") != locationDirective.end()) {
+                    locBlock.setIndex(locationDirective["index"]);
                 }
-    
-                if (childDirectives.find("allow_methods") != childDirectives.end()) {
-                    oneServerBlock.setAllowMethods(childDirectives["allow_methods"]);
+                if (locationDirective.find("allow_methods") != locationDirective.end()) {
+                    locBlock.setAllowMethods(locationDirective["allow_methods"]);
+                    std::cout << "hihihihi\n";
                 }
-                
-                if (childDirectives.find("cgi_extension") != childDirectives.end()) {
-                    oneServerBlock.setCgiExtension(childDirectives["cgi_extension"]);
+                if (locationDirective.find("cgi_extension") != locationDirective.end()) {
+                    locBlock.setCgiExtension(locationDirective["cgi_extension"]);
                 }
+
+                locBlock.setPath(itLocation->getName());
+                oneServerBlock.addLocationBlock(locBlock);
             }
 
             cleanServers.push_back(oneServerBlock);
         }
     }
-
-    return cleanServers; 
-}
-
-void ServerBlock::printServerBlockInfo() const {
-    std::cout << "===== Server Info =====" << std::endl;
-    std::cout << "Server Name: " << this->getServerName() << std::endl;
-    std::cout << "Port: " << this->getListen() << std::endl;
-    std::cout << "Root: " << this->getRoot() << std::endl;
-    std::cout << "Index: " << this->getIndex() << std::endl;
-    std::cout << "=======================\n" << std::endl;
+    return cleanServers;
 }

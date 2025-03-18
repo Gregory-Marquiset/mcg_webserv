@@ -2,6 +2,9 @@
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
+// epoll_create1(0) crée un file descriptor epoll. 
+// S'il échoue, un message d'erreur est affiché, et le programme quitte immédiatement.
+
 EPollManager::EPollManager(const std::vector<Server>& servers) {
 
     this->_servers = servers;
@@ -12,6 +15,8 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
         exit(EXIT_FAILURE);
     }
 
+    // parcourt tous les serveurs et ajoute leur socket d'écoute (socket principale) 
+    // au file descriptor epoll via addSocketToEpoll.
     std::vector<Server>::iterator it;
     for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
         addSocketToEpoll(it->getListeningSocket().getSockFd());
@@ -25,6 +30,10 @@ EPollManager::~EPollManager() {
 
 /* ================= UTILS ======================== */
 
+// Cette fonction ajoute une socket spécifique au système epoll 
+// pour surveiller les événements de lecture (EPOLLIN).
+// Cet événement est configuré pour détecter les données disponibles en lecture (EPOLLIN).
+// epoll_ctl() ajoute (EPOLL_CTL_ADD) la socket fd au descripteur epoll _epollFd
 void EPollManager::addSocketToEpoll(int fd) {
     
     struct epoll_event event;
@@ -37,9 +46,10 @@ void EPollManager::addSocketToEpoll(int fd) {
     }
 }
 
+// epoll_wait() bloque jusqu'à ce qu'un événement survienne. Il remplit _events avec les descripteurs actifs. En cas d'erreur, le programme s'arrête.
 void EPollManager::run() {
 
-    const int MAX_EVENTS = 10;
+    const int MAX_EVENTS = 10; // le nombre maximal d'événements à traiter simultanément
     this->_events.resize(MAX_EVENTS);
 
     while (1) {
@@ -66,7 +76,7 @@ void EPollManager::run() {
             if (!isServerSocket) {
                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
-                    handleClientRequest(fd, server->getServerBlock().getRoot(), server->getServerBlock().getIndex());
+                    handleClientRequest(fd, server->getServerBlock().getRoot(), server->getServerBlock().getLocation()[0].getIndex());
                 } else {
                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
                     close(fd);
@@ -76,6 +86,24 @@ void EPollManager::run() {
         
     }
 }
+
+// Initialisation (EPollManager)
+
+//     Crée epoll.
+//     Ajoute les sockets des serveurs à epoll.
+
+// Boucle principale (run())
+
+//     Attend des événements avec epoll_wait().
+//     Si un serveur est détecté : accepter une connexion (acceptConnection()).
+//     Si un client est détecté : traiter sa requête (handleClientRequest()).
+
+// Gestion des connexions (acceptConnection())
+
+//     Accepte le client via accept().
+//     Associe la socket client au bon serveur.
+//     Ajoute la socket client à epoll.
+
 
 // (le accept() va dupliquer server socket
 // et c est ce qui permet de laisser le socket serveur libre de toujours ecouter
@@ -124,6 +152,7 @@ void EPollManager::handleClientRequest(int clientFd, std::string root, std::stri
     if (method == "GET") {
         (void)root;
         std::string filePath = index;
+        std::cout << "aaaaaaaaaaaaaaaaaaa -> " << filePath << std::endl;
         responseFromServer(clientFd, filePath);
     } else {
         send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
