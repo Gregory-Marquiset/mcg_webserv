@@ -16,12 +16,6 @@ Server::~Server() {};
 ListeningSocket Server::getListeningSocket() const {
     return (this->_listeningSocket);
 }
-
-// je sais plus ou je dois mettre ca
-// char* Server::getBuffer() {
-//     return (this->_buffer);
-// }
-
 ServerBlock Server::getServerBlock() const {
     return (this->_serverBlock);
 }
@@ -32,8 +26,7 @@ std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& server
     for (std::vector<ServerBlock>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it) {
         servers.push_back(Server(*it));
     }
-
-    return servers;
+    return (servers);
 }
 
 void Server::printServerInfo() const {
@@ -45,5 +38,13 @@ void Server::printServerInfo() const {
     std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
     std::cout << "Allow method: " << this->_serverBlock.getAllowMethods() << std::endl;
     std::cout << "CGI extension: " << this->_serverBlock.getCgiExtension() << std::endl;
+
+    for (size_t i = 0; i < this->_serverBlock.getLocation().size(); ++i) {
+        std::cout << "Location Path: " << this->_serverBlock.getLocation()[i].getPath() << std::endl;
+        std::cout << "  Root: " << this->_serverBlock.getLocation()[i].getRoot() << std::endl;
+        std::cout << "  Index: " << this->_serverBlock.getLocation()[i].getIndex() << std::endl;
+        std::cout << "  AllowMethods: " << this->_serverBlock.getLocation()[i].getAllowMethods() << std::endl;
+        std::cout << "  CGI extensions: " << this->_serverBlock.getLocation()[i].getCgiExtension() << std::endl;
+    }
     std::cout << "=======================\n" << std::endl;
 }

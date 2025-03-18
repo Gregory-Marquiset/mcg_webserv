@@ -4,6 +4,7 @@
 #include "../WebServ.hpp"
 #include "Block.hpp"
 #include "RecupBlockContent.hpp"
+#include "LocationBlock.hpp"
 
 class ServerBlock {
 
@@ -11,7 +12,7 @@ class ServerBlock {
        std::string _server;
        int _listen;
        std::string _serverName;
-       std::string _location; // ca en faire une nouvelle classe
+       std::vector<LocationBlock> _location;
        std::string _root;
        std::string _index;
        std::string _allowMethods;
@@ -26,7 +27,7 @@ class ServerBlock {
         void setServer(std::string server);
         void setListen(int listen);
         void setServerName(std::string serverName);
-        void setLocation(std::string location);
+        void setLocation(std::vector<LocationBlock> location);
         void setRoot(std::string root);
         void setIndex(std::string index);
         void setAllowMethods(std::string allowMethods);
@@ -37,19 +38,16 @@ class ServerBlock {
         std::string getServer() const;
         int getListen() const;
         std::string getServerName() const;
-        std::string getLocation() const;
+        std::vector<LocationBlock> getLocation() const;
         std::string getRoot() const;
         std::string getIndex() const;
         std::string getAllowMethods() const;
         std::string getCgiExtension() const;
 
+        void addLocationBlock(const LocationBlock& location);
+
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
-
-        void setServerBlock(RecupBlockContent rawConfig); // ca va degager ca je pense -> inutile
-        
         std::vector<ServerBlock> getAllServerBlocks(RecupBlockContent rawConfig);
-
-        void printServerBlockInfo() const;
 };
 
 #endif

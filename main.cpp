@@ -3,6 +3,7 @@
 #include "includes/server/Server.hpp"
 #include "includes/configFile/Block.hpp"
 #include "includes/configFile/RecupBlockContent.hpp"
+#include "includes/configFile/LocationBlock.hpp"
 #include "includes/configFile/ServerBlock.hpp"
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
@@ -18,27 +19,12 @@ int main(int argc, char **argv) {
         std::string confFile = rawConfig.storeConfigFile(argv[1]);
         rawConfig.createTree(confFile);
 
-        // LocationBlock loc;
-
-        // std::vector<LocationBlock> locationBlocks = loc.getAllLocationBlocks(rawConfig);
-
-        // for (size_t i = 0; i < locationBlocks.size(); ++i) {
-        //     locationBlocks[i].printLocationBlockInfo();
-        // }
-
-
         /* ================= Transforme les blocs en objets exploitables ======================== */
 
         ServerBlock data;
-
-        // data.setServerBlock(rawConfig); // ca je pense je vais delete cette fonction
         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
 
-        // for (size_t i = 0; i < serverBlocks.size(); ++i) {
-        //     serverBlocks[i].printServerBlockInfo();
-        // }
-
-        /* ================= Transforme les blocs en objets exploitables ======================== */
+        /* ================= Transforme les blocs en servers ======================== */
 
         std::vector<Server> servers;
 
@@ -46,9 +32,9 @@ int main(int argc, char **argv) {
             servers.push_back(Server(serverBlocks[i]));
             servers[i].printServerInfo();
         }
+        /* ================= Les servers sont sous surveillance ======================== */
 
-        // EPollManager epollManager(servers);
-
+        EPollManager epollManager(servers);
         // epollManager.run();
     }
     else
