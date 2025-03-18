@@ -111,43 +111,79 @@ std::vector<ServerBlock> ServerBlock::getAllServerBlocks(RecupBlockContent rawCo
             std::map<std::string, std::string> directive = it->getDirective();
 
             if (directive.find("listen") != directive.end()) {
+                // checkListenformat();
                 oneServerBlock.setListen(myStoi(directive["listen"]));
             }
             if (directive.find("server_name") != directive.end()) {
                 oneServerBlock.setServerName(directive["server_name"]);
             }
+            if (directive.find("root") != directive.end()) {
+                // checkRootFormat();
+                oneServerBlock.setRoot(directive["root"]);
+            }
+            if (directive.find("index") != directive.end()) {
+                // checkIndexFormat();
+                oneServerBlock.setIndex(directive["index"]);
+            }
 
             const std::vector<Block>& locations = it->getChildBlock();
+            
             for (std::vector<Block>::const_iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
+                
                 LocationBlock locBlock;
+                
+                
                 std::map<std::string, std::string> locationDirective = itLocation->getDirective();
-
+                
                 if (locationDirective.find("root") != locationDirective.end()) {
+                    // checkRootFormat();
                     locBlock.setRoot(locationDirective["root"]);
                 }
                 if (locationDirective.find("index") != locationDirective.end()) {
+                    // checkIndexFormat();
                     locBlock.setIndex(locationDirective["index"]);
                 }
                 if (locationDirective.find("allow_methods") != locationDirective.end()) {
+                    // checkAllowMethodsFormat();
                     locBlock.setAllowMethods(locationDirective["allow_methods"]);
                     flag = 1;
                 }
                 if (locationDirective.find("cgi_extension") != locationDirective.end()) {
+                    // check CgiExtensionFormat();
                     locBlock.setCgiExtension(locationDirective["cgi_extension"]);
                 }
                 if (locationDirective.find("client_max_body_size") != locationDirective.end()) {
                     locBlock.setClientMaxBodySize(locationDirective["client_max_body_size"]);
                 }
-
+                
                 locBlock.setPath(itLocation->getName());
+                // checkForPathFormat();
                 oneServerBlock.addLocationBlock(locBlock);
             }
 
-            // if (flag == 0)
-            //     oneServerBlock.setAllowMethods(directive["GET POST DELETE"]);
+            if (flag == 0) {
+                std::cout << "coucou\n";
+                oneServerBlock.setAllowMethods("GET POST DELETE");
+            }
 
             cleanServers.push_back(oneServerBlock);
         }
     }
     return (cleanServers);
 }
+
+// check que plusieurs serveurs peuvent etre conf sur le meme port
+// ca faut que je revoie l architecture de comment je stocke mes donnees depuis parent ou enfant
+
+// check pour les doublons de roots
+// check pour les doublons d index
+// check pour les doublons de location path
+// check pour invalid IP
+// check pour invalid port
+
+// le double listen doit etre possible
+
+// root dans location / {}
+
+//     Quand vous définissez root à l'intérieur de location / {}, cela remplace le root défini au-dessus.
+//     Le index de location / {} doit être relatif au root défini dedans.

@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
         /* ================= Les servers sont sous surveillance ======================== */
 
         EPollManager epollManager(servers);
-        // epollManager.run();
+            epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
