@@ -8,6 +8,7 @@
 class LocationBlock {
 
     private:
+       std::string _path;
        std::string _root;
        std::string _index;
        std::string _allowMethods;
@@ -19,6 +20,7 @@ class LocationBlock {
 
         /* setters */
 
+        void setPath(std::string path);
         void setRoot(std::string root);
         void setIndex(std::string index);
         void setAllowMethods(std::string allowMethods);
@@ -26,16 +28,11 @@ class LocationBlock {
         
         /* getters */
 
+        std::string getPath() const;
         std::string getRoot() const;
         std::string getIndex() const;
         std::string getAllowMethods() const;
         std::string getCgiExtension() const;
-
-        /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
-        
-        std::vector<LocationBlock> getAllLocationBlocks(RecupBlockContent rawConfig);
-
-        void printLocationBlockInfo() const;
 };
 
 #endif
