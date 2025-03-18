@@ -16,7 +16,6 @@ Server::~Server() {};
 ListeningSocket Server::getListeningSocket() const {
     return (this->_listeningSocket);
 }
-
 ServerBlock Server::getServerBlock() const {
     return (this->_serverBlock);
 }
@@ -25,7 +24,7 @@ std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& server
     std::vector<Server> servers;
 
     for (std::vector<ServerBlock>::const_iterator it = serverBlocks.begin(); it != serverBlocks.end(); ++it) {
-        servers.push_back(Server(*it)); 
+        servers.push_back(Server(*it));
     }
     return (servers);
 }
@@ -35,6 +34,10 @@ void Server::printServerInfo() const {
     std::cout << "Server Socket: " << this->_listeningSocket.getSockFd() << std::endl;
     std::cout << "Server Name: " << this->_serverBlock.getServerName() << std::endl;
     std::cout << "Port: " << this->_serverBlock.getListen() << std::endl;
+    std::cout << "Root: " << this->_serverBlock.getRoot() << std::endl;
+    std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
+    std::cout << "Allow method: " << this->_serverBlock.getAllowMethods() << std::endl;
+    std::cout << "CGI extension: " << this->_serverBlock.getCgiExtension() << std::endl;
 
     for (size_t i = 0; i < this->_serverBlock.getLocation().size(); ++i) {
         std::cout << "Location Path: " << this->_serverBlock.getLocation()[i].getPath() << std::endl;

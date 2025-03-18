@@ -13,7 +13,7 @@ SRCS :=		main.cpp\
 			srcs/server/ListeningSocket.cpp\
 			srcs/server/Server.cpp\
 			srcs/epollManager/EPollManager.cpp\
-			
+
 OBJS := $(SRCS:.cpp=.o)
 
 all: $(NAME)

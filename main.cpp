@@ -11,7 +11,7 @@
 int main(int argc, char **argv) {
 
     if (argc == 2) {
-        
+
         /* ================= Analyse le fichier et extrait les blocs ======================== */
 
         RecupBlockContent rawConfig;
@@ -22,7 +22,6 @@ int main(int argc, char **argv) {
         /* ================= Transforme les blocs en objets exploitables ======================== */
 
         ServerBlock data;
-
         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
 
         /* ================= Transforme les blocs en servers ======================== */
@@ -33,12 +32,10 @@ int main(int argc, char **argv) {
             servers.push_back(Server(serverBlocks[i]));
             servers[i].printServerInfo();
         }
-
         /* ================= Les servers sont sous surveillance ======================== */
 
         EPollManager epollManager(servers);
-
-        epollManager.run();
+        // epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;

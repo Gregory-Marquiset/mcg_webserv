@@ -1,5 +1,5 @@
 classe PollManager pour gerer les fd aussi bien client que server
-classe Server qui inclus la socket d ecoute 
+classe Server qui inclus la socket d ecoute
 
 InitBlock -> def d un block
 RecupBlockContent -> extraire les data du .conf
