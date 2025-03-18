@@ -78,7 +78,7 @@ void EPollManager::run() {
             if (!isServerSocket) {
                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
-                    handleClientRequest(fd, server->getServerBlock().getRoot(), server->getServerBlock().getLocation()[0].getIndex());
+                    handleClientRequest(fd, server);
                 } else {
                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
                     close(fd);
@@ -137,7 +137,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
 	std::string		buf;
 	std::string		request;
-	std::string		answer;
+	//std::string		answer;
 	ssize_t			bytes_read;
 
 	buf.resize(4096);
@@ -162,38 +162,39 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	req_parser.parseRequest(request, clientFd);
 
 
-	ResponseMaker	resp;
+	//ResponseMaker	resp;
 
-	answer = resp.getFinalResponse();
-	send(clientFd, &answer, answer.size(), 0);
+	//answer = resp.getFinalResponse();
+	//send(clientFd, &answer, answer.size(), 0);
+}
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */
 
-void EPollManager::handleClientRequest(int clientFd, std::string root, std::string index) {
-    char buffer[1024];
-    ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+// void EPollManager::handleClientRequest(int clientFd, Server *serv) {
+//     char buffer[1024];
+//     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
     
-    if (bytesRead <= 0) {
-        close(clientFd);
-        return;
-    }
+//     if (bytesRead <= 0) {
+//         close(clientFd);
+//         return;
+//     }
 
-    buffer[bytesRead] = '\0';
-    std::cout << "[Client] Reçu : " << buffer << std::endl;
+//     buffer[bytesRead] = '\0';
+//     std::cout << "[Client] Reçu : " << buffer << std::endl;
 
-    std::istringstream requestStream(buffer);
-    std::string method, path, httpVersion;
-    requestStream >> method >> path >> httpVersion;
+//     std::istringstream requestStream(buffer);
+//     std::string method, path, httpVersion;
+//     requestStream >> method >> path >> httpVersion;
 
-    if (method == "GET") {
-        (void)root;
-        std::string filePath = index;
-        std::cout << "aaaaaaaaaaaaaaaaaaa -> " << filePath << std::endl;
-        responseFromServer(clientFd, filePath);
-    } else {
-        send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
-    }
-}
+//     if (method == "GET") {
+//         (void)root;
+//         std::string filePath = index;
+//         std::cout << "aaaaaaaaaaaaaaaaaaa -> " << filePath << std::endl;
+//         responseFromServer(clientFd, filePath);
+//     } else {
+//         send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
+//     }
+// }
 
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */

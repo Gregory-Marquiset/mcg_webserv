@@ -92,7 +92,7 @@ static bool	is_value_valid(char c)
 
 static long	extract_size(std::string &str_chunk_size)
 {
-	for (int i = 0; i < str_chunk_size.size(); i++)
+	for (size_t i = 0; i < str_chunk_size.size(); i++)
 	{
 		if (!std::isxdigit(str_chunk_size[i]))
 			return (-1);
@@ -444,7 +444,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	std::string	str_chunk_size;
 	size_t		bytes_received;
 	size_t		pos;
-	size_t		chunk_size;
+	long		chunk_size;
 
 	this->_actual_state = RequestParser::BODY;
 	if (this->_content_length == 0 && this->_transfert_encoding == 0)
