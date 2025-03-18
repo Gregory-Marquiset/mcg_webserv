@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/17 15:43:53 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/18 11:29:20 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,6 +87,22 @@ static bool	is_value_valid(char c)
 	if (std::isspace(static_cast<unsigned char>(c)))
 		return (true);
 	return (false);
+}
+
+
+static long	extract_size(std::string &str_chunk_size)
+{
+	for (int i = 0; i < str_chunk_size.size(); i++)
+	{
+		if (!std::isxdigit(str_chunk_size[i]))
+			return (-1);
+	}
+	std::istringstream	iss(str_chunk_size);
+	long				chunk_size;
+
+	iss >> std::hex >> chunk_size;
+	str_chunk_size.clear();
+	return (chunk_size);
 }
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
@@ -425,7 +441,10 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	//A RAJOUTER !! : check dans fichier config si body size limite
 	std::string	buf = req;
 	std::string	temp_buf;
+	std::string	str_chunk_size;
 	size_t		bytes_received;
+	size_t		pos;
+	size_t		chunk_size;
 
 	this->_actual_state = RequestParser::BODY;
 	if (this->_content_length == 0 && this->_transfert_encoding == 0)
@@ -459,6 +478,37 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	}
 	if (this->_transfert_encoding == 1)
 	{
-
+		temp_buf.resize(BUFFER_SIZE);
+		while (true)
+		{
+			pos = buf.find("\r\n");
+			if (pos == std::string::npos)
+			{
+				bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+				if (bytes_received <= 0)
+				{
+					if (this->_error_state == RequestParser::NO_ERROR)
+						this->_error_state = RequestParser::BODY_ERROR;
+					if (this->_error_code == 0)
+						this->setErrorCode(400);
+					throw RequestParser::RequestException("Error with body");
+				}
+				buf += temp_buf;
+			}
+			else
+			{
+				str_chunk_size = buf.substr(0, pos);
+				buf.erase(0, pos + 2);
+				chunk_size = extract_size(str_chunk_size);
+				if (chunk_size == -1)
+				{
+					if (this->_error_state == RequestParser::NO_ERROR)
+						this->_error_state = RequestParser::BODY_ERROR;
+					if (this->_error_code == 0)
+						this->setErrorCode(400);
+					throw RequestParser::RequestException("Error with body chunk size");
+				}
+			}
+		}
 	}
 }
