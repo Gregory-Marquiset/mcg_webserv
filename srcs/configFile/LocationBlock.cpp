@@ -28,6 +28,10 @@ void LocationBlock::setCgiExtension(std::string cgiExtension) {
     this->_cgiExtension = cgiExtension;
 }
 
+void LocationBlock::setClientMaxBodySize(std::string client_max_body_size) {
+    this->_client_max_body_size = client_max_body_size;
+}
+
 /* ================= GETTERS ======================== */
 
 std::string LocationBlock::getPath() const {
@@ -48,4 +52,8 @@ std::string LocationBlock::getAllowMethods() const {
 
 std::string LocationBlock::getCgiExtension() const {
     return (this->_cgiExtension);
+}
+
+std::string LocationBlock::getClientMaxBodySize() const {
+    return (this->_client_max_body_size);
 }

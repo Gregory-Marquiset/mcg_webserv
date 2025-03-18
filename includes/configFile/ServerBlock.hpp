@@ -17,6 +17,7 @@ class ServerBlock {
        std::string _index;
        std::string _allowMethods;
        std::string _cgiExtension;
+       std::string _client_max_body_size;
 
     public:
         ServerBlock();
@@ -32,6 +33,7 @@ class ServerBlock {
         void setIndex(std::string index);
         void setAllowMethods(std::string allowMethods);
         void setCgiExtension(std::string cgiExtension);
+        void setClientMaxBodySize(std::string client_max_body_size);
         
         /* getters */
 
@@ -43,6 +45,7 @@ class ServerBlock {
         std::string getIndex() const;
         std::string getAllowMethods() const;
         std::string getCgiExtension() const;
+        std::string getClientMaxBodySize() const;
 
         void addLocationBlock(const LocationBlock& location);
 

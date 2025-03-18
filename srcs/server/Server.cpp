@@ -45,6 +45,7 @@ void Server::printServerInfo() const {
         std::cout << "  Index: " << this->_serverBlock.getLocation()[i].getIndex() << std::endl;
         std::cout << "  AllowMethods: " << this->_serverBlock.getLocation()[i].getAllowMethods() << std::endl;
         std::cout << "  CGI extensions: " << this->_serverBlock.getLocation()[i].getCgiExtension() << std::endl;
+        std::cout << "  Client Max Body: " << this->_serverBlock.getLocation()[i].getClientMaxBodySize() << std::endl;
     }
     std::cout << "=======================\n" << std::endl;
 }

@@ -13,6 +13,7 @@ class LocationBlock {
        std::string _index;
        std::string _allowMethods;
        std::string _cgiExtension;
+       std::string _client_max_body_size;
 
     public:
         LocationBlock();
@@ -25,6 +26,7 @@ class LocationBlock {
         void setIndex(std::string index);
         void setAllowMethods(std::string allowMethods);
         void setCgiExtension(std::string cgiExtension);
+        void setClientMaxBodySize(std::string client_max_body_size);
         
         /* getters */
 
@@ -33,6 +35,7 @@ class LocationBlock {
         std::string getIndex() const;
         std::string getAllowMethods() const;
         std::string getCgiExtension() const;
+        std::string getClientMaxBodySize() const;
 };
 
 #endif

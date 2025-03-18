@@ -40,6 +40,10 @@ void ServerBlock::setCgiExtension(std::string cgiExtension) {
     this->_cgiExtension = cgiExtension;
 }
 
+void ServerBlock::setClientMaxBodySize(std::string client_max_body_size) {
+    this->_client_max_body_size = client_max_body_size;
+}
+
 /* ================= GETTERS ======================== */
 
 std::string ServerBlock::getServer() const {
@@ -74,6 +78,10 @@ std::string ServerBlock::getCgiExtension() const {
     return (this->_cgiExtension);
 }
 
+std::string ServerBlock::getClientMaxBodySize() const {
+    return (this->_client_max_body_size);
+}
+
 /* ================= HELPERS ======================== */
 
 int myStoi(std::string& s) {
@@ -93,8 +101,13 @@ std::vector<ServerBlock> ServerBlock::getAllServerBlocks(RecupBlockContent rawCo
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
     for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
+        
+        int flag = 0;
+        
         if (it->getName() == "server") {
+            
             ServerBlock oneServerBlock;
+            
             std::map<std::string, std::string> directive = it->getDirective();
 
             if (directive.find("listen") != directive.end()) {
@@ -117,18 +130,24 @@ std::vector<ServerBlock> ServerBlock::getAllServerBlocks(RecupBlockContent rawCo
                 }
                 if (locationDirective.find("allow_methods") != locationDirective.end()) {
                     locBlock.setAllowMethods(locationDirective["allow_methods"]);
-                    std::cout << "hihihihi\n";
+                    flag = 1;
                 }
                 if (locationDirective.find("cgi_extension") != locationDirective.end()) {
                     locBlock.setCgiExtension(locationDirective["cgi_extension"]);
+                }
+                if (locationDirective.find("client_max_body_size") != locationDirective.end()) {
+                    locBlock.setClientMaxBodySize(locationDirective["client_max_body_size"]);
                 }
 
                 locBlock.setPath(itLocation->getName());
                 oneServerBlock.addLocationBlock(locBlock);
             }
 
+            // if (flag == 0)
+            //     oneServerBlock.setAllowMethods(directive["GET POST DELETE"]);
+
             cleanServers.push_back(oneServerBlock);
         }
     }
-    return cleanServers;
+    return (cleanServers);
 }
