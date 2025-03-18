@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/18 11:29:20 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/18 21:12:04 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,6 +92,8 @@ static bool	is_value_valid(char c)
 
 static long	extract_size(std::string &str_chunk_size)
 {
+	if (str_chunk_size.empty())
+		return (-1);
 	for (size_t i = 0; i < str_chunk_size.size(); i++)
 	{
 		if (!std::isxdigit(str_chunk_size[i]))
@@ -102,6 +104,7 @@ static long	extract_size(std::string &str_chunk_size)
 
 	iss >> std::hex >> chunk_size;
 	str_chunk_size.clear();
+	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
 	return (chunk_size);
 }
 
@@ -123,8 +126,13 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		parseRequestLine(this->_full_request);
 		parseHeaders(this->_full_request);
 		validateHeaders();
+
+		//si la méthode de la demande n’inclut aucune sémantique définie pour un
+		//corps d’entité, le corps de message DEVRAIT alors être ignoré lors du traitement de la demande.
 		if (this->_request_method == "POST")
 			parseBody(this->_full_request, clientFd);
+		std::cout << this->_request_body << std::endl;
+		std::cout << "Valid Request" << std::endl;
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{
@@ -403,7 +411,7 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 		else if (it->first == "Transfer-Encoding")
 		{
 			this->_transfert_encoding = 1;
-			if (it->second == "identity")
+			if (it->second != "chunked")
 			{
 				if (this->_error_state == RequestParser::NO_ERROR)
 					this->_error_state = RequestParser::HEADERS_ERROR;
@@ -438,11 +446,15 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 
 void	RequestParser::parseBody(std::string &req, int clientFd)
 {
+	// std::cout << "Full request : " << std::endl;
+	// std::cout << req;
+	// std::cout << "\033[31mFin du body et debut parseBody\033[0m" << std::endl << std::endl;
+
 	//A RAJOUTER !! : check dans fichier config si body size limite
 	std::string	buf = req;
 	std::string	temp_buf;
 	std::string	str_chunk_size;
-	size_t		bytes_received;
+	ssize_t		bytes_received;
 	size_t		pos;
 	long		chunk_size;
 
@@ -452,6 +464,9 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
 	{
 		temp_buf.resize(BUFFER_SIZE);
+		// std::cout << "Content length = " << this->_content_length << std::endl;
+		// std::cout << "req.size() = " << req.size() << std::endl;
+		// std::cout << req << std::endl;
 		while (req.size() < this->_content_length)
 		{
 			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
@@ -461,32 +476,37 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					this->_error_state = RequestParser::BODY_ERROR;
 				if (this->_error_code == 0)
 					this->setErrorCode(400);
-				throw RequestParser::RequestException("Error with body");
-			}
-			req += temp_buf;
-			if (req.size() > this->_content_length)
-			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::BODY_ERROR;
-				if (this->_error_code == 0)
-					this->setErrorCode(400);
 				throw RequestParser::RequestException("Wrong body size");
 			}
+			req += temp_buf;
+		}
+		if (req.size() != this->_content_length)
+		{
+			if (this->_error_state == RequestParser::NO_ERROR)
+				this->_error_state = RequestParser::BODY_ERROR;
+			if (this->_error_code == 0)
+				this->setErrorCode(400);
+			throw RequestParser::RequestException("Wrong body size");
 		}
 		this->_request_body = req.substr(0, this->_content_length);
+		//std::cout << this->_request_body << std::endl;
 		return ;
 	}
 	if (this->_transfert_encoding == 1)
 	{
-		temp_buf.resize(BUFFER_SIZE);
 		while (true)
 		{
 			pos = buf.find("\r\n");
 			if (pos == std::string::npos)
 			{
+				// std::cout << "pipi" << std::endl;
+				temp_buf.resize(BUFFER_SIZE);
 				bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
-				if (bytes_received <= 0)
+				// std::cout << "bytes apres pipi: " << bytes_received << std::endl;
+				if (bytes_received < 0 || (bytes_received == 0 && temp_buf.find("0\r\n\r\n") == std::string::npos))
 				{
+					std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
+					std::cout << "temp_buf if byte received <= 0: *" << temp_buf << "*" << std::endl;
 					if (this->_error_state == RequestParser::NO_ERROR)
 						this->_error_state = RequestParser::BODY_ERROR;
 					if (this->_error_code == 0)
@@ -494,12 +514,14 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					throw RequestParser::RequestException("Error with body");
 				}
 				buf += temp_buf;
+				temp_buf.clear();
 			}
 			else
 			{
 				str_chunk_size = buf.substr(0, pos);
-				buf.erase(0, pos + 2);
+				// std::cout << "*" << str_chunk_size << "*" << std::endl;
 				chunk_size = extract_size(str_chunk_size);
+				// std::cout << "chunk size : " << chunk_size << std::endl;
 				if (chunk_size == -1)
 				{
 					if (this->_error_state == RequestParser::NO_ERROR)
@@ -508,6 +530,47 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 						this->setErrorCode(400);
 					throw RequestParser::RequestException("Error with body chunk size");
 				}
+				else if (chunk_size == 0)
+				{
+					temp_buf.resize(BUFFER_SIZE);
+					while (recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0) > 0)
+						buf += temp_buf;
+					if (buf.find("0\r\n\r\n") != 0)
+					{
+						if (this->_error_state == RequestParser::NO_ERROR)
+							this->_error_state = RequestParser::BODY_ERROR;
+						if (this->_error_code == 0)
+							this->setErrorCode(400);
+						throw RequestParser::RequestException("Error with body end");
+					}
+					return ;
+				}
+				buf.erase(0, pos + 2);
+				while (buf.size() < static_cast<size_t> (chunk_size + 2))
+				{
+					// std::cerr << "prout" << std::endl;
+					temp_buf.resize(BUFFER_SIZE);
+					bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+					//std::cerr << bytes_received << std::endl;
+					if (bytes_received <= 0)
+					{
+						if (this->_error_state == RequestParser::NO_ERROR)
+							this->_error_state = RequestParser::BODY_ERROR;
+						if (this->_error_code == 0)
+							this->setErrorCode(400);
+						throw RequestParser::RequestException("Error with body");
+					}
+					temp_buf.resize(bytes_received);
+					buf += temp_buf;
+				}
+				// std::cerr << "caca" << std::endl;
+				// std::cout << "buf.substr apres caca :" << std::endl;
+				// std::cout << buf.substr(0, chunk_size) << "*" << std::endl << std::endl;
+				this->_request_body += buf.substr(0, chunk_size);
+				// std::cout << "Request body:" << std::endl;
+				// std::cout << this->_request_body << std::endl;
+				buf.erase(0, chunk_size + 2);
+				// std::cout << std::endl << std::endl;
 			}
 		}
 	}

@@ -1,0 +1,17 @@
+POST /api/v1/users HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Authorization: Bearer abcdef123456
+Transfer-Encoding: chunked
+
+27
+Voici les données du premier morceau
+
+1C
+et voici un second morceau
+
+20
+et voici deux derniers morceaux 
+12
+0
+

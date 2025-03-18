@@ -21,14 +21,93 @@ Sec-Fetch-Site: cross-site\r\n\
 Sec-Fetch-User: ?1\r\n\
 Priority: u=0, i\r\n\
 \r\n";
-	std::string	bad = "GET /?app=desktop&hl=FR HTTP/3\r\n";
-	// std::string	POST_request;
-	// std::string	DELETE_request;
 
-	//std::cout << GET_request << std::endl << std::endl;
+	std::string	req_avec_body = "POST /api/v1/users HTTP/1.1\r\n\
+Host: example.com\r\n\
+Content-Type: application/json\r\n\
+Authorization: Bearer abcdef123456\r\n\
+Content-Length: 342\r\n\
+\r\n\
+{\r\n\
+  \"first_name\": \"Jean\",\r\n\
+  \"last_name\": \"Dupont\",\r\n\
+  \"email\": \"jean.dupont@example.com\",\r\n\
+  \"password\": \"SuperSecret123!\",\r\n\
+  \"address\": {\r\n\
+    \"street\": \"123 Rue de Paris\",\r\n\
+    \"city\": \"Paris\",\r\n\
+    \"zip\": \"75001\",\r\n\
+    \"country\": \"France\"\r\n\
+  },\r\n\
+  \"preferences\": {\r\n\
+    \"newsletter\": true,\r\n\
+    \"notifications\": [\"email\", \"sms\"]\r\n\
+  }\r\n\
+}";
 
+
+	std::string	req_trunked_body = "POST /api/v1/users HTTP/1.1\r\n\
+Host: example.com\r\n\
+Content-Type: application/json\r\n\
+Authorization: Bearer abcdef123456\r\n\
+Transfer-Encoding: chunked\r\n\
+\r\n\
+27\r\n\
+Voici les données du premier morceau\r\n\r\n\
+1C\r\n\
+et voici un second morceau\r\n\r\n\
+20\r\n\
+et voici deux derniers morceaux \r\n\
+12\r\n\
+sans saut de ligne\r\n\
+0\r\n\
+\r";
 
 	RequestParser	req;
+	std::ifstream	inf;
+	std::string		buf;
+	std::string		request;
+	ssize_t			bytes_read;
 
-	req.parseRequest(GET_request, 0);
+	inf.open("test.txt");
+	if (!inf.is_open())
+	{
+		std::cerr << "Error with infile" << std::endl;
+		return (1);
+	}
+
+	int sockets[2];
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockets) == -1)
+	{
+		std::cerr << "Error creating socketpair" << std::endl;
+		return (1);
+	}
+
+	buf.resize(BUFFER_SIZE);
+	while (inf.read(&buf[0], BUFFER_SIZE) || inf.gcount() > 0)
+	{
+		send(sockets[0], buf.c_str(), inf.gcount(), 0);
+	}
+	inf.close();
+	close(sockets[0]);
+	buf.clear();
+	buf.resize(BUFFER_SIZE);
+
+	while (request.find("\r\n\r\n") == std::string::npos)
+	{
+		bytes_read = recv(sockets[1], &buf[0], BUFFER_SIZE, 0);
+		if (bytes_read <= 0)
+		{
+			std::cerr << "erreur main" << std::endl;
+			return (1);
+		}
+		request += buf;
+	}
+
+	// std::cout << "Requete dans le main: " << std::endl;
+	// std::cout << request << std::endl << std::endl;
+
+	req.parseRequest(request, sockets[1]);
+
+	return (0);
 }
