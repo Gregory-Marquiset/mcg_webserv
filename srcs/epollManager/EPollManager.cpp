@@ -19,9 +19,21 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
 
     // parcourt tous les serveurs et ajoute leur socket d'écoute (socket principale) 
     // au file descriptor epoll via addSocketToEpoll.
+
+    std::map<int, int> portAssigned;
+
     std::vector<Server>::iterator it;
     for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
         addSocketToEpoll(it->getListeningSocket().getSockFd());
+        
+        int listenPort = it->getServerBlock().getPort().front();
+        
+        if (portAssigned.find(listenPort) == portAssigned.end()) {
+            it->setDefaultServer(1);
+            portAssigned[listenPort] = 1;
+        } else {
+            it->setDefaultServer(0);
+        }
     }
 }
 
@@ -49,6 +61,8 @@ void EPollManager::addSocketToEpoll(int fd) {
     else
         std::cout << "Socket " << fd << " added to epoll" << std::endl; 
 }
+
+/* ================= MAIN FUNCTION ======================== */
 
 // epoll_wait() bloque jusqu'à ce qu'un événement survienne. Il remplit _events avec les descripteurs actifs. En cas d'erreur, le programme s'arrête.
 void EPollManager::run() {
@@ -80,6 +94,7 @@ void EPollManager::run() {
             if (!isServerSocket) {
                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
+                    if (server->getDefaultServer() == 1)
                     handleClientRequest(fd, server);
                 } else {
                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
@@ -87,7 +102,6 @@ void EPollManager::run() {
                 }
             }
         }
-
     }
 }
 
@@ -185,6 +199,8 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	// answer = resp.getFinalResponse();
 	// send(clientFd, &answer, answer.size(), 0);
 }
+
+
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */
 

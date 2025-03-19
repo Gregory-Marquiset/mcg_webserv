@@ -144,6 +144,7 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     int isKey = 1;
     std::string tmpDirective = content.substr(0, i);
     std::string cleanDirective = trim(tmpDirective);
+    // std::cout << "---> " << cleanDirective << std::endl;
 
     for (size_t j = 0; j < cleanDirective.size(); ++j) {
         if (isspace(cleanDirective[j]) && isKey == 1) {

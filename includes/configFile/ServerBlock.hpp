@@ -10,7 +10,8 @@ class ServerBlock {
 
     private:
        std::string _server;
-       int _listen;
+       std::vector<int> _port;
+       std::string _ip;
        std::string _serverName;
        std::vector<LocationBlock> _location;
        std::string _root;
@@ -26,7 +27,8 @@ class ServerBlock {
         /* setters */
 
         void setServer(std::string server);
-        void setListen(int listen);
+        void setPort(const int& port);
+        void setIp(std::string ip);
         void setServerName(std::string serverName);
         void setLocation(std::vector<LocationBlock> location);
         void setRoot(std::string root);
@@ -38,7 +40,8 @@ class ServerBlock {
         /* getters */
 
         std::string getServer() const;
-        int getListen() const;
+        std::vector<int> getPort() const;
+        std::string getIp() const;
         std::string getServerName() const;
         std::vector<LocationBlock> getLocation() const;
         std::string getRoot() const;
@@ -51,6 +54,9 @@ class ServerBlock {
 
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
         std::vector<ServerBlock> getAllServerBlocks(RecupBlockContent rawConfig);
+
+        void checkListenFormat(std::string listenLine, ServerBlock& server);
+
 };
 
 #endif

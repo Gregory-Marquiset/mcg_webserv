@@ -13,7 +13,8 @@ void Block::setName(std::string name) {
 }
 
 void Block::setDirective(std::string key, std::string value) {
-    this->_directive[key] = value;
+    // this->_directive[key] = value;
+    this->_directive.insert(std::make_pair(key, value));
 }
 
 /* ================= GETTERS ======================== */
@@ -22,7 +23,7 @@ std::string Block::getName() const {
     return (this->_name);
 }
 
-std::map<std::string, std::string> Block::getDirective() const {
+std::multimap<std::string, std::string> Block::getDirective() const {
     return (this->_directive);
 }
 

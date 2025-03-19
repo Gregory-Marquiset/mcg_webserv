@@ -29,6 +29,8 @@ int main(int argc, char **argv) {
         std::vector<Server> servers;
 
         for (size_t i = 0; i < serverBlocks.size(); ++i) {
+
+            
             servers.push_back(Server(serverBlocks[i]));
             servers[i].printServerInfo();
         }
