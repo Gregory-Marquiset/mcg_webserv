@@ -6,11 +6,12 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/18 21:12:04 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/19 06:30:14 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/request/RequestParser.hpp"
+#include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 RequestParser::RequestParser(void) : _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
@@ -111,7 +112,7 @@ static long	extract_size(std::string &str_chunk_size)
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
-	(void)clientFd;
+	//std::vector<LocationBlock>	location;
 
 	if (request.empty())
 	{
@@ -121,6 +122,8 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		return ;
 	}
 	this->setFullRequest(request);
+	// location = this->_serv_info->getServerBlock().getLocation();	compris comment acceder aux infos
+	// location[0].getAllowMethods();
 	try
 	{
 		parseRequestLine(this->_full_request);
@@ -505,8 +508,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				// std::cout << "bytes apres pipi: " << bytes_received << std::endl;
 				if (bytes_received < 0 || (bytes_received == 0 && temp_buf.find("0\r\n\r\n") == std::string::npos))
 				{
-					std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
-					std::cout << "temp_buf if byte received <= 0: *" << temp_buf << "*" << std::endl;
+					// std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
+					// std::cout << "temp_buf if byte received <= 0: *" << temp_buf << "*" << std::endl;
 					if (this->_error_state == RequestParser::NO_ERROR)
 						this->_error_state = RequestParser::BODY_ERROR;
 					if (this->_error_code == 0)
