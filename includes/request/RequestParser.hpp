@@ -6,22 +6,22 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/18 21:16:51 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/25 16:16:20 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 
-#include <algorithm>
-#include <cstdlib>
-#include <iostream>
-#include <limits>
-#include <map>
-#include <stdexcept>
-#include <string>
 //# include "WebServ.hpp"
-#include "../epollManager/EPollManager.hpp"
+# include <algorithm>
+# include <cstdlib>
+# include <iostream>
+# include <limits>
+# include <map>
+# include <stdexcept>
+# include <string>
+# include "../epollManager/EPollManager.hpp"
 
 # define ESCAPED_CHAR "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F\
 %10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F\
@@ -34,12 +34,17 @@ class	RequestParser
 {
 	public:
 		RequestParser(void);
-		// RequestParser(const std::string request);
-		RequestParser(Server *serv);
 		RequestParser(RequestParser const &copy);
 		~RequestParser(void);
 
 		RequestParser	&operator=(RequestParser const &inst);
+
+		void			setErrorCode(int error);
+
+		std::string		getMethod(void) const;
+		std::string		getURI(void) const;
+		std::string		getHTTP(void) const;
+		int				getErrorCode(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
 
@@ -81,15 +86,14 @@ class	RequestParser
 		};
 
 	private:
-		Server			*_serv_info;
-		int				_actual_state;
 		std::string		_full_request;
+		std::string		_escaped_char;
+		int				_actual_state;
 		int				_error_state;
 		int				_error_code;
-		std::string		_escaped_char;
 		bool			_is_uri_cgi;
 
-		// Stockage des infos
+		// Stockage des infos utile que pour le parsing de la requete ??
 		std::string		_host;
 		std::string		_content_type;
 		unsigned long	_content_length;
@@ -119,7 +123,7 @@ class	RequestParser
 		//Parsing du body
 		void			parseBody(std::string &req, int clientFd);
 
-		void			setErrorCode(int error);
+		//Random
 		void			setFullRequest(const std::string request);
 };
 

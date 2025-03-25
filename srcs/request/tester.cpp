@@ -1,4 +1,5 @@
 #include "../../includes/request/RequestParser.hpp"
+#include "../../includes/response/ResponseMaker.hpp"
 
 int main ()
 {
@@ -108,6 +109,12 @@ sans saut de ligne\r\n\
 	// std::cout << request << std::endl << std::endl;
 
 	req.parseRequest(request, sockets[1]);
+	if (req.getErrorCode() != 0)
+	{
+		return (1);
+	}
+
+	//ResponseMaker	resp;
 
 	return (0);
 }

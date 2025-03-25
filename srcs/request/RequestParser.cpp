@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/19 06:30:14 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/25 15:57:43 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,9 @@
 #include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void) : _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
+RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _is_uri_cgi(false)
 {
 }
-
-RequestParser::RequestParser(Server *serv) : _serv_info(serv), _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
-{
-}
-
-// RequestParser::RequestParser(std::string request, std::string root, std::string index) : _root_path(root), _index_path(index)
-// {
-
-// }
 
 RequestParser::RequestParser(RequestParser const &copy)
 {
@@ -53,8 +44,6 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 // 	std::cerr << msg << std::endl;
 // }
 
-/* ================= GETTERS ======================== */
-
 
 /* ================= SETTERS ======================== */
 void	RequestParser::setErrorCode(int error)
@@ -67,6 +56,27 @@ void	RequestParser::setFullRequest(const std::string request)
 	this->_full_request = request;
 }
 
+
+/* ================= GETTERS ======================== */
+std::string	RequestParser::getMethod(void) const
+{
+	return (this->_request_method);
+}
+
+std::string	RequestParser::getURI(void) const
+{
+	return (this->_request_uri);
+}
+
+std::string	RequestParser::getHTTP(void) const
+{
+	return (this->_request_http_version);
+}
+
+int	RequestParser::getErrorCode(void) const
+{
+	return (this->_error_code);
+}
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
 static bool	is_non_printable(char c)
@@ -90,7 +100,6 @@ static bool	is_value_valid(char c)
 	return (false);
 }
 
-
 static long	extract_size(std::string &str_chunk_size)
 {
 	if (str_chunk_size.empty())
@@ -108,6 +117,7 @@ static long	extract_size(std::string &str_chunk_size)
 	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
 	return (chunk_size);
 }
+
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequest(const std::string request, int clientFd)
