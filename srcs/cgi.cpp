@@ -8,9 +8,9 @@
 #include <cstring>
 #include <fstream>
 
-std::string	we_executeCGI( const std::string &scriptPath )
+std::string	we_executeCGI( const std::string &binary, const std::string &scriptPath )
 {
-	char		*argv[] = { (char *)scriptPath.c_str(), ( char * )scriptPath.c_str( ), NULL };
+	char	*argv[] = {( char * )binary.c_str(), ( char * )scriptPath.c_str(), NULL };
 
 	int	pipefd[2];
 
@@ -30,7 +30,7 @@ std::string	we_executeCGI( const std::string &scriptPath )
 
 	if ( pid == 0 )
 	{
-		if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+		if ( dup2( pipefd[1], STDOUT_FILENO ) == -1 )
 		{
 			std::cerr << "Erreur : Impossible de rediriger stdout ( " << strerror( errno ) << " )\n";
 			_exit(1);
@@ -38,12 +38,14 @@ std::string	we_executeCGI( const std::string &scriptPath )
 		close( pipefd[0] );
 		close( pipefd[1] );
 
-		execve( argv[0], argv, NULL );
+		execve( ( char * )binary.c_str(), argv, NULL );
 
 		std::cerr << "Erreur : Échec de l'exécution de " << scriptPath << " ( " << strerror( errno ) << " )\n";
 		std::cout << "Status: 500 Internal Server Error\n"
 				<< "Content-Type: text/plain\n\n"
 				<< "500 Internal Server Error: CGI execution failed.\n";
+
+		/*	exeption	*/
 
 		_exit( 1 );
 	}
@@ -78,7 +80,7 @@ std::string	we_executeCGI( const std::string &scriptPath )
 	}
 }
 
-std::string	we_checkCGI( const std::string &file )
+std::string	we_checkCGI( const std::string& binary, const std::string& file )
 {
 	std::string	scriptPath = ".";
 	scriptPath += file;
@@ -93,6 +95,15 @@ std::string	we_checkCGI( const std::string &file )
 		std::cerr << "Erreur : Fichier CGI non exécutable ( " << scriptPath << " )\n";
 		return ( "403 Forbidden" );
 	}
-
-	return ( we_executeCGI( scriptPath ) );
+	if ( access( binary.c_str( ), F_OK ) == -1 )
+	{
+		std::cerr << "Erreur : Binaire CGI introuvable ( " << scriptPath << " )\n";
+		return ( "404 Not Found" );
+	}
+	if ( access( binary.c_str( ), X_OK ) == -1 )
+	{
+		std::cerr << "Erreur : binaire CGI non exécutable ( " << scriptPath << " )\n";
+		return ( "403 Forbidden" );
+	}
+	return ( we_executeCGI( binary, scriptPath ) );
 }

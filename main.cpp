@@ -8,38 +8,55 @@
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
 
-int main(int argc, char **argv) {
+std::string	we_checkCGI( const std::string& binary, const std::string& file );
 
-    if (argc == 2) {
-
-        /* ================= Analyse le fichier et extrait les blocs ======================== */
-
-        RecupBlockContent rawConfig;
-
-        std::string confFile = rawConfig.storeConfigFile(argv[1]);
-        rawConfig.createTree(confFile);
-
-        /* ================= Transforme les blocs en objets exploitables ======================== */
-
-        ServerBlock data;
-        std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
-
-        /* ================= Transforme les blocs en servers ======================== */
-
-        std::vector<Server> servers;
-
-        for (size_t i = 0; i < serverBlocks.size(); ++i) {
-            servers.push_back(Server(serverBlocks[i]));
-            servers[i].printServerInfo();
-        }
-        /* ================= Les servers sont sous surveillance ======================== */
-
-        EPollManager epollManager(servers);
-        // epollManager.run();
-    }
-    else
-        std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
+int main( int argc, char** argv)
+{
+    if ( argc != 3 )
+        return ( 1 );
+    std::string reponse = we_checkCGI( argv[1], argv[2] );
+    std::cout << reponse << std::endl;
+    return ( 0 );
 }
+
+
+
+
+// int main(int argc, char **argv) {
+
+//     if (argc == 2) {
+
+//         /* ================= Analyse le fichier et extrait les blocs ======================== */
+
+//         RecupBlockContent rawConfig;
+
+//         std::string confFile = rawConfig.storeConfigFile(argv[1]);
+//         rawConfig.createTree(confFile);
+
+//         /* ================= Transforme les blocs en objets exploitables ======================== */
+
+//         ServerBlock data;
+//         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
+
+//         /* ================= Transforme les blocs en servers ======================== */
+
+//         std::vector<Server> servers;
+
+//         for (size_t i = 0; i < serverBlocks.size(); ++i) {
+//             servers.push_back(Server(serverBlocks[i]));
+//             servers[i].printServerInfo();
+//         }
+//         /* ================= Les servers sont sous surveillance ======================== */
+
+//         EPollManager epollManager(servers);
+//         // epollManager.run();
+//     }
+//     else
+//         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
+// }
+
+
+
 
 // Les classes:
 
