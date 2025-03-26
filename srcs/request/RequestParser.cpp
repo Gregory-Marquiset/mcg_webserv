@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/25 15:57:43 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/26 16:46:00 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,21 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 {
 	if (this != &inst)
 	{
+		this->_full_request = inst._full_request;
+		this->_escaped_char = inst._escaped_char;
+		this->_error_state = inst._error_state;
+		this->_error_code = inst._error_code;
+		this->_is_uri_cgi = inst._is_uri_cgi;
+		this->_host = inst._host;
+		this->_content_type = inst._content_type;
+		this->_content_length = inst._content_length;
+		this->_cnt_lenght = inst._cnt_lenght;
+		this->_transfert_encoding = inst._transfert_encoding;
+		this->_request_method = inst._request_method;
+		this->_request_uri = inst._request_uri;
+		this->_request_http_version = inst._request_http_version;
+		this->_request_headers = inst._request_headers;
+		this->_request_body = inst._request_body;
 	}
 	return (*this);
 }
@@ -56,6 +71,11 @@ void	RequestParser::setFullRequest(const std::string request)
 	this->_full_request = request;
 }
 
+void	RequestParser::setIsCgi(bool value)
+{
+	this->_is_uri_cgi = value;
+}
+
 
 /* ================= GETTERS ======================== */
 std::string	RequestParser::getMethod(void) const
@@ -76,6 +96,11 @@ std::string	RequestParser::getHTTP(void) const
 int	RequestParser::getErrorCode(void) const
 {
 	return (this->_error_code);
+}
+
+bool	RequestParser::getIsCgi(void) const
+{
+	return (this->_is_uri_cgi);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
@@ -122,8 +147,6 @@ static long	extract_size(std::string &str_chunk_size)
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
-	//std::vector<LocationBlock>	location;
-
 	if (request.empty())
 	{
 		this->_actual_state = RequestParser::FATAL_ERROR;
@@ -132,8 +155,6 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		return ;
 	}
 	this->setFullRequest(request);
-	// location = this->_serv_info->getServerBlock().getLocation();	compris comment acceder aux infos
-	// location[0].getAllowMethods();
 	try
 	{
 		parseRequestLine(this->_full_request);
@@ -143,8 +164,10 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		//si la méthode de la demande n’inclut aucune sémantique définie pour un
 		//corps d’entité, le corps de message DEVRAIT alors être ignoré lors du traitement de la demande.
 		if (this->_request_method == "POST")
+		{
 			parseBody(this->_full_request, clientFd);
-		std::cout << this->_request_body << std::endl;
+			std::cout << this->_request_body << std::endl;
+		}
 		std::cout << "Valid Request" << std::endl;
 	}
 	catch (RequestParser::RequestException	&req_exc)
@@ -317,6 +340,7 @@ void	RequestParser::parseHTTP(std::string &req)
 		throw RequestParser::RequestException("Invalid HTTP");
 	}
 	req.erase(0, 2);
+	this->_request_http_version = http;
 }
 
 // void	RequestParser::printMap(void)

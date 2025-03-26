@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/26 09:59:11 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/26 16:46:52 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,10 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 
 
 /* ================= GETTERS ======================== */
-
+std::string	ProcessRequest::getFinalPath(void) const
+{
+	return (this->_final_path);
+}
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
 
@@ -61,12 +64,12 @@ void	ProcessRequest::processRequest(void)
 	try
 	{
 		this->compareUriWithLocations();
-		//this->checkAllowedMethod();
+		this->checkAllowedMethod();
 		this->addRootPath();
 	}
-	catch(...)
+	catch (RequestParser::RequestException	&req_exc)
 	{
-
+		std::cerr << req_exc.what() << std::endl;
 	}
 }
 
@@ -82,7 +85,7 @@ void	ProcessRequest::compareUriWithLocations(void)
 
 	uri = this->_request.getURI();
 	uri_size = uri.size();
-	locations = this->_serv_info->getServerBlock().getLocation();
+	locations = this->_serv_info->getServerBlock().getLocationBlock();
 
 	for (it = locations.begin(); it != locations.end(); it++)
 	{
@@ -104,10 +107,41 @@ void	ProcessRequest::compareUriWithLocations(void)
 	}
 }
 
-// void	ProcessRequest::checkAllowedMethod(void)
-// {
+void	ProcessRequest::checkAllowedMethod(void)
+{
+	std::vector<std::string>	methods;
+	
+	methods = this->_location_to_use.getAllowMethods();
+	for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
+	{
+		if (this->_request.getMethod() == *it)
+			return ;
+	}
+	throw RequestParser::RequestException("Method not allowed in this location");
+}
 
-// }
+void	ProcessRequest::checkIfUriIsCgi(void)
+{
+	std::vector<CgiHandler>	cgi_ext;
+	std::string				uri;
+	std::string				extension;
+	size_t					pos;
+	
+	cgi_ext = this->_location_to_use.getCgiExtension();
+	uri = this->_request.getURI();
+	pos = uri.rfind(".");
+	if (pos == std::string::npos)
+		return ;
+	extension = uri.substr(pos, std::string::npos);
+	for (std::vector<CgiHandler>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
+	{
+		if (extension == it->getKey())
+		{
+			this->_request.setIsCgi(true);
+			return ;
+		}
+	}
+}
 
 void	ProcessRequest::addRootPath(void)
 {

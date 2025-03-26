@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/25 17:45:31 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/26 14:17:50 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ class	ProcessRequest
 
 		ProcessRequest	&operator=(ProcessRequest const &inst);
 
+		std::string		getFinalPath(void) const;
+
 	private:
 		Server			*_serv_info;
 		RequestParser	_request;
@@ -43,7 +45,8 @@ class	ProcessRequest
 
 		void			processRequest(void);
 		void			compareUriWithLocations(void);
-		//void			checkAllowedMethod(void);
+		void			checkAllowedMethod(void);
+		void			checkIfUriIsCgi(void);
 		void			addRootPath(void);
 };
 
