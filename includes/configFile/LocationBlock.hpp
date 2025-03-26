@@ -4,6 +4,7 @@
 #include "../WebServ.hpp"
 #include "Block.hpp"
 #include "RecupBlockContent.hpp"
+#include "CgiHandler.hpp"
 
 class LocationBlock {
 
@@ -11,8 +12,8 @@ class LocationBlock {
        std::string _path;
        std::string _root;
        std::string _index;
-       std::string _allowMethods;
-       std::string _cgiExtension;
+       std::vector<std::string> _allowMethods;
+       std::vector<CgiHandler> _cgiExtension;
        std::string _client_max_body_size;
 
     public:
@@ -24,8 +25,8 @@ class LocationBlock {
         void setPath(std::string path);
         void setRoot(std::string root);
         void setIndex(std::string index);
-        void setAllowMethods(std::string allowMethods);
-        void setCgiExtension(std::string cgiExtension);
+        void setAllowMethods(std::vector<std::string> allowMethods);
+        void setCgiExtension(std::vector<CgiHandler> cgiExtension);
         void setClientMaxBodySize(std::string client_max_body_size);
         
         /* getters */
@@ -33,9 +34,13 @@ class LocationBlock {
         std::string getPath() const;
         std::string getRoot() const;
         std::string getIndex() const;
-        std::string getAllowMethods() const;
-        std::string getCgiExtension() const;
+        std::vector<std::string> getAllowMethods() const;
+        std::vector<CgiHandler> getCgiExtension() const;
         std::string getClientMaxBodySize() const;
+
+        void addCgi(const CgiHandler& cgi);
+        void addAllowMethod(const std::string& method);
+
 };
 
 #endif

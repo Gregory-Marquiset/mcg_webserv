@@ -16,7 +16,6 @@ class EPollManager {
   std::vector<struct epoll_event> _events; // Liste des événements
   std::map<int, Server*> clientToServerMap; // pour savoir a quel server le client est associe
 
-
   public:
 
     EPollManager(const std::vector<Server>& servers);

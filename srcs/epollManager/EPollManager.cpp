@@ -19,25 +19,14 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
 
     // parcourt tous les serveurs et ajoute leur socket d'écoute (socket principale) 
     // au file descriptor epoll via addSocketToEpoll.
-
-    std::map<int, int> portAssigned;
-
     std::vector<Server>::iterator it;
     for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
         addSocketToEpoll(it->getListeningSocket().getSockFd());
-        
-        int listenPort = it->getServerBlock().getPort().front();
-        
-        if (portAssigned.find(listenPort) == portAssigned.end()) {
-            it->setDefaultServer(1);
-            portAssigned[listenPort] = 1;
-        } else {
-            it->setDefaultServer(0);
-        }
     }
 }
 
 EPollManager::~EPollManager() {
+
     close(_epollFd);
 }
 
@@ -47,7 +36,6 @@ EPollManager::~EPollManager() {
 // pour surveiller les événements de lecture (EPOLLIN).
 // Cet événement est configuré pour détecter les données disponibles en lecture (EPOLLIN).
 // epoll_ctl() ajoute (EPOLL_CTL_ADD) la socket fd au descripteur epoll _epollFd
-
 void EPollManager::addSocketToEpoll(int fd) {
 
     struct epoll_event event;
@@ -58,11 +46,7 @@ void EPollManager::addSocketToEpoll(int fd) {
         perror("epoll_ctl: ajout socket");
         exit(EXIT_FAILURE);
     }
-    else
-        std::cout << "Socket " << fd << " added to epoll" << std::endl; 
 }
-
-/* ================= MAIN FUNCTION ======================== */
 
 // epoll_wait() bloque jusqu'à ce qu'un événement survienne. Il remplit _events avec les descripteurs actifs. En cas d'erreur, le programme s'arrête.
 void EPollManager::run() {
@@ -94,7 +78,6 @@ void EPollManager::run() {
             if (!isServerSocket) {
                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
-                    if (server->getDefaultServer() == 1)
                     handleClientRequest(fd, server);
                 } else {
                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
@@ -102,6 +85,7 @@ void EPollManager::run() {
                 }
             }
         }
+
     }
 }
 
@@ -126,7 +110,6 @@ void EPollManager::run() {
 // (le accept() va dupliquer server socket
 // et c est ce qui permet de laisser le socket serveur libre de toujours ecouter
 // accept() cree une nouvelle socket cliente
-
 void EPollManager::acceptConnection(int serverFd) {
 
     struct sockaddr_in clientAddr;
@@ -154,7 +137,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
 	std::string		buf;
 	std::string		request;
-	// std::string		answer;
+	//std::string		answer;
 	ssize_t			bytes_read;
 
 	buf.resize(4096);
@@ -178,29 +161,12 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	RequestParser	req_parser(serv);
 	req_parser.parseRequest(request, clientFd);
 
-    std::cout << "hello\n";
 
-    std::cout << "[Client] Reçu : " << buf << std::endl;
+	//ResponseMaker	resp;
 
-    std::istringstream requestStream(buf);
-    std::string method, path, httpVersion;
-    requestStream >> method >> path >> httpVersion;
-
-    if (method == "GET") {
-        std::string filePath = serv->getServerBlock().getIndex();
-        std::cout << "aaaaaaaaaaaaaaaaaaa -> " << filePath << std::endl;
-        responseFromServer(clientFd, filePath);
-    } else {
-        send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
-    }
-
-	// ResponseMaker	resp;
-
-	// answer = resp.getFinalResponse();
-	// send(clientFd, &answer, answer.size(), 0);
+	//answer = resp.getFinalResponse();
+	//send(clientFd, &answer, answer.size(), 0);
 }
-
-
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */
 
@@ -258,41 +224,41 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 //     }
 // }
 
-std::string getFileContent(const std::string& filePath) {
-    std::ifstream file(filePath.c_str());
-    if (!file.is_open()) {
-        return ""; // Fichier introuvable
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    return buffer.str();
-}
+// std::string getFileContent(const std::string& filePath) {
+//     std::ifstream file(filePath.c_str());
+//     if (!file.is_open()) {
+//         return ""; // Fichier introuvable
+//     }
+//     std::stringstream buffer;
+//     buffer << file.rdbuf();
+//     return buffer.str();
+// }
 
-std::string buildHttpResponse(const std::string& filePath) {
-    std::string content = getFileContent(filePath);
+// std::string buildHttpResponse(const std::string& filePath) {
+//     std::string content = getFileContent(filePath);
 
-    if (content.empty()) {
-        return "HTTP/1.1 404 Not Found\r\n"
-               "Content-Length: 13\r\n"
-               "Content-Type: text/plain\r\n"
-               "\r\n"
-               "404 Not Found";
-    }
+//     if (content.empty()) {
+//         return "HTTP/1.1 404 Not Found\r\n"
+//                "Content-Length: 13\r\n"
+//                "Content-Type: text/plain\r\n"
+//                "\r\n"
+//                "404 Not Found";
+//     }
 
-    std::stringstream response;
-    response << "HTTP/1.1 200 OK\r\n"
-             << "Content-Length: " << content.size() << "\r\n"
-             << "Content-Type: text/html\r\n"
-             << "Connection: close\r\n"
-             << "\r\n"
-             << content;
+//     std::stringstream response;
+//     response << "HTTP/1.1 200 OK\r\n"
+//              << "Content-Length: " << content.size() << "\r\n"
+//              << "Content-Type: text/html\r\n"
+//              << "Connection: close\r\n"
+//              << "\r\n"
+//              << content;
 
-    return response.str();
-}
+//     return response.str();
+// }
 
-void EPollManager::responseFromServer(int clientFd, std::string filePath) {
-    std::cout << "--------------> " << filePath << std::endl;
+// void EPollManager::responseFromServer(int clientFd, std::string filePath) {
+//     std::cout << "--------------> " << filePath << std::endl;
 
-    std::string httpResponse = buildHttpResponse(filePath);
-    send(clientFd, httpResponse.c_str(), httpResponse.size(), 0);
-}
+//     std::string httpResponse = buildHttpResponse(filePath);
+//     send(clientFd, httpResponse.c_str(), httpResponse.size(), 0);
+// }

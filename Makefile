@@ -9,6 +9,8 @@ SRCS :=		main.cpp\
 			srcs/configFile/RecupBlockContent.cpp\
 			srcs/configFile/LocationBlock.cpp\
 			srcs/configFile/ServerBlock.cpp\
+			srcs/configFile/CgiHandler.cpp\
+			srcs/configFile/HostHandler.cpp\
 			srcs/server/ASocket.cpp\
 			srcs/server/ListeningSocket.cpp\
 			srcs/server/Server.cpp\
