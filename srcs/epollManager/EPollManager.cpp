@@ -141,13 +141,19 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	ssize_t			bytes_read;
 
 	buf.resize(BUFFER_SIZE);
+	std::cout << std::endl << std::endl << std::endl;
+	std::cout << "Debut handleClientRequest" << std::endl;
+	std::cout << "clientFd :" << clientFd << std::endl;
 	while (request.find("\r\n\r\n") == std::string::npos)
 	{
+		buf.resize(BUFFER_SIZE);
 		bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
+		std::cout << buf << std::endl;
 		if (bytes_read <= 0)
 		{
 			//close(clientFd);
 			std::cerr << "erreur handleClientRequest" << std::endl;
+			close(clientFd);
 			break;
 		}
 		request += buf;
@@ -156,105 +162,47 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	RequestParser	req_parser;
 
 	req_parser.parseRequest(request, clientFd);
+	std::cout << "Elem de la requete apres le parse :" << std::endl;
+	std::cout << "Method : " << req_parser.getMethod() << std::endl;
+	std::cout << "URI : " << req_parser.getURI() << std::endl;
+	std::cout << "HTTP version : " << req_parser.getHTTP() << std::endl;
+	std::cout << std::endl;
 	if (req_parser.getErrorCode() != 0)
 	{
 		return ;
 	}
 
 	ProcessRequest	process_req(serv, req_parser);
+	if (req_parser.getIsCgi() == true)
+	{
+		//GREG TU TE DEMERDES POUR LA REP
+	}
+
+
+	//Pour tester:
+	std::string		_response;
+	std::ifstream	resp_file(process_req.getFinalPath().c_str());
+
+	if (resp_file.is_open())
+	{
+		std::stringstream	content;
+		std::stringstream	size;
+		std::string			body;
+		std::string			body_size;
+
+		content << resp_file.rdbuf();
+		body = content.str();
+		size << body.size();
+		body_size = size.str();
+
+		_response = "HTTP/1.1 200 OK\r\n";
+		_response += "Content-Type: text/html\r\n";
+		_response += "Content-Length: " + body_size + "\r\n";
+		_response += "\r\n";
+		_response += content.str();
+
+		std::cout << "Reponse :" << std::endl;
+		std::cout << _response << std::endl;
+	}
+	send(clientFd, &_response[0], _response.size(), 0);
 }
-/* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
-/* donc tout reprendre */
-
-// void EPollManager::handleClientRequest(int clientFd, Server *serv) {
-//     char buffer[1024];
-//     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-
-//     if (bytesRead <= 0) {
-//         close(clientFd);
-//         return;
-//     }
-
-//     buffer[bytesRead] = '\0';
-//     std::cout << "[Client] Reçu : " << buffer << std::endl;
-
-//     std::istringstream requestStream(buffer);
-//     std::string method, path, httpVersion;
-//     requestStream >> method >> path >> httpVersion;
-
-//     if (method == "GET") {
-//         (void)root;
-//         std::string filePath = index;
-//         std::cout << "aaaaaaaaaaaaaaaaaaa -> " << filePath << std::endl;
-//         responseFromServer(clientFd, filePath);
-//     } else {
-//         send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
-//     }
-// }
-
-/* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
-/* donc tout reprendre */
-
-// void EPollManager::handleClientRequest(int clientFd, std::string root, std::string index) {
-//     char buffer[1024];
-//     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-
-//     if (bytesRead <= 0) {
-//         close(clientFd);
-//         return;
-//     }
-
-//     buffer[bytesRead] = '\0';
-//     std::cout << "[Client] Reçu : " << buffer << std::endl;
-
-//     std::istringstream requestStream(buffer);
-//     std::string method, path, httpVersion;
-//     requestStream >> method >> path >> httpVersion;
-
-//     if (method == "GET") {
-//         (void)root;
-//         std::string filePath = index;
-//         responseFromServer(clientFd, filePath);
-//     } else {
-//         send(clientFd, "HTTP/1.1 405 Method Not Allowed\r\nContent-Length: 0\r\n\r\n", 54, 0);
-//     }
-// }
-
-// std::string getFileContent(const std::string& filePath) {
-//     std::ifstream file(filePath.c_str());
-//     if (!file.is_open()) {
-//         return ""; // Fichier introuvable
-//     }
-//     std::stringstream buffer;
-//     buffer << file.rdbuf();
-//     return buffer.str();
-// }
-
-// std::string buildHttpResponse(const std::string& filePath) {
-//     std::string content = getFileContent(filePath);
-
-//     if (content.empty()) {
-//         return "HTTP/1.1 404 Not Found\r\n"
-//                "Content-Length: 13\r\n"
-//                "Content-Type: text/plain\r\n"
-//                "\r\n"
-//                "404 Not Found";
-//     }
-
-//     std::stringstream response;
-//     response << "HTTP/1.1 200 OK\r\n"
-//              << "Content-Length: " << content.size() << "\r\n"
-//              << "Content-Type: text/html\r\n"
-//              << "Connection: close\r\n"
-//              << "\r\n"
-//              << content;
-
-//     return response.str();
-// }
-
-// void EPollManager::responseFromServer(int clientFd, std::string filePath) {
-//     std::cout << "--------------> " << filePath << std::endl;
-
-//     std::string httpResponse = buildHttpResponse(filePath);
-//     send(clientFd, httpResponse.c_str(), httpResponse.size(), 0);
-// }

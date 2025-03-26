@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/25 16:16:20 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/26 14:55:23 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 %20%22%23%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3C%3D\
 %3E%3F%40%5B%5C%5D%5E%5F%60%7B%7C%7D"
 # define VALID_CHARSET "!$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
-# define BUFFER_SIZE 2
+# define BUFFER_SIZE 4096
 
 class	RequestParser
 {
@@ -40,11 +40,13 @@ class	RequestParser
 		RequestParser	&operator=(RequestParser const &inst);
 
 		void			setErrorCode(int error);
+		void			setIsCgi(bool value);
 
 		std::string		getMethod(void) const;
 		std::string		getURI(void) const;
 		std::string		getHTTP(void) const;
 		int				getErrorCode(void) const;
+		bool			getIsCgi(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
 
