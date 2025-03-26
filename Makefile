@@ -14,6 +14,7 @@ SRCS :=		main.cpp\
 			srcs/server/Server.cpp\
 			srcs/epollManager/EPollManager.cpp\
 			srcs/request/RequestParser.cpp\
+			srcs/request/ProcessRequest.cpp\
 
 OBJS := $(SRCS:.cpp=.o)
 
