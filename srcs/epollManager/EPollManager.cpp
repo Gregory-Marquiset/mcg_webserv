@@ -1,10 +1,11 @@
 #include "../../includes/epollManager/EPollManager.hpp"
 #include "../../includes/request/RequestParser.hpp"
+#include "../../includes/request/ProcessRequest.hpp"
 #include "../../includes/response/ResponseMaker.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-// epoll_create1(0) crée un file descriptor epoll. 
+// epoll_create1(0) crée un file descriptor epoll.
 // S'il échoue, un message d'erreur est affiché, et le programme quitte immédiatement.
 
 EPollManager::EPollManager(const std::vector<Server>& servers) {
@@ -17,7 +18,7 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
         exit(EXIT_FAILURE);
     }
 
-    // parcourt tous les serveurs et ajoute leur socket d'écoute (socket principale) 
+    // parcourt tous les serveurs et ajoute leur socket d'écoute (socket principale)
     // au file descriptor epoll via addSocketToEpoll.
     std::vector<Server>::iterator it;
     for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
@@ -32,7 +33,7 @@ EPollManager::~EPollManager() {
 
 /* ================= UTILS ======================== */
 
-// Cette fonction ajoute une socket spécifique au système epoll 
+// Cette fonction ajoute une socket spécifique au système epoll
 // pour surveiller les événements de lecture (EPOLLIN).
 // Cet événement est configuré pour détecter les données disponibles en lecture (EPOLLIN).
 // epoll_ctl() ajoute (EPOLL_CTL_ADD) la socket fd au descripteur epoll _epollFd
@@ -137,35 +138,30 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
 	std::string		buf;
 	std::string		request;
-	//std::string		answer;
 	ssize_t			bytes_read;
 
-	buf.resize(4096);
-	while (buf.find("\r\n\r\n") == std::string::npos)
+	buf.resize(BUFFER_SIZE);
+	while (request.find("\r\n\r\n") == std::string::npos)
 	{
-		bytes_read = recv(clientFd, &buf[0], 4096, 0);
+		bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
 		if (bytes_read <= 0)
 		{
 			//close(clientFd);
+			std::cerr << "erreur handleClientRequest" << std::endl;
 			break;
 		}
 		request += buf;
 	}
 
-	// if (bytes_read <= 0)
-	// {
-	// 	close(clientFd);
-	// 	return ;
-	// }
+	RequestParser	req_parser;
 
-	RequestParser	req_parser(serv);
 	req_parser.parseRequest(request, clientFd);
+	if (req_parser.getErrorCode() != 0)
+	{
+		return ;
+	}
 
-
-	//ResponseMaker	resp;
-
-	//answer = resp.getFinalResponse();
-	//send(clientFd, &answer, answer.size(), 0);
+	ProcessRequest	process_req(serv, req_parser);
 }
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */
@@ -173,7 +169,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 // void EPollManager::handleClientRequest(int clientFd, Server *serv) {
 //     char buffer[1024];
 //     ssize_t bytesRead = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
-    
+
 //     if (bytesRead <= 0) {
 //         close(clientFd);
 //         return;

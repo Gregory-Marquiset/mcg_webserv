@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/25 17:51:13 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/26 09:59:11 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,4 +126,5 @@ void	ProcessRequest::addRootPath(void)
 	{
 		this->_final_path += this->_location_to_use.getIndex();
 	}
+	std::cout << this->_final_path << std::endl;
 }
