@@ -10,7 +10,7 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
   this->getAddress().sin_family = domain;
   this->getAddress().sin_port = htons(port);
   this->getAddress().sin_addr.s_addr = htonl(interface);
-  
+
   // bind the socket to a port (sans ca on ne peut pas listen)
   this->_connection = bindToNetwork(getSockFd(), getAddress());
   testConnection(_connection);
@@ -24,6 +24,10 @@ ListeningSocket::~ListeningSocket() {};
 
 int ListeningSocket::bindToNetwork(int sockFd, struct sockaddr_in address) {
 
+  int yes = 1;
+  if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEPORT, (void*)&yes, sizeof(yes)) < 0) {
+      fprintf(stderr, "setsockopt() failed. Error: %d\n", errno);
+  }
   return bind(sockFd, (struct sockaddr *)&address, sizeof(address));
 }
 

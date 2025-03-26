@@ -5,18 +5,21 @@
 #include "Block.hpp"
 #include "RecupBlockContent.hpp"
 #include "LocationBlock.hpp"
+#include "CgiHandler.hpp"
+#include "HostHandler.hpp"
 
 class ServerBlock {
 
     private:
        std::string _server;
-       int _listen;
-       std::string _serverName;
-       std::vector<LocationBlock> _location;
+       int _port;
+       std::vector<HostHandler> _host;
        std::string _root;
        std::string _index;
-       std::string _allowMethods;
-       std::string _cgiExtension;
+       std::vector<LocationBlock> _location;
+       std::vector<std::string> _allowMethods;
+       std::vector<CgiHandler> _cgiExtension;
+       std::string _client_max_body_size;
 
     public:
         ServerBlock();
@@ -25,29 +28,33 @@ class ServerBlock {
         /* setters */
 
         void setServer(std::string server);
-        void setListen(int listen);
-        void setServerName(std::string serverName);
-        void setLocation(std::vector<LocationBlock> location);
+        void setPort(int port);
+        void setHost(std::vector<HostHandler> host);
         void setRoot(std::string root);
         void setIndex(std::string index);
-        void setAllowMethods(std::string allowMethods);
-        void setCgiExtension(std::string cgiExtension);
+        void setLocation(std::vector<LocationBlock> location);
+        void setAllowMethods(std::vector<std::string> allowMethods);
+        void setCgiExtension(std::vector<CgiHandler> cgiExtension);
+        void setClientMaxBodySize(std::string client_max_body_size);
         
         /* getters */
 
         std::string getServer() const;
-        int getListen() const;
-        std::string getServerName() const;
-        std::vector<LocationBlock> getLocation() const;
+        int getPort() const;
+        std::vector<HostHandler> getHost() const;
         std::string getRoot() const;
         std::string getIndex() const;
-        std::string getAllowMethods() const;
-        std::string getCgiExtension() const;
+        std::vector<LocationBlock> getLocationBlock() const;
+        std::vector<std::string> getAllowMethods() const;
+        std::vector<CgiHandler> getCgiExtension() const;
+        std::string getClientMaxBodySize() const;
 
         void addLocationBlock(const LocationBlock& location);
 
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
-        std::vector<ServerBlock> getAllServerBlocks(RecupBlockContent rawConfig);
+        std::vector<ServerBlock> createAllServerBlocks(RecupBlockContent rawConfig);
+        void caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive);
+        void caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
 };
 
 #endif

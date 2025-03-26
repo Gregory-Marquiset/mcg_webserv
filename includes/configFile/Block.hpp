@@ -7,7 +7,7 @@ class Block {
 
     private:
         std::string _name;
-        std::map<std::string, std::string> _directive;
+        std::multimap<std::string, std::string> _directive;
         std::vector<Block> _childBlock;
        
     public:
@@ -23,7 +23,7 @@ class Block {
         /* getters */
 
         std::string getName() const;
-        std::map<std::string, std::string> getDirective() const;
+        std::multimap<std::string, std::string> getDirective() const;
         std::vector<Block> getChildBlock() const;
 
         /* adding a new block to vector */

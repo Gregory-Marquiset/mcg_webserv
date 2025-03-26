@@ -143,9 +143,8 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     std::string value = "";
     int isKey = 1;
     std::string tmpDirective = content.substr(0, i);
-    std::cout << "iiiiiiiiiiiiiii " << tmpDirective << std::endl;
     std::string cleanDirective = trim(tmpDirective);
-    std::cout << "aaaaaaaaaaaaaaa " << cleanDirective << std::endl;
+    // std::cout << "---> " << cleanDirective << std::endl;
 
     for (size_t j = 0; j < cleanDirective.size(); ++j) {
         if (isspace(cleanDirective[j]) && isKey == 1) {
@@ -154,13 +153,8 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
         }
         if (isKey)
             key += cleanDirective[j];
-        else {
-            // std::cout << "-------------\n";
-            // std::cout << cleanDirective[j] << std::endl;
+        else 
             value += cleanDirective[j];
-            // std::cout << "-------------\n";
-
-        }
     }
    
     if (childFlag == 0) {

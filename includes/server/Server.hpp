@@ -10,13 +10,19 @@ class Server {
   private:
     ServerBlock _serverBlock;
     ListeningSocket _listeningSocket;
+    int _isDefaultServer;
 
   public:
     Server(const ServerBlock& serverBlock);
     ~Server();
 
+    /* setters */
+
+    void setDefaultServer(int status);
+
     /* getters */
 
+    int getDefaultServer() const;
     ListeningSocket getListeningSocket() const;
     ServerBlock getServerBlock() const;
     static std::vector<Server> getAllServers(const std::vector<ServerBlock>& serverBlocks);
