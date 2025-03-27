@@ -4,24 +4,24 @@
 #include "includes/configFile/Block.hpp"
 #include "includes/configFile/RecupBlockContent.hpp"
 #include "includes/configFile/LocationBlock.hpp"
+#include "includes/configFile/HostHandler.hpp"
 #include "includes/configFile/ServerBlock.hpp"
 #include "includes/configFile/CgiHandler.hpp"
-#include "includes/configFile/HostHandler.hpp"
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
 
 void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
 
     if (serverBlocks.empty()) {
-        std::cout << "No server in .conf" << std::endl;
+        std::cout << "in main No server in .conf" << std::endl;
     }
 
     for (size_t i = 0; i < serverBlocks.size(); ++i) {
         
         std::cout << "server { " << std::endl;
 
-        for (size_t iHost = 0; iHost < serverBlocks[i].getHost().size(); ++iHost) {
-            std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
+        for (size_t iHost = 0; iHost < serverBlocks[i].getHost().getHostName().size(); ++iHost) {
+            std::cout << "      hostName: " << serverBlocks[i].getHost().getHostName()[iHost] << std::endl;
         }
 
         std::cout << "      port : " << serverBlocks[i].getPort() << std::endl;

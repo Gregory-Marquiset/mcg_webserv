@@ -68,6 +68,11 @@ void RecupBlockContent::createTree(std::string file) {
 
         for (size_t i = 0; i < content.size(); ++i) {
             
+            // ignorer les commentaires 
+            if (content[i] == '#') {
+                break ;
+            }
+
             // entree d un block 
             if (content[i] == '{') {
                handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
@@ -77,9 +82,6 @@ void RecupBlockContent::createTree(std::string file) {
             if (content[i] == '}') 
                 handleExitBlock(parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
 
-            // ignorer les commentaires 
-            if (content[i] == '#')
-                continue ;
 
             // init directives
             if (content[i] == ';') {
@@ -144,7 +146,6 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     int isKey = 1;
     std::string tmpDirective = content.substr(0, i);
     std::string cleanDirective = trim(tmpDirective);
-    // std::cout << "---> " << cleanDirective << std::endl;
 
     for (size_t j = 0; j < cleanDirective.size(); ++j) {
         if (isspace(cleanDirective[j]) && isKey == 1) {

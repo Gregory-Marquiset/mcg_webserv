@@ -135,7 +135,8 @@ void EPollManager::acceptConnection(int serverFd) {
 /*=====REECRITURE FONCTIONS PAR CHARLES=====*/
 void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
-	std::string		buf;
+	(void)serv;
+    std::string		buf;
 	std::string		request;
 	//std::string		answer;
 	ssize_t			bytes_read;
@@ -158,14 +159,14 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	// 	return ;
 	// }
 
-	RequestParser	req_parser(serv);
-	req_parser.parseRequest(request, clientFd);
+	// RequestParser	req_parser(serv);
+	// req_parser.parseRequest(request, clientFd);
 
 
-	//ResponseMaker	resp;
+	// ResponseMaker	resp;
 
-	//answer = resp.getFinalResponse();
-	//send(clientFd, &answer, answer.size(), 0);
+	// answer = resp.getFinalResponse();
+	// send(clientFd, &answer, answer.size(), 0);
 }
 /* tout ca en dessous, c est pas moi, c etait pour pouvoir check les requetes http au lieu de curl ou telnet */
 /* donc tout reprendre */

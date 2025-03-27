@@ -14,7 +14,7 @@
 #include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0), _is_uri_cgi(false)
+RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _actual_state(RequestParser::INIT), _error_state(RequestParser::NO_ERROR), _error_code(0)
 {
 }
 

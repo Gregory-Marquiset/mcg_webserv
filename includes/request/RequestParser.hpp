@@ -91,7 +91,7 @@ class	RequestParser
 		int				_actual_state;
 		int				_error_state;
 		int				_error_code;
-		bool			_is_uri_cgi;
+		// bool			_is_uri_cgi;
 
 		// Stockage des infos utile que pour le parsing de la requete ??
 		std::string		_host;

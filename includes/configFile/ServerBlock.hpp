@@ -8,12 +8,14 @@
 #include "CgiHandler.hpp"
 #include "HostHandler.hpp"
 
+class HostHandler;
+
 class ServerBlock {
 
     private:
        std::string _server;
        int _port;
-       std::vector<HostHandler> _host;
+       HostHandler _host;
        std::string _root;
        std::string _index;
        std::vector<LocationBlock> _location;
@@ -29,7 +31,7 @@ class ServerBlock {
 
         void setServer(std::string server);
         void setPort(int port);
-        void setHost(std::vector<HostHandler> host);
+        void setHost(const HostHandler& host);
         void setRoot(std::string root);
         void setIndex(std::string index);
         void setLocation(std::vector<LocationBlock> location);
@@ -41,7 +43,7 @@ class ServerBlock {
 
         std::string getServer() const;
         int getPort() const;
-        std::vector<HostHandler> getHost() const;
+        HostHandler getHost() const;
         std::string getRoot() const;
         std::string getIndex() const;
         std::vector<LocationBlock> getLocationBlock() const;
@@ -50,6 +52,10 @@ class ServerBlock {
         std::string getClientMaxBodySize() const;
 
         void addLocationBlock(const LocationBlock& location);
+        void rootCheck();
+        void indexCheck();
+
+        void addHost(const HostHandler& host);
 
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
         std::vector<ServerBlock> createAllServerBlocks(RecupBlockContent rawConfig);
