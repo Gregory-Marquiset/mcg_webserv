@@ -20,13 +20,23 @@ void ServerBlock::setPort(int port) {
 //     this->_serverName = serverName;
 // }
 
+
 void ServerBlock::setHost(std::vector<HostHandler> host) {
     this->_host = host;
 }
 
+
+/*
+void ServerBlock::setHost(const HostHandler& host) {
+    this->_host = host;
+}
+    */
+
+
 void ServerBlock::setRoot(std::string root) {
     this->_root = root;
 }
+
 
 void ServerBlock::setIndex(std::string index) {
     this->_index = index;
@@ -62,9 +72,13 @@ int ServerBlock::getPort() const {
 //     return (this->_serverName);
 // }
 
+
+
+
 std::vector<HostHandler> ServerBlock::getHost() const {
     return (this->_host);
 }
+
 
 std::string ServerBlock::getRoot() const {
     return (this->_root);
@@ -90,7 +104,7 @@ std::string ServerBlock::getClientMaxBodySize() const {
     return (this->_client_max_body_size);
 }
 
-/* ================= HELPERS ======================== */
+/* ================= HELPERS  & CHECKS ======================== */
 
 int myStoi(std::string& s) {
     int i;
@@ -100,6 +114,42 @@ int myStoi(std::string& s) {
 
 void ServerBlock::addLocationBlock(const LocationBlock& location) {
     this->_location.push_back(location);
+}
+
+void ServerBlock::rootCheck() {
+     
+    int noRootInServer = 0;
+    int noRootInLoc = 0;
+
+    if (this->getRoot().empty()) {
+        noRootInServer = 1;
+    }
+    for (size_t i = 0; i < this->getLocationBlock().size(); ++i) {
+        if (this->getLocationBlock()[i].getRoot().empty())
+            noRootInLoc = 1;
+    }
+    if (noRootInServer == 1 && noRootInLoc == 1) {
+        std::cerr << "Error: there is a Block with no root available" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void ServerBlock::indexCheck() {
+    
+    int noIndexInServer = 0;
+    int noIndexInLoc = 0;
+
+    if (this->getIndex().empty()) {
+        noIndexInServer = 1;
+    }
+    for (size_t i = 0; i < this->getLocationBlock().size(); ++i) {
+        if (this->getLocationBlock()[i].getIndex().empty())
+            noIndexInLoc = 1;
+    }
+    if (noIndexInServer == 1 && noIndexInLoc == 1) {
+        std::cerr << "Error: there is a Block with no index available" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 /* SETTER DU SERVER BLOCK SANS LOCATION BLOCK IMBRIQUEE */
@@ -152,19 +202,29 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     }
     if (directive.count("listen") == 1) {
+        /*
             std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
             if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
                 std::cerr << "Error: Invalid Port Number" << std::endl;
                 exit(EXIT_FAILURE);
             }
             oneServerBlock.setPort(std::atoi((itPort->second).c_str()));
+        */
+        HostHandler host;
+         
+         std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
+         host.checkListenFormat(itPort->second, oneServerBlock);
     }
 
     if (directive.count("server_name") == 0) {
+        
         HostHandler host;
 
         host.setHostName("127.0.0.1");
         oneServerBlock._host.push_back(host);
+        
+
+        // oneServerBlock._host.getHostName().push_back("localhost");
     }
     else if (directive.count("server_name") == 1) {
         std::multimap<std::string, std::string>::iterator itServerName = directive.find("server_name");
@@ -174,7 +234,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         host.filter(itServerName->second);
         if (host.getHostFormat() == 1) {
             host.parseIp(itServerName->second);
-            oneServerBlock._host.push_back(host);
+            // oneServerBlock._host.push_back(host);
         }
         else {
 
@@ -183,6 +243,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
             while (ss >> name) {
                 host.setHostName(name);
                 oneServerBlock._host.push_back(host);
+                // oneServerBlock._host.getHostName().push_back(name);
             }
         }
     } else {
@@ -299,7 +360,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
     
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
-    for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
+    for (std::vector<Block>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
                 
         if (it->getName() == "server") {
 
@@ -330,13 +391,15 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                     oneServerBlock.addLocationBlock(locBlock);
                 }
             }
+            oneServerBlock.rootCheck();
+            oneServerBlock.indexCheck();
             cleanServers.push_back(oneServerBlock);
         }
 
-        if (cleanServers.empty()) {
-            std::cerr << "Error: No server in .conf" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+    }
+    if (cleanServers.empty()) {
+        std::cerr << "Error: No server in .conf" << std::endl;
+        exit(EXIT_FAILURE);
     }
     return (cleanServers);
 }
