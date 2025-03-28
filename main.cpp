@@ -10,6 +10,12 @@
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
 
+
+// ca a l air a peu pres ok pour l attributaion des servers par defaut
+// gerer les invalides files : non exiting
+// gerer que les requetes visent les bons servers et dans le cas echeant le server par defaut
+// leak lorsque je exit failure mais sinon c est good 
+
 void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
 
     if (serverBlocks.empty()) {
@@ -24,7 +30,9 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
             std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
         }
 
-        std::cout << "      port : " << serverBlocks[i].getPort() << std::endl;
+        for (size_t iPort = 0; iPort < serverBlocks[i].getPort().size(); ++iPort) {
+            std::cout << "      port: " << serverBlocks[i].getPort()[iPort] << std::endl;
+        }
         std::cout << "      root: " << serverBlocks[i].getRoot() << std::endl;
         std::cout << "      index: " << serverBlocks[i].getIndex() << std::endl;
         std::cout << "      client max body size : " << serverBlocks[i].getClientMaxBodySize() << std::endl;
@@ -94,7 +102,21 @@ int main(int argc, char **argv) {
         /* ================= Les servers sont sous surveillance ======================== */
 
         EPollManager epollManager(servers);
-            epollManager.run();
+
+        std::cout << "===== Default Servers according to Port =====" << std::endl;
+
+        for (size_t i = 0; i < servers.size(); ++i) {
+
+            std::cout << "siwe = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+            std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
+            for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+                std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+            }
+        }
+
+        std::cout << "=============================================" << std::endl;
+        
+        //epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;

@@ -8,6 +8,7 @@
 // epoll_create1(0) crée un file descriptor epoll.
 // S'il échoue, un message d'erreur est affiché, et le programme quitte immédiatement.
 
+/*
 EPollManager::EPollManager(const std::vector<Server>& servers) {
 
     this->_servers = servers;
@@ -25,6 +26,106 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
         addSocketToEpoll(it->getListeningSocket().getSockFd());
     }
 }
+    */
+
+
+// le monitor sait quels sont les servers par defauts
+
+EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
+    
+    this->_epollFd = epoll_create1(0); // c est le fd monitor
+    if (this->_epollFd == -1) {
+        perror("epoll_create1");
+        exit(EXIT_FAILURE);
+    }
+
+    determineDefaultServersAccordingToPort(this->_servers);
+}
+/*
+void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& servers) {
+
+    std::vector<int> portAlreadyAssigned;
+
+    for (size_t i = 0; i < servers.size(); ++i) {
+            
+        for (size_t j = 0; j < servers[i].getServerBlock().getPort().size(); ++j) {
+            
+            int portToCheck = servers[i].getServerBlock().getPort()[j];
+
+            std::map<int, int> res;
+
+            if (portAlreadyAssigned.empty()) {
+                res[portToCheck] = 1;
+                servers[i].addStatus(res);
+                portAlreadyAssigned.push_back(portToCheck);
+            } else {
+
+                for (size_t k = 0; k < portAlreadyAssigned.size(); ++k) {
+                    if (portToCheck == portAlreadyAssigned[k]) {
+                        res[portToCheck] = 0;
+                        servers[i].addStatus(res);
+                        break ;
+                    } 
+                }
+                res[portToCheck] = 1;
+                servers[i].addStatus(res);
+                portAlreadyAssigned.push_back(portToCheck);
+            }
+        }
+        // std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
+        // for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+        //     std::cout << "Is default server for port: " << it->first << " = " << it->second << std::endl;
+        // }
+    }
+}
+*/
+
+
+void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& servers) {
+
+     std::vector<int> portAlreadyAssigned;
+
+     for (size_t i = 0; i < servers.size(); ++i) {
+            
+         std::cout << "------- entre server: " << i << "-------" << std::endl;
+         for (size_t j = 0; j < servers[i].getServerBlock().getPort().size(); ++j) {
+            
+             int portToCheck = servers[i].getServerBlock().getPort()[j];
+             std::cout << "port to check = " << portToCheck << std::endl;
+
+             std::map<int, int> res;
+
+             if (portAlreadyAssigned.empty()) {
+                 res[portToCheck] = 1;
+                 servers[i].addStatus(res);
+                 portAlreadyAssigned.push_back(portToCheck);
+             } else {
+
+                 for (size_t k = 0; k < portAlreadyAssigned.size(); ++k) {
+                     if (portToCheck == portAlreadyAssigned[k]) {
+                         std::cout << "doublon: " << "port already assigned " << portAlreadyAssigned[k] << std::endl;
+                         res[portToCheck] = 0;
+                         servers[i].addStatus(res);
+                         break ;
+                     } 
+                 }
+                 res[portToCheck] = 1;
+    
+                 std::cout << "port " << res.begin()->first << std::endl;
+                 std::cout << "status " << res[portToCheck] << std::endl;
+    
+                 servers[i].addStatus(res);
+                 portAlreadyAssigned.push_back(portToCheck);
+             }
+         }
+         std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
+         for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+             std::cout << "Is default server for port: " << it->first << " = " << it->second << std::endl;
+         }
+
+         std::cout << "CHECK " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+     }
+ }
 
 EPollManager::~EPollManager() {
 
@@ -68,7 +169,7 @@ void EPollManager::run() {
             // check si c est server
             int isServerSocket = 0;
             for (size_t j = 0; j < _servers.size(); j++) {
-                if (fd == _servers[j].getListeningSocket().getSockFd()) {
+                if (fd == _servers[j].getListeningSocket().front().getSockFd()) { // changer le .front() faire en sorte d avoir la bonne listening socket
                     acceptConnection(fd);
                     isServerSocket = 1;
                     break;
@@ -125,7 +226,7 @@ void EPollManager::acceptConnection(int serverFd) {
 
     // pour associer la requete cliente au bon server
     for (size_t j = 0; j < _servers.size(); j++) {
-        if (serverFd == _servers[j].getListeningSocket().getSockFd()) {
+        if (serverFd == _servers[j].getListeningSocket().front().getSockFd()) {
             clientToServerMap[newClientFd] = &_servers[j];
             break;
         }

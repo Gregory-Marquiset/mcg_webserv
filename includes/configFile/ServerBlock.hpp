@@ -14,7 +14,7 @@ class ServerBlock {
 
     private:
        std::string _server;
-       int _port;
+       std::vector<int> _port;
        std::vector<HostHandler> _host;
        // HostHandler _host;
        std::string _root;
@@ -31,7 +31,7 @@ class ServerBlock {
         /* setters */
 
         void setServer(std::string server);
-        void setPort(int port);
+        void setPort(std::vector<int> port);
         void setHost(std::vector<HostHandler> host);
         // void setHost(const HostHandler& host);
         void setRoot(std::string root);
@@ -44,7 +44,7 @@ class ServerBlock {
         /* getters */
 
         std::string getServer() const;
-        int getPort() const;
+        std::vector<int> getPort() const;
         std::vector<HostHandler> getHost() const;
         // HostHandler getHost() const;
         std::string getRoot() const;
@@ -55,6 +55,7 @@ class ServerBlock {
         std::string getClientMaxBodySize() const;
 
         void addLocationBlock(const LocationBlock& location);
+        void addPort(const int& port);
         void rootCheck();
         void indexCheck();
         void addHost(const HostHandler& host);

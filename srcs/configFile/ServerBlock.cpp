@@ -12,7 +12,7 @@ void ServerBlock::setServer(std::string server) {
     this->_server = server;
 }
 
-void ServerBlock::setPort(int port) {
+void ServerBlock::setPort(std::vector<int> port) {
     this->_port = port;
 }
 
@@ -64,7 +64,7 @@ std::string ServerBlock::getServer() const {
     return (this->_server);
 }
 
-int ServerBlock::getPort() const {
+std::vector<int> ServerBlock::getPort() const {
     return (this->_port);
 }
 
@@ -114,6 +114,10 @@ int myStoi(std::string& s) {
 
 void ServerBlock::addLocationBlock(const LocationBlock& location) {
     this->_location.push_back(location);
+}
+
+void ServerBlock::addPort(const int& port) {
+    this->_port.push_back(port);
 }
 
 void ServerBlock::rootCheck() {
@@ -183,6 +187,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     }
 
+    /*
     // if (directive.count("listen") == 0) {
     //    oneServerBlock.setPort(-1); nop changer ca 
     // } else {
@@ -202,29 +207,39 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     }
     if (directive.count("listen") == 1) {
-        /*
+        
             std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
             if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
                 std::cerr << "Error: Invalid Port Number" << std::endl;
                 exit(EXIT_FAILURE);
             }
             oneServerBlock.setPort(std::atoi((itPort->second).c_str()));
-        */
+        
         HostHandler host;
          
          std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
          host.checkListenFormat(itPort->second, oneServerBlock);
+    }
+    */
+
+     // listen
+    if (directive.count("listen") == 0) {
+        std::cerr << "Error: Provide a port where to listen" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
+        HostHandler host;
+
+        host.checkListenFormat(itPort->second, oneServerBlock);
+        oneServerBlock._host.push_back(host);
     }
 
     if (directive.count("server_name") == 0) {
         
         HostHandler host;
 
-        host.setHostName("127.0.0.1");
+        host.setHostName("localhost");
         oneServerBlock._host.push_back(host);
-        
-
-        // oneServerBlock._host.getHostName().push_back("localhost");
     }
     else if (directive.count("server_name") == 1) {
         std::multimap<std::string, std::string>::iterator itServerName = directive.find("server_name");
@@ -234,7 +249,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         host.filter(itServerName->second);
         if (host.getHostFormat() == 1) {
             host.parseIp(itServerName->second);
-            // oneServerBlock._host.push_back(host);
+            oneServerBlock._host.push_back(host);
         }
         else {
 
@@ -243,7 +258,6 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
             while (ss >> name) {
                 host.setHostName(name);
                 oneServerBlock._host.push_back(host);
-                // oneServerBlock._host.getHostName().push_back(name);
             }
         }
     } else {
