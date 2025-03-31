@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 11:26:16 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/31 13:33:14 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,17 +191,27 @@ void	ProcessRequest::addRootPath(void)
 	std::string	uri;
 	size_t		path_size;
 
+	this->_final_path += this->_location_to_use.getRoot();
+	path_size = this->_final_path.size();
+	if (this->_final_path[path_size - 1] != '/')
+		this->_final_path += "/";
+
 	uri = this->_request.getURI();
 	uri.erase(0, this->_location_to_use.getPath().size());
-	this->_final_path += this->_location_to_use.getRoot();
 	this->_final_path += uri;
-
-	//checker si cgi
 
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] == '/')
 	{
-		this->_final_path += this->_location_to_use.getIndex();
+		std::string	index = this->_location_to_use.getIndex();
+
+		if (index.empty())
+		{
+			if (this->_request.getErrorCode() == 0)
+				this->_request.setErrorCode(403);
+			throw RequestParser::RequestException("Index is empty");
+		}
+		this->_final_path += index;
 	}
-	std::cout << this->_final_path << std::endl;
+	std::cout << "final path: " << this->_final_path << std::endl;
 }
