@@ -1,49 +1,52 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ResponseMaker.cpp                                  :+:      :+:    :+:   */
+/*   ErrorManagement.cpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:45:36 by cdutel           ###   ########.fr       */
+/*   Created: 2025/03/31 14:19:54 by cdutel            #+#    #+#             */
+/*   Updated: 2025/03/31 14:27:55 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../includes/response/ResponseMaker.hpp"
+# include "../../includes/errorManagement/ErrorManagement.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-ResponseMaker::ResponseMaker(void)
+ErrorManagement::ErrorManagement(void) : _error_code(0)
 {
 }
 
-ResponseMaker::ResponseMaker(ErrorManagement &err) : _error_class(err)
-{
-}
-
-ResponseMaker::ResponseMaker(ResponseMaker const &copy)
+ErrorManagement::ErrorManagement(ErrorManagement const &copy)
 {
 	*this = copy;
 }
 
-ResponseMaker::~ResponseMaker(void)
+ErrorManagement::~ErrorManagement(void)
 {
 }
 
 
 /* ================= OPERATOR OVERLOAD ======================== */
-ResponseMaker	&ResponseMaker::operator=(ResponseMaker const &inst)
+ErrorManagement	&ErrorManagement::operator=(ErrorManagement const &inst)
 {
 	if (this != &inst)
 	{
-
+		this->_error_code = inst._error_code;
 	}
 	return (*this);
 }
 
 
-/* ================= GETTERS ======================== */
-std::string	ResponseMaker::getFinalResponse(void) const
+/* ================= SETTERS ======================== */
+void	ErrorManagement::setErrorCode(int error)
 {
-	return (this->_final_response);
+	this->_error_code = error;
+}
+
+
+/* ================= GETTERS ======================== */
+int	ErrorManagement::getErrorCode(void) const
+{
+	return (this->_error_code);
 }

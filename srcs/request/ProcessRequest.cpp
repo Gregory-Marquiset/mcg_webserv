@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 13:33:14 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/31 14:40:35 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ ProcessRequest::ProcessRequest(void)
 {
 }
 
-ProcessRequest::ProcessRequest(Server *serv, RequestParser &req) : _serv_info(serv), _request(req)
+ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(err)
 {
 	this->processRequest();
 }
@@ -37,7 +37,10 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 {
 	if (this != &inst)
 	{
-
+		this->_serv_info = inst._serv_info;
+		this->_request = inst._request;
+		this->_location_to_use = inst._location_to_use;
+		this->_final_path = inst._final_path;
 	}
 	return (*this);
 }
@@ -144,8 +147,8 @@ void	ProcessRequest::checkMaxBodySize(void)
 		}
 		else
 		{
-			if (this->_request.getErrorCode() == 0)
-				this->_request.setErrorCode(411);
+			if (this->_error_class.getErrorCode() == 0)
+				this->_error_class.setErrorCode(411);
 			throw RequestParser::RequestException("Error with Max Body size in config");
 		}
 	}
@@ -157,8 +160,8 @@ void	ProcessRequest::checkMaxBodySize(void)
 	//std::cout << "max body size after mult: " << max_body_size << std::endl;
 	if (this->_request.getBody().size() > max_body_size)
 	{
-		if (this->_request.getErrorCode() == 0)
-			this->_request.setErrorCode(413);
+		if (this->_error_class.getErrorCode() == 0)
+			this->_error_class.setErrorCode(413);
 		throw RequestParser::RequestException("Body size is bigger than client max body size");
 	}
 }
@@ -207,8 +210,8 @@ void	ProcessRequest::addRootPath(void)
 
 		if (index.empty())
 		{
-			if (this->_request.getErrorCode() == 0)
-				this->_request.setErrorCode(403);
+			if (this->_error_class.getErrorCode() == 0)
+				this->_error_class.setErrorCode(403);
 			throw RequestParser::RequestException("Index is empty");
 		}
 		this->_final_path += index;

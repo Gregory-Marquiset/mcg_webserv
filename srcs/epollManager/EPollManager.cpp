@@ -159,7 +159,8 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 		request += buf;
 	}
 
-	RequestParser	req_parser;
+	ErrorManagement	err;
+	RequestParser	req_parser(err);
 
 	req_parser.parseRequest(request, clientFd);
 	std::cout << "Elem de la requete apres le parse :" << std::endl;
@@ -167,12 +168,12 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::cout << "URI : " << req_parser.getURI() << std::endl;
 	std::cout << "HTTP version : " << req_parser.getHTTP() << std::endl;
 	std::cout << std::endl;
-	if (req_parser.getErrorCode() != 0)
+	if (err.getErrorCode() != 0)
 	{
 		return ;
 	}
 
-	ProcessRequest	process_req(serv, req_parser);
+	ProcessRequest	process_req(serv, req_parser, err);
 	if (req_parser.getIsCgi() == true)
 	{
 		//GREG TU TE DEMERDES POUR LA REP

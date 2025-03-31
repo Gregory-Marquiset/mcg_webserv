@@ -17,6 +17,7 @@ SRCS :=		main.cpp\
 			srcs/epollManager/EPollManager.cpp\
 			srcs/request/RequestParser.cpp\
 			srcs/request/ProcessRequest.cpp\
+			srcs/errorManagement/ErrorManagement.cpp\
 
 OBJS := $(SRCS:.cpp=.o)
 
