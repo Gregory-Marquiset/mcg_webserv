@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/26 14:17:50 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/31 10:13:49 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ class	ProcessRequest
 		void			processRequest(void);
 		void			compareUriWithLocations(void);
 		void			checkAllowedMethod(void);
+		void			checkMaxBodySize(void);
 		void			checkIfUriIsCgi(void);
 		void			addRootPath(void);
 };

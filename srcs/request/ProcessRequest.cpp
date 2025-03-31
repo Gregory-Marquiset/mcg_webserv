@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/26 16:46:52 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/31 11:26:16 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ void	ProcessRequest::processRequest(void)
 	{
 		this->compareUriWithLocations();
 		this->checkAllowedMethod();
+		this->checkMaxBodySize();
 		this->addRootPath();
 	}
 	catch (RequestParser::RequestException	&req_exc)
@@ -110,7 +111,7 @@ void	ProcessRequest::compareUriWithLocations(void)
 void	ProcessRequest::checkAllowedMethod(void)
 {
 	std::vector<std::string>	methods;
-	
+
 	methods = this->_location_to_use.getAllowMethods();
 	for (std::vector<std::string>::iterator it = methods.begin(); it != methods.end(); it++)
 	{
@@ -120,13 +121,55 @@ void	ProcessRequest::checkAllowedMethod(void)
 	throw RequestParser::RequestException("Method not allowed in this location");
 }
 
+void	ProcessRequest::checkMaxBodySize(void)
+{
+	std::string	str_max_body_size = this->_location_to_use.getClientMaxBodySize();
+	size_t		pos;
+	size_t		multiplier = 0;
+	size_t		max_body_size = 0;
+
+	//std::cout << "str max body: " << str_max_body_size << std::endl;
+	if (str_max_body_size.empty())
+		str_max_body_size = "1M";
+	pos = str_max_body_size.find_first_not_of("0123456789");
+	if (pos != std::string::npos)
+	{
+		if ((str_max_body_size[pos] == 'k' || str_max_body_size[pos] == 'K') && pos == str_max_body_size.size() - 1)
+		{
+			multiplier += 1000;
+		}
+		else if ((str_max_body_size[pos] == 'm' || str_max_body_size[pos] == 'M') && pos == str_max_body_size.size() - 1)
+		{
+			multiplier += 1000000;
+		}
+		else
+		{
+			if (this->_request.getErrorCode() == 0)
+				this->_request.setErrorCode(411);
+			throw RequestParser::RequestException("Error with Max Body size in config");
+		}
+	}
+	std::istringstream	iss(str_max_body_size);
+	iss >> max_body_size;
+	//std::cout << "max body size before mult: " << max_body_size << std::endl;
+	if (multiplier != 0)
+		max_body_size *= multiplier;
+	//std::cout << "max body size after mult: " << max_body_size << std::endl;
+	if (this->_request.getBody().size() > max_body_size)
+	{
+		if (this->_request.getErrorCode() == 0)
+			this->_request.setErrorCode(413);
+		throw RequestParser::RequestException("Body size is bigger than client max body size");
+	}
+}
+
 void	ProcessRequest::checkIfUriIsCgi(void)
 {
 	std::vector<CgiHandler>	cgi_ext;
 	std::string				uri;
 	std::string				extension;
 	size_t					pos;
-	
+
 	cgi_ext = this->_location_to_use.getCgiExtension();
 	uri = this->_request.getURI();
 	pos = uri.rfind(".");

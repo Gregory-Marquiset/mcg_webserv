@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/26 16:46:00 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/03/31 11:07:04 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,11 @@ std::string	RequestParser::getURI(void) const
 std::string	RequestParser::getHTTP(void) const
 {
 	return (this->_request_http_version);
+}
+
+std::string	RequestParser::getBody(void) const
+{
+	return (this->_request_body);
 }
 
 int	RequestParser::getErrorCode(void) const
