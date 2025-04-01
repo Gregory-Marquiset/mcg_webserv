@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:40:14 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 10:53:17 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,14 +28,25 @@ class	ProcessRequest
 		ProcessRequest	&operator=(ProcessRequest const &inst);
 
 		std::string		getFinalPath(void) const;
+		std::string		getMethod(void) const;
+		std::string		getHTTP(void) const;
+		std::string		getBody(void) const;
+		std::map<std::string, std::string>	getHeaders(void) const;
+		bool			getCgi(void) const;
 
 	private:
-		Server			*_serv_info;
-		RequestParser	_request;
-		ErrorManagement	_error_class;
-		LocationBlock	_location_to_use;
+		Server								*_serv_info;
+		RequestParser						_request;
+		ErrorManagement						_error_class;
+		LocationBlock						_location_to_use;
 
-		std::string		_final_path;
+		//Stockage des infos utiles pour la réponse ou cgi
+		std::string							_final_path;
+		std::string							_method;
+		std::string							_http_version;
+		std::string							_request_body;
+		std::map<std::string, std::string>	_headers;
+		bool								_cgi;
 
 		void			processRequest(void);
 		void			compareUriWithLocations(void);

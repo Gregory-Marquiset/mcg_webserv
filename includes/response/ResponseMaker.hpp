@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:46:03 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:45:06 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 10:33:34 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,13 @@
 
 # include "../WebServ.hpp"
 # include "../../includes/errorManagement/ErrorManagement.hpp"
+# include "../../includes/request/ProcessRequest.hpp"
 
 class	ResponseMaker
 {
 	public:
 		ResponseMaker(void);
-		ResponseMaker(ErrorManagement &err);
+		ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos);
 		ResponseMaker(ResponseMaker const &copy);
 		~ResponseMaker(void);
 
@@ -28,9 +29,27 @@ class	ResponseMaker
 
 		std::string		getFinalResponse(void) const;
 
+		class	ResponseException : public std::exception
+		{
+			public:
+				ResponseException(const std::string &msg) throw() : _msg(msg) {}
+				virtual ~ResponseException() throw() {}
+
+				virtual const char* what() const throw()
+				{
+					return _msg.c_str();
+				}
+			private:
+				std::string	_msg;
+		};
+
 	private:
 		ErrorManagement	_error_class;
+		ProcessRequest	_req_infos;
 		std::string		_final_response;
+
+		//void			createErrorResponse(void);
+		void			createGetResponse(void);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:43:16 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 10:03:54 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,11 @@ std::string	RequestParser::getBody(void) const
 bool	RequestParser::getIsCgi(void) const
 {
 	return (this->_is_uri_cgi);
+}
+
+std::map<std::string, std::string>	RequestParser::getHeaders(void) const
+{
+	return (this->_request_headers);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */

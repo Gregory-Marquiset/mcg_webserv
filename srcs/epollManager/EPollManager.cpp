@@ -163,11 +163,11 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	RequestParser	req_parser(err);
 
 	req_parser.parseRequest(request, clientFd);
-	std::cout << "Elem de la requete apres le parse :" << std::endl;
-	std::cout << "Method : " << req_parser.getMethod() << std::endl;
-	std::cout << "URI : " << req_parser.getURI() << std::endl;
-	std::cout << "HTTP version : " << req_parser.getHTTP() << std::endl;
-	std::cout << std::endl;
+	// std::cout << "Elem de la requete apres le parse :" << std::endl;
+	// std::cout << "Method : " << req_parser.getMethod() << std::endl;
+	// std::cout << "URI : " << req_parser.getURI() << std::endl;
+	// std::cout << "HTTP version : " << req_parser.getHTTP() << std::endl;
+	// std::cout << std::endl;
 	if (err.getErrorCode() != 0)
 	{
 		return ;
@@ -179,31 +179,38 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 		//GREG TU TE DEMERDES POUR LA REP
 	}
 
+	ResponseMaker	resp(err, process_req);
+	std::string		response = resp.getFinalResponse();
+	size_t				size = response.size();
+
+	std::cout << "Reponse :" << std::endl;
+	std::cout << response << std::endl;
+	send(clientFd, &response[0], size, 0);
 
 	//Pour tester:
-	std::string		_response;
-	std::ifstream	resp_file(process_req.getFinalPath().c_str());
+	// std::string		_response;
+	// std::ifstream	resp_file(process_req.getFinalPath().c_str());
 
-	if (resp_file.is_open())
-	{
-		std::stringstream	content;
-		std::stringstream	size;
-		std::string			body;
-		std::string			body_size;
+	// if (resp_file.is_open())
+	// {
+	// 	std::stringstream	content;
+	// 	std::stringstream	size;
+	// 	std::string			body;
+	// 	std::string			body_size;
 
-		content << resp_file.rdbuf();
-		body = content.str();
-		size << body.size();
-		body_size = size.str();
+	// 	content << resp_file.rdbuf();
+	// 	body = content.str();
+	// 	size << body.size();
+	// 	body_size = size.str();
 
-		_response = "HTTP/1.1 200 OK\r\n";
-		_response += "Content-Type: text/html\r\n";
-		_response += "Content-Length: " + body_size + "\r\n";
-		_response += "\r\n";
-		_response += content.str();
+	// 	_response = "HTTP/1.1 200 OK\r\n";
+	// 	_response += "Content-Type: text/html\r\n";
+	// 	_response += "Content-Length: " + body_size + "\r\n";
+	// 	_response += "\r\n";
+	// 	_response += content.str();
 
-		std::cout << "Reponse :" << std::endl;
-		std::cout << _response << std::endl;
-	}
-	send(clientFd, &_response[0], _response.size(), 0);
+	// 	std::cout << "Reponse :" << std::endl;
+	// 	std::cout << _response << std::endl;
+	// }
+	// send(clientFd, &_response[0], _response.size(), 0);
 }

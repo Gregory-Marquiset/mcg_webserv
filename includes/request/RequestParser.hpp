@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:42:01 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 10:03:25 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class	RequestParser
 		std::string		getHTTP(void) const;
 		std::string		getBody(void) const;
 		bool			getIsCgi(void) const;
+		std::map<std::string, std::string>	getHeaders(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
 

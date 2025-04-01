@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/31 14:40:35 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 11:34:12 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ ProcessRequest::ProcessRequest(void)
 {
 }
 
-ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(err)
+ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(err),
+_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi())
 {
 	this->processRequest();
 }
@@ -39,8 +40,14 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 	{
 		this->_serv_info = inst._serv_info;
 		this->_request = inst._request;
+		this->_error_class = inst._error_class;
 		this->_location_to_use = inst._location_to_use;
 		this->_final_path = inst._final_path;
+		this->_method = inst._method;
+		this->_http_version = inst._http_version;
+		this->_request_body = inst._request_body;
+		this->_headers = inst._headers;
+		this->_cgi = inst._cgi;
 	}
 	return (*this);
 }
@@ -53,6 +60,31 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 std::string	ProcessRequest::getFinalPath(void) const
 {
 	return (this->_final_path);
+}
+
+std::string	ProcessRequest::getMethod(void) const
+{
+	return (this->_method);
+}
+
+std::string	ProcessRequest::getHTTP(void) const
+{
+	return (this->_http_version);
+}
+
+std::string	ProcessRequest::getBody(void) const
+{
+	return (this->_request_body);
+}
+
+std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
+{
+	return (this->_headers);
+}
+
+bool	ProcessRequest::getCgi(void) const
+{
+	return (this->_cgi);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
@@ -70,6 +102,7 @@ void	ProcessRequest::processRequest(void)
 		this->checkAllowedMethod();
 		this->checkMaxBodySize();
 		this->addRootPath();
+		this->checkIfUriIsCgi();
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{

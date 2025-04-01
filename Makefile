@@ -18,6 +18,7 @@ SRCS :=		main.cpp\
 			srcs/request/RequestParser.cpp\
 			srcs/request/ProcessRequest.cpp\
 			srcs/errorManagement/ErrorManagement.cpp\
+			srcs/response/ResponseMaker.cpp\
 
 OBJS := $(SRCS:.cpp=.o)
 
