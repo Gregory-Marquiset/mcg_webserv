@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 14:25:19 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 15:39:30 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,4 +144,51 @@ std::string	Utils::findMIME(std::string path)
 		}
 	}
 	return ("application/octet-stream");
+}
+
+std::map<int, std::string>	Utils::get_error_map(void)
+{
+	std::map<int, std::string>	error_map;
+
+	error_map[400] = "./www/error/4xx/400.html";
+	error_map[403] = "./www/error/4xx/403.html";
+	error_map[404] = "./www/error/4xx/404.html";
+	error_map[405] = "./www/error/4xx/405.html";
+	error_map[408] = "./www/error/4xx/408.html";
+	error_map[413] = "./www/error/4xx/413.html";
+	error_map[414] = "./www/error/4xx/414.html";
+	error_map[415] = "./www/error/4xx/415.html";
+	error_map[500] = "./www/error/5xx/500.html";
+	error_map[501] = "./www/error/5xx/501.html";
+	error_map[502] = "./www/error/5xx/502.html";
+	error_map[503] = "./www/error/5xx/503.html";
+	error_map[504] = "./www/error/5xx/504.html";
+
+	return (error_map);
+}
+
+std::string	Utils::getErrorString(int error_code)
+{
+	std::map<int, std::string>	error_map;
+
+	error_map[400] = "400 Bad Request";
+	error_map[403] = "403 Forbidden";
+	error_map[404] = "404 Not Found";
+	error_map[405] = "405 Method Not Allowed";
+	error_map[408] = "408 Request Timeout";
+	error_map[413] = "413 Request Entity Too Large";
+	error_map[414] = "414 Request-URI Too Long";
+	error_map[415] = "415 Unsupported Media Type";
+	error_map[500] = "500 Internal Server Error";
+	error_map[501] = "501 Not Implemented";
+	error_map[502] = "502 Bad Gateway";
+	error_map[503] = "503 Service Unavailable";
+	error_map[504] = "504 Gateway Timeout";
+
+	for (std::map<int, std::string>::iterator it = error_map.begin(); it != error_map.end(); it++)
+	{
+		if (error_code == it->first)
+			return (it->second);
+	}
+	return ("500 Internal Server Error");
 }
