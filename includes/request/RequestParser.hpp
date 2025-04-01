@@ -6,22 +6,16 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/03/26 14:55:23 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 10:03:25 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef REQUESTPARSER_HPP
 # define REQUESTPARSER_HPP
 
-//# include "WebServ.hpp"
-# include <algorithm>
-# include <cstdlib>
-# include <iostream>
-# include <limits>
-# include <map>
-# include <stdexcept>
-# include <string>
+# include "../../includes/WebServ.hpp"
 # include "../epollManager/EPollManager.hpp"
+# include "../errorManagement/ErrorManagement.hpp"
 
 # define ESCAPED_CHAR "%00%01%02%03%04%05%06%07%08%09%0A%0B%0C%0D%0E%0F\
 %10%11%12%13%14%15%16%17%18%19%1A%1B%1C%1D%1E%1F\
@@ -34,19 +28,20 @@ class	RequestParser
 {
 	public:
 		RequestParser(void);
+		RequestParser(ErrorManagement &err);
 		RequestParser(RequestParser const &copy);
 		~RequestParser(void);
 
 		RequestParser	&operator=(RequestParser const &inst);
 
-		void			setErrorCode(int error);
 		void			setIsCgi(bool value);
 
 		std::string		getMethod(void) const;
 		std::string		getURI(void) const;
 		std::string		getHTTP(void) const;
-		int				getErrorCode(void) const;
+		std::string		getBody(void) const;
 		bool			getIsCgi(void) const;
+		std::map<std::string, std::string>	getHeaders(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
 
@@ -88,11 +83,11 @@ class	RequestParser
 		};
 
 	private:
+		ErrorManagement	_error_class;
 		std::string		_full_request;
 		std::string		_escaped_char;
 		int				_actual_state;
 		int				_error_state;
-		int				_error_code;
 		bool			_is_uri_cgi;
 
 		// Stockage des infos utile que pour le parsing de la requete ??
