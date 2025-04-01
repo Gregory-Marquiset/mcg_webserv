@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 15:42:08 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 16:03:50 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,7 +143,7 @@ void	ResponseMaker::createErrorResponse(void)
 			response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(error_code);
 			response += "Server: webserv\r\n";
 			response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
-			response += "Content-Type: " + Utils::findMIME(this->_req_infos.getFinalPath()) + "\r\n";
+			response += "Content-Type: " + Utils::findMIME(error_path) + "\r\n";
 			response += "Content-Length: " + body_size + "\r\n";
 			response += "\r\n";
 			response += content.str();

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 15:39:30 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 16:02:25 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,6 +137,7 @@ std::string	Utils::findMIME(std::string path)
 	if (pos != std::string::npos)
 	{
 		extension = path.substr(pos);
+		std::cout << "EXTENSION : " << extension << std::endl;
 		for (std::map<std::string, std::string>::iterator it = mime_type.begin(); it != mime_type.end(); it++)
 		{
 			if (extension == it->first)
@@ -150,19 +151,19 @@ std::map<int, std::string>	Utils::get_error_map(void)
 {
 	std::map<int, std::string>	error_map;
 
-	error_map[400] = "./www/error/4xx/400.html";
-	error_map[403] = "./www/error/4xx/403.html";
-	error_map[404] = "./www/error/4xx/404.html";
-	error_map[405] = "./www/error/4xx/405.html";
-	error_map[408] = "./www/error/4xx/408.html";
-	error_map[413] = "./www/error/4xx/413.html";
-	error_map[414] = "./www/error/4xx/414.html";
-	error_map[415] = "./www/error/4xx/415.html";
-	error_map[500] = "./www/error/5xx/500.html";
-	error_map[501] = "./www/error/5xx/501.html";
-	error_map[502] = "./www/error/5xx/502.html";
-	error_map[503] = "./www/error/5xx/503.html";
-	error_map[504] = "./www/error/5xx/504.html";
+	error_map[400] = "./www/error/4XX/400.html";
+	error_map[403] = "./www/error/4XX/403.html";
+	error_map[404] = "./www/error/4XX/404.html";
+	error_map[405] = "./www/error/4XX/405.html";
+	error_map[408] = "./www/error/4XX/408.html";
+	error_map[413] = "./www/error/4XX/413.html";
+	error_map[414] = "./www/error/4XX/414.html";
+	error_map[415] = "./www/error/4XX/415.html";
+	error_map[500] = "./www/error/5XX/500.html";
+	error_map[501] = "./www/error/5XX/501.html";
+	error_map[502] = "./www/error/5XX/502.html";
+	error_map[503] = "./www/error/5XX/503.html";
+	error_map[504] = "./www/error/5XX/504.html";
 
 	return (error_map);
 }
