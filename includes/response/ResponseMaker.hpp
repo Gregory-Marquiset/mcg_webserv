@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:46:03 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 10:33:34 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 14:20:35 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 # include "../WebServ.hpp"
 # include "../../includes/errorManagement/ErrorManagement.hpp"
 # include "../../includes/request/ProcessRequest.hpp"
+# include "../../includes/utils/Utils.hpp"
 
 class	ResponseMaker
 {

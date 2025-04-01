@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 11:55:44 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/01 14:26:21 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,9 +132,9 @@ void	ResponseMaker::createGetResponse(void)
 	body_size = size.str();
 
 	response += this->_req_infos.getHTTP() + " 200 OK\r\n";
-	response += "Server: webserv";
-	//Ajouter la date
-	response += "Content-Type: text/html\r\n";
+	response += "Server: webserv\r\n";
+	response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
+	response += "Content-Type: " + Utils::findMIME(this->_req_infos.getFinalPath()) + "\r\n";
 	response += "Content-Length: " + body_size + "\r\n";
 	response += "\r\n";
 	response += content.str();

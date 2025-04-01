@@ -2,8 +2,10 @@
 #define WEBSERV_HPP
 
 #include <iostream>
+#include <iomanip>
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <string>
 #include <sstream>
