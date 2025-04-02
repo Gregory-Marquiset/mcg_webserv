@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 11:34:12 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/02 10:51:42 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -227,6 +227,7 @@ void	ProcessRequest::addRootPath(void)
 	std::string	uri;
 	size_t		path_size;
 
+	std::cout << "Uri sans modif : " << this->_request.getURI() << std::endl;
 	this->_final_path += this->_location_to_use.getRoot();
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] != '/')

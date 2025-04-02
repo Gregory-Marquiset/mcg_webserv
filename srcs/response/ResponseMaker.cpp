@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 16:03:50 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/02 11:08:06 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : 
 	std::cout << "Constructeur ResponseMaker :" << std::endl;
 	std::cout << "Method : " << this->_req_infos.getMethod() << std::endl;
 	std::cout << "HTTP version : " << this->_req_infos.getHTTP() << std::endl;
-	std::cout << "Final path : " << this->_req_infos.getFinalPath() << std::endl;
 	std::cout << std::endl << std::endl;
 	try
 	{
@@ -42,7 +41,7 @@ ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : 
 			}
 			else if (_req_infos.getMethod() == "DELETE")
 			{
-
+				this->createDeleteResponse();
 			}
 		}
 	}
@@ -93,7 +92,6 @@ std::string	ResponseMaker::getFinalResponse(void) const
 void	ResponseMaker::createErrorResponse(void)
 {
 	std::string					error_path;
-	std::string					alt_path;
 	std::string					response;
 	std::map<int, std::string>	error_files = Utils::get_error_map();
 	int							error_code = this->_error_class.getErrorCode();
@@ -103,12 +101,11 @@ void	ResponseMaker::createErrorResponse(void)
 		if (error_code == it->first)
 			error_path = it->second;
 	}
-	alt_path += "../." + error_path;
-	if (error_path.empty() || !access(alt_path.c_str(), F_OK) || !access(alt_path.c_str(), F_OK))
+	if (error_path.empty() || access(error_path.c_str(), F_OK) != 0 || access(error_path.c_str(), R_OK) != 0)
 	{
 		response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 		response += "Server: webserv\r\n";
-		response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
+		response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 		response += "Content-Type: text/plain\r\n";
 		response += "Content-Length: 26\r\n";
 		response += "\r\n";
@@ -122,7 +119,7 @@ void	ResponseMaker::createErrorResponse(void)
 		{
 			response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 			response += "Server: webserv\r\n";
-			response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
+			response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 			response += "Content-Type: text/plain\r\n";
 			response += "Content-Length: 26\r\n";
 			response += "\r\n";
@@ -140,9 +137,9 @@ void	ResponseMaker::createErrorResponse(void)
 			size << body.size();
 			body_size = size.str();
 
-			response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(error_code);
+			response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(error_code) + "\r\n";
 			response += "Server: webserv\r\n";
-			response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
+			response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 			response += "Content-Type: " + Utils::findMIME(error_path) + "\r\n";
 			response += "Content-Length: " + body_size + "\r\n";
 			response += "\r\n";
@@ -160,19 +157,18 @@ void	ResponseMaker::createGetResponse(void)
 		//on verra
 		return;
 	}
-	std::string path = "../.";
-	path += this->_req_infos.getFinalPath();
-	if (!access(path.c_str(), F_OK))
+	std::string path = this->_req_infos.getFinalPath();
+	if (access(path.c_str(), F_OK) != 0)
 	{
 		this->_error_class.setErrorCode(404);
 		throw ResponseMaker::ResponseException("Fichier inexistant");
 	}
-	else if (!access(path.c_str(), R_OK))
+	if (access(path.c_str(), R_OK) != 0)
 	{
 		this->_error_class.setErrorCode(403);
 		throw ResponseMaker::ResponseException("Accès au fichier interdit");
 	}
-	std::ifstream	file(this->_req_infos.getFinalPath().c_str());
+	std::ifstream	file(path.c_str());
 
 	if (!file.is_open())
 	{
@@ -191,11 +187,44 @@ void	ResponseMaker::createGetResponse(void)
 
 	response += this->_req_infos.getHTTP() + " 200 OK\r\n";
 	response += "Server: webserv\r\n";
-	response += "Date: " + Utils::getTime() + "GMT" + "\r\n";
+	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 	response += "Content-Type: " + Utils::findMIME(this->_req_infos.getFinalPath()) + "\r\n";
 	response += "Content-Length: " + body_size + "\r\n";
 	response += "\r\n";
 	response += content.str();
+
+	this->_final_response = response;
+}
+
+void	ResponseMaker::createDeleteResponse(void)
+{
+	std::string		response;
+	if (this->_req_infos.getCgi() == true)
+	{
+		//on verra
+		return;
+	}
+	std::string path = this->_req_infos.getFinalPath();
+	//path += this->_req_infos.getFinalPath();
+	if (access(path.c_str(), F_OK) != 0)
+	{
+		this->_error_class.setErrorCode(404);
+		throw ResponseMaker::ResponseException("Fichier inexistant");
+	}
+	if (access(path.c_str(), W_OK) != 0)
+	{
+		this->_error_class.setErrorCode(403);
+		throw ResponseMaker::ResponseException("Accès au fichier interdit");
+	}
+	if (remove(path.c_str()) != 0)
+	{
+		this->_error_class.setErrorCode(500);
+		throw ResponseMaker::ResponseException("Erreur lors de la suppresion du fichier");
+	}
+	
+	response += this->_req_infos.getHTTP() + " 204 No Content\r\n";
+	response += "Server: webserv\r\n";
+	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 
 	this->_final_response = response;
 }

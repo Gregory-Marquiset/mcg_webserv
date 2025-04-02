@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 16:02:25 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/02 10:54:14 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,6 @@ std::string	Utils::findMIME(std::string path)
 	if (pos != std::string::npos)
 	{
 		extension = path.substr(pos);
-		std::cout << "EXTENSION : " << extension << std::endl;
 		for (std::map<std::string, std::string>::iterator it = mime_type.begin(); it != mime_type.end(); it++)
 		{
 			if (extension == it->first)
