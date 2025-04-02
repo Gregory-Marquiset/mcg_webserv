@@ -183,8 +183,8 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::string		response = resp.getFinalResponse();
 	size_t				size = response.size();
 
-	std::cout << "Reponse :" << std::endl;
-	std::cout << response << std::endl;
+	// std::cout << "Reponse :" << std::endl;
+	// std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
 
 	//Pour tester:
