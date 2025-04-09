@@ -48,6 +48,14 @@ void ServerBlock::setClientMaxBodySize(std::string client_max_body_size) {
     this->_client_max_body_size = client_max_body_size;
 }
 
+void ServerBlock::setAutoIndex(std::string status) {
+    this->_auto_index = status;
+}
+
+void ServerBlock::setRedirection(std::vector<std::string> redirection) {
+    this->_redirection = redirection;
+}
+
 /* ================= GETTERS ======================== */
 
 std::string ServerBlock::getServer() const {
@@ -88,6 +96,14 @@ std::vector<CgiHandler> ServerBlock::getCgiExtension() const {
 
 std::string ServerBlock::getClientMaxBodySize() const {
     return (this->_client_max_body_size);
+}
+
+std::string ServerBlock::getAutoIndex() const {
+    return (this->_auto_index);
+}
+
+std::vector<std::string> ServerBlock::getRedirection() const {
+    return (this->_redirection);
 }
 
 /* ================= HELPERS ======================== */
@@ -223,6 +239,45 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::cerr << "Error: too many allow_methods" << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    // auto index
+    if (directive.count("autoindex") == 0) {
+        oneServerBlock.setAutoIndex("off");
+    }
+    else if (directive.count("autoindex") == 1) {
+        std::multimap<std::string, std::string>::iterator itAutoIndex = directive.find("autoindex");
+        oneServerBlock.setAutoIndex(itAutoIndex->second);
+    }
+    else {
+        std::cerr << "Error: too many autoindexes" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // redirection
+    if (directive.count("return") == 0) {
+        std::vector<std::string> res;
+        res.clear();
+        oneServerBlock.setRedirection(res);
+    }
+    else if (directive.count("return") == 1) {
+        std::multimap<std::string, std::string>::iterator itRedir = directive.find("return");
+
+        std::stringstream ss(itRedir->second);
+        std::vector<std::string> res;
+        std::string word;
+        while (ss >> word) {
+            res.push_back(word);
+        }
+        if (res.size() != 2) {
+            std::cerr << "Error: redirection format is not correct" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        oneServerBlock.setRedirection(res);
+    }
+    else {
+        std::cerr << "Error: too many returns" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
@@ -287,6 +342,46 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
             locBlock.addAllowMethod(method);
     } else {
         std::cerr << "Error: too many allow_methods" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // auto index
+    if (directive.count("autoindex") == 0) {
+        locBlock.setAutoIndex("off");
+    }
+    else if (directive.count("autoindex") == 1) {
+        std::multimap<std::string, std::string>::iterator itAutoIndex = directive.find("autoindex");
+        locBlock.setAutoIndex(itAutoIndex->second);
+    }
+    else {
+        std::cerr << "Error: too many autoindexes" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // redirection
+    if (directive.count("return") == 0) {
+        std::vector<std::string> res;
+        res.clear();
+        locBlock.setRedirection(res);
+    }
+    else if (directive.count("return") == 1) {
+        std::multimap<std::string, std::string>::iterator itRedir = directive.find("return");
+
+        std::stringstream ss(itRedir->second);
+        std::vector<std::string> res;
+        std::string word;
+        while (ss >> word) {
+            res.push_back(word);
+        }
+        
+        if (res.size() != 2) {
+            std::cerr << "Error: redirection format is not correct" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        locBlock.setRedirection(res);
+    }
+    else {
+        std::cerr << "Error: too many returns" << std::endl;
         exit(EXIT_FAILURE);
     }
 }

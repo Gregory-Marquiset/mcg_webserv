@@ -28,7 +28,12 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
         std::cout << "      root: " << serverBlocks[i].getRoot() << std::endl;
         std::cout << "      index: " << serverBlocks[i].getIndex() << std::endl;
         std::cout << "      client max body size : " << serverBlocks[i].getClientMaxBodySize() << std::endl;
-
+        std::cout << "      auto index: " << serverBlocks[i].getAutoIndex() << std::endl;
+        
+        if (serverBlocks[i].getRedirection().empty())
+            std::cout << "      return: false (NULL)" << std::endl;
+        else 
+            std::cout << "      return: " << serverBlocks[i].getRedirection().front() << " " << serverBlocks[i].getRedirection()[1] <<std::endl;
 
         for (size_t iMethod = 0; iMethod < serverBlocks[i].getAllowMethods().size(); ++iMethod) {
             std::cout << "      method: " << serverBlocks[i].getAllowMethods()[iMethod] << std::endl;
@@ -47,6 +52,12 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
             std::cout << "          root: " << serverBlocks[i].getLocationBlock()[iLoc].getRoot() << std::endl;
             std::cout << "          index: " << serverBlocks[i].getLocationBlock()[iLoc].getIndex() << std::endl;
             std::cout << "          client max body size : " << serverBlocks[i].getLocationBlock()[iLoc].getClientMaxBodySize() << std::endl;
+            std::cout << "          auto index: " << serverBlocks[i].getLocationBlock()[iLoc].getAutoIndex() << std::endl;
+
+            if (serverBlocks[i].getLocationBlock()[iLoc].getRedirection().empty())
+                std::cout << "          return: false (NULL)" << std::endl;
+            else 
+                std::cout << "          return: " << serverBlocks[i].getLocationBlock()[iLoc].getRedirection().front() << " " << serverBlocks[i].getLocationBlock()[iLoc].getRedirection()[1] <<std::endl;
 
             for (size_t iCgi = 0; iCgi < serverBlocks[i].getLocationBlock()[iLoc].getCgiExtension().size(); ++iCgi) {
                 std::cout << "          cgi_extension: " << "key: " << serverBlocks[i].getLocationBlock()[iLoc].getCgiExtension()[iCgi].getKey() << " -> " << "value: " << serverBlocks[i].getLocationBlock()[iLoc].getCgiExtension()[iCgi].getValue() << std::endl;
@@ -93,8 +104,8 @@ int main(int argc, char **argv) {
 
         /* ================= Les servers sont sous surveillance ======================== */
 
-        EPollManager epollManager(servers);
-            epollManager.run();
+        // EPollManager epollManager(servers);
+        //     epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;

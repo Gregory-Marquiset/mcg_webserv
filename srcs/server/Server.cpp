@@ -47,6 +47,12 @@ void Server::printServerInfo() const {
     std::cout << "Root: " << this->_serverBlock.getRoot() << std::endl;
     std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
     std::cout << "Body size: " << this->_serverBlock.getClientMaxBodySize() << std::endl;
+    std::cout << "Auto index " << this->_serverBlock.getAutoIndex() << std::endl;
+
+    if (this->_serverBlock.getRedirection().empty())
+        std::cout << "Return: false (NULL)" << std::endl;
+    else 
+        std::cout << "Return: " << this->_serverBlock.getRedirection().front() << " " << this->_serverBlock.getRedirection()[1] <<std::endl;
 
     for (size_t i = 0; i < this->_serverBlock.getAllowMethods().size(); ++i) {
         std::cout << "Allow method: " << this->_serverBlock.getAllowMethods()[i] << std::endl;
@@ -61,13 +67,20 @@ void Server::printServerInfo() const {
         std::cout << "  Root: " << this->_serverBlock.getLocationBlock()[i].getRoot() << std::endl;
         std::cout << "  Index: " << this->_serverBlock.getLocationBlock()[i].getIndex() << std::endl;
         std::cout << "  Client Max Body: " << this->_serverBlock.getLocationBlock()[i].getClientMaxBodySize() << std::endl;
+        std::cout << "  Autoindex: " << this->_serverBlock.getLocationBlock()[i].getAutoIndex() << std::endl;
 
+        if (this->_serverBlock.getLocationBlock()[i].getRedirection().empty())
+            std::cout << "  Return: false (NULL)" << std::endl;
+        else 
+            std::cout << "  Return: " << this->_serverBlock.getLocationBlock()[i].getRedirection().front() << " " << this->_serverBlock.getLocationBlock()[i].getRedirection()[1] <<std::endl;
+        
         for (size_t j = 0; j < this->_serverBlock.getLocationBlock()[i].getAllowMethods().size(); ++j) {
             std::cout << "  Allow method: " << this->_serverBlock.getLocationBlock()[i].getAllowMethods()[j] << std::endl;
         }
 
         for (size_t j = 0; j < this->_serverBlock.getLocationBlock()[i].getCgiExtension().size(); ++j) {
-            std::cout << "  CGI extension: key -> " << this->_serverBlock.getLocationBlock()[i].getCgiExtension()[j].getKey() << " value -> " << this->_serverBlock.getLocationBlock()[i].getCgiExtension()[j].getValue() << std::endl;        }
+            std::cout << "  CGI extension: key -> " << this->_serverBlock.getLocationBlock()[i].getCgiExtension()[j].getKey() << " value -> " << this->_serverBlock.getLocationBlock()[i].getCgiExtension()[j].getValue() << std::endl;        
+        }
     }
     std::cout << "=======================" << std::endl;
 }
