@@ -32,6 +32,14 @@ void LocationBlock::setClientMaxBodySize(std::string client_max_body_size) {
     this->_client_max_body_size = client_max_body_size;
 }
 
+void LocationBlock::setAutoIndex(std::string status) {
+    this->_auto_index = status;
+}
+
+void LocationBlock::setRedirection(std::vector<std::string> redirection) {
+    this->_redirection = redirection;
+}
+
 /* ================= GETTERS ======================== */
 
 std::string LocationBlock::getPath() const {
@@ -56,6 +64,14 @@ std::vector<CgiHandler> LocationBlock::getCgiExtension() const {
 
 std::string LocationBlock::getClientMaxBodySize() const {
     return (this->_client_max_body_size);
+}
+
+std::string LocationBlock::getAutoIndex() const {
+    return (this->_auto_index);
+}
+
+std::vector<std::string> LocationBlock::getRedirection() const {
+    return (this->_redirection);
 }
 
 void LocationBlock::addCgi(const CgiHandler& cgi) {
