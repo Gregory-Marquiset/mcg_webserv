@@ -17,6 +17,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 #include <vector>
 #include <map>

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/02 10:54:14 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 13:46:56 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,6 +171,8 @@ std::string	Utils::getErrorString(int error_code)
 {
 	std::map<int, std::string>	error_map;
 
+	error_map[301] = "301 Moved Permanently";
+	error_map[302] = "302 Found";
 	error_map[400] = "400 Bad Request";
 	error_map[403] = "403 Forbidden";
 	error_map[404] = "404 Not Found";
@@ -191,4 +193,21 @@ std::string	Utils::getErrorString(int error_code)
 			return (it->second);
 	}
 	return ("500 Internal Server Error");
+}
+
+int	Utils::strtoi(std::string str)
+{
+	if (str.empty())
+		return (-1);
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (!std::isxdigit(str[i]))
+			return (-1);
+	}
+	std::istringstream	iss(str);
+	int					n;
+
+	iss >> n;
+	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
+	return (n);
 }

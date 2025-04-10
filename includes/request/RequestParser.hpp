@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 10:03:25 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 12:56:54 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ class	RequestParser
 		};
 
 	private:
-		ErrorManagement	_error_class;
+		ErrorManagement	*_error_class;
 		std::string		_full_request;
 		std::string		_escaped_char;
 		int				_actual_state;
