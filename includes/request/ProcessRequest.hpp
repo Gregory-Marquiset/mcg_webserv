@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/01 10:53:17 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 10:19:03 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class	ProcessRequest
 		std::string		getBody(void) const;
 		std::map<std::string, std::string>	getHeaders(void) const;
 		bool			getCgi(void) const;
+		bool			getAutoIndex(void) const;
 
 	private:
 		Server								*_serv_info;
@@ -47,6 +48,7 @@ class	ProcessRequest
 		std::string							_request_body;
 		std::map<std::string, std::string>	_headers;
 		bool								_cgi;
+		bool								_autoindex;
 
 		void			processRequest(void);
 		void			compareUriWithLocations(void);
@@ -54,6 +56,8 @@ class	ProcessRequest
 		void			checkMaxBodySize(void);
 		void			checkIfUriIsCgi(void);
 		void			addRootPath(void);
+		void			extractDirectoryContent(void);
+		void			generateHTMLBody(std::map<std::string, std::string>	&directory_content);
 };
 
 #endif

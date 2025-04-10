@@ -183,34 +183,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::string		response = resp.getFinalResponse();
 	size_t				size = response.size();
 
-	// std::cout << "Reponse :" << std::endl;
-	// std::cout << response << std::endl;
+	std::cout << "Reponse :" << std::endl;
+	std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
-
-	//Pour tester:
-	// std::string		_response;
-	// std::ifstream	resp_file(process_req.getFinalPath().c_str());
-
-	// if (resp_file.is_open())
-	// {
-	// 	std::stringstream	content;
-	// 	std::stringstream	size;
-	// 	std::string			body;
-	// 	std::string			body_size;
-
-	// 	content << resp_file.rdbuf();
-	// 	body = content.str();
-	// 	size << body.size();
-	// 	body_size = size.str();
-
-	// 	_response = "HTTP/1.1 200 OK\r\n";
-	// 	_response += "Content-Type: text/html\r\n";
-	// 	_response += "Content-Length: " + body_size + "\r\n";
-	// 	_response += "\r\n";
-	// 	_response += content.str();
-
-	// 	std::cout << "Reponse :" << std::endl;
-	// 	std::cout << _response << std::endl;
-	// }
-	// send(clientFd, &_response[0], _response.size(), 0);
 }

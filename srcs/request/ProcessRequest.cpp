@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 09:01:06 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 11:42:11 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ ProcessRequest::ProcessRequest(void)
 }
 
 ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(err),
-_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi())
+_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()), _autoindex(false)
 {
 	this->processRequest();
 }
@@ -49,6 +49,7 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 		this->_request_body = inst._request_body;
 		this->_headers = inst._headers;
 		this->_cgi = inst._cgi;
+		this->_autoindex = inst._autoindex;
 	}
 	return (*this);
 }
@@ -86,6 +87,11 @@ std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
 bool	ProcessRequest::getCgi(void) const
 {
 	return (this->_cgi);
+}
+
+bool	ProcessRequest::getAutoIndex(void) const
+{
+	return (this->_autoindex);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
@@ -256,6 +262,14 @@ void	ProcessRequest::addRootPath(void)
 
 		if (index.empty())
 		{
+			if (this->_location_to_use.getAutoIndex() == "on")
+			{
+				if (this->getMethod() == "GET")
+				{
+					std::cout << "prout" << std::endl;
+					return (this->extractDirectoryContent());
+				}
+			}
 			if (this->_error_class.getErrorCode() == 0)
 				this->_error_class.setErrorCode(403);
 			throw RequestParser::RequestException("Index is empty");
@@ -263,4 +277,71 @@ void	ProcessRequest::addRootPath(void)
 		this->_final_path += index;
 	}
 	std::cout << "final path: " << this->_final_path << std::endl;
+}
+
+void	ProcessRequest::extractDirectoryContent(void)
+{
+	std::cout << "Ca passe dans extract directory content" << std::endl;
+	DIR	*directory = opendir(this->getFinalPath().c_str());
+
+	if (directory == NULL)
+	{
+		if (this->_error_class.getErrorCode() == 0)
+			this->_error_class.setErrorCode(403);
+		throw RequestParser::RequestException("Can't open directory");
+	}
+
+	std::map<std::string, std::string>	directory_content;
+	struct dirent	*dir = readdir(directory);
+	while (dir != NULL)
+	{
+		std::string	name(dir->d_name);
+		std::string	type;
+
+		if (dir->d_type == DT_DIR)
+			type = "dir";
+		else
+			type = "file";
+
+		directory_content[name] = type;
+		dir = readdir(directory);
+	}
+	closedir(directory);
+	this->generateHTMLBody(directory_content);
+	this->_autoindex = true;
+}
+
+void	ProcessRequest::generateHTMLBody(std::map<std::string, std::string>	&directory_content)
+{
+	std::string	body;
+
+	body += "<!DOCTYPE html>\n";
+	body += "<html lang=\"en\">\n";
+	body += "<head>\n";
+	body += "    <meta charset=\"UTF-8\">\n";
+	body += "    <title>Index of /www/</title>\n";
+	body += "    <style>\n";
+	body += "        body { font-family: Arial, sans-serif; padding: 20px; }\n";
+	body += "        h1 { font-size: 24px; }\n";
+	body += "        a { text-decoration: none; color: #007BFF; }\n";
+	body += "        a:hover { text-decoration: underline; }\n";
+	body += "        .file-list { margin-top: 20px; }\n";
+	body += "    </style>\n";
+	body += "</head>\n";
+	body += "<body>\n";
+	body += "    <h1>Index of /www</h1>\n";
+	body += "    <div class=\"file-list\">\n";
+
+	for (std::map<std::string, std::string>::iterator it = directory_content.begin(); it != directory_content.end(); it++)
+	{
+		// if (it->second == "dir")
+		// 	body += "        <p><a href=\"" + it->first + "\">" + it->first + "/</a></p>\n";
+		// else
+		body += "        <p><a href=\"" + it->first + "\">" + it->first + "</a></p>\n";
+	}
+	body += "    </div>\n";
+	body += "</body>\n";
+	body += "</html>\n";
+
+	this->_request_body = body;
 }

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:46:03 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 08:57:53 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 10:13:41 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ class	ResponseMaker
 
 		void			createErrorResponse(void);
 		void			createRedirectionResponse(void);
+		void			createAutoindexResponse(void);
 		void			createGetResponse(void);
 		void			createDeleteResponse(void);
 };
