@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 12:09:15 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 13:59:14 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,10 +157,11 @@ void	ResponseMaker::createRedirectionResponse(void)
 	std::string	response;
 	std::string	path = this->_req_infos.getFinalPath();
 
-	response += this->_req_infos.getHTTP() + Utils::getErrorString(this->_error_class.getErrorCode());
+	response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(this->_error_class.getErrorCode()) + "\r\n";
 	response += "Server: webserv\r\n";
 	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 	response += "Location: " + path + "\r\n";
+	response += "\r\n";
 
 	this->_final_response = response;
 }

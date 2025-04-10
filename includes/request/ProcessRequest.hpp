@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 10:19:03 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 12:54:34 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class	ProcessRequest
 	private:
 		Server								*_serv_info;
 		RequestParser						_request;
-		ErrorManagement						_error_class;
+		ErrorManagement						*_error_class;
 		LocationBlock						_location_to_use;
 
 		//Stockage des infos utiles pour la réponse ou cgi

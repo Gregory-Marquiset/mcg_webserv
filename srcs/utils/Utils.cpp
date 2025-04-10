@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 09:04:29 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 13:46:56 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -207,7 +207,7 @@ int	Utils::strtoi(std::string str)
 	std::istringstream	iss(str);
 	int					n;
 
-	iss >> std::hex >> n;
+	iss >> n;
 	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
 	return (n);
 }

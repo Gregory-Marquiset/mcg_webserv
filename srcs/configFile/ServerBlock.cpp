@@ -121,12 +121,12 @@ void ServerBlock::addLocationBlock(const LocationBlock& location) {
 /* SETTER DU SERVER BLOCK SANS LOCATION BLOCK IMBRIQUEE */
 
 void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive) {
-    
+
     if (directive.empty()) {
         std::cerr << "Error: Provide some directives in .conf" << std::endl;
         exit(EXIT_FAILURE);
     }
-    
+
     // root
     if (directive.count("root") == 0) {
         oneServerBlock.setRoot("");
@@ -150,10 +150,10 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     }
 
     // if (directive.count("listen") == 0) {
-    //    oneServerBlock.setPort(-1); nop changer ca 
+    //    oneServerBlock.setPort(-1); nop changer ca
     // } else {
     // for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-        
+
     //     if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
     //         std::cerr << "Error: Invalid Port Number" << std::endl;
     //         exit(EXIT_FAILURE);
@@ -186,7 +186,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::multimap<std::string, std::string>::iterator itServerName = directive.find("server_name");
 
         HostHandler host;
-        
+
         host.filter(itServerName->second);
         if (host.getHostFormat() == 1) {
             host.parseIp(itServerName->second);
@@ -220,7 +220,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     // cgi
     for (std::multimap<std::string, std::string>::iterator itCgi = directive.lower_bound("cgi_extension"); itCgi != directive.upper_bound("cgi_extension"); ++itCgi) {
         CgiHandler cgi;
-        cgi.parseCgi(itCgi->second); 
+        cgi.parseCgi(itCgi->second);
         oneServerBlock._cgiExtension.push_back(cgi);
     }
 
@@ -283,12 +283,12 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
 
 void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive) {
-    
+
     if (directive.empty()) {
         std::cerr << "Error: Provide some directives in .conf" << std::endl;
         exit(EXIT_FAILURE);
     }
-    
+
     // root
     if (directive.count("root") == 0) {
         locBlock.setRoot("");
@@ -313,7 +313,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
 
     // body size
     if (directive.count("client_max_body_size") == 0) {
-        locBlock.setClientMaxBodySize("1Mo");
+        locBlock.setClientMaxBodySize("1M");
     } else if (directive.count("client_max_body_size") == 1) {
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         locBlock.setClientMaxBodySize(itBodySize->second);
@@ -325,7 +325,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
     // cgi
     for (std::multimap<std::string, std::string>::iterator itCgi = directive.lower_bound("cgi_extension"); itCgi != directive.upper_bound("cgi_extension"); ++itCgi) {
         CgiHandler cgi;
-        cgi.parseCgi(itCgi->second); 
+        cgi.parseCgi(itCgi->second);
         locBlock.addCgi(cgi);
     }
 
@@ -373,7 +373,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
         while (ss >> word) {
             res.push_back(word);
         }
-        
+
         if (res.size() != 2) {
             std::cerr << "Error: redirection format is not correct" << std::endl;
             exit(EXIT_FAILURE);
@@ -389,13 +389,13 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
 /* MAIN FUNCTION TO CREATE SERVER BLOCKS */
 
 std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent rawConfig) {
-    
+
     std::vector<ServerBlock> cleanServers;
-    
+
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
     for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
-                
+
         if (it->getName() == "server") {
 
             ServerBlock oneServerBlock;
@@ -411,9 +411,9 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
 
                     LocationBlock locBlock;
-                    
+
                     locBlock.setPath(itLocation->getName());
-                    
+
                     for (size_t iBlock = 0; iBlock < oneServerBlock.getLocationBlock().size(); ++iBlock) {
                         if (locBlock.getPath() == oneServerBlock.getLocationBlock()[iBlock].getPath()) {
                             std::cerr << "Error: identical location path" << std::endl;

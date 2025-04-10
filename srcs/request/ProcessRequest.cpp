@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 12:16:47 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 13:52:27 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ ProcessRequest::ProcessRequest(void)
 {
 }
 
-ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(err),
+ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(&err),
 _method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()), _autoindex(false)
 {
 	this->processRequest();
@@ -175,6 +175,7 @@ void	ProcessRequest::checkMaxBodySize(void)
 	if (str_max_body_size.empty())
 		str_max_body_size += "1M";
 	pos = str_max_body_size.find_first_not_of("0123456789");
+
 	if (pos != std::string::npos)
 	{
 		if ((str_max_body_size[pos] == 'k' || str_max_body_size[pos] == 'K') && pos == str_max_body_size.size() - 1)
@@ -187,8 +188,8 @@ void	ProcessRequest::checkMaxBodySize(void)
 		}
 		else
 		{
-			if (this->_error_class.getErrorCode() == 0)
-				this->_error_class.setErrorCode(411);
+			if (this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(500);
 			throw RequestParser::RequestException("Error with Max Body size in config");
 		}
 	}
@@ -200,8 +201,8 @@ void	ProcessRequest::checkMaxBodySize(void)
 	//std::cout << "max body size after mult: " << max_body_size << std::endl;
 	if (this->_request.getBody().size() > max_body_size)
 	{
-		if (this->_error_class.getErrorCode() == 0)
-			this->_error_class.setErrorCode(413);
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(413);
 		throw RequestParser::RequestException("Body size is bigger than client max body size");
 	}
 }
@@ -240,9 +241,13 @@ void	ProcessRequest::addRootPath(void)
 	redir = this->_location_to_use.getRedirection();
 	if (!redir.empty())
 	{
-		if (this->_error_class.getErrorCode() == 0)
-				this->_error_class.setErrorCode(Utils::strtoi(redir[0]));
+		std::cout << "redir[0] = " << redir[0] << std::endl;
+		std::cout << "redir[1] = " << redir[1] << std::endl;
+		if (this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(Utils::strtoi(redir[0]));
 		this->_final_path = redir[1];
+		std::cout << this->_error_class->getErrorCode() << std::endl;
+		std::cout << this->_final_path << std::endl;
 		return;
 	}
 
@@ -270,8 +275,8 @@ void	ProcessRequest::addRootPath(void)
 					return (this->extractDirectoryContent());
 				}
 			}
-			if (this->_error_class.getErrorCode() == 0)
-				this->_error_class.setErrorCode(403);
+			if (this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(403);
 			throw RequestParser::RequestException("Index is empty");
 		}
 		this->_final_path += index;
@@ -286,8 +291,8 @@ void	ProcessRequest::extractDirectoryContent(void)
 
 	if (directory == NULL)
 	{
-		if (this->_error_class.getErrorCode() == 0)
-			this->_error_class.setErrorCode(403);
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Can't open directory");
 	}
 
