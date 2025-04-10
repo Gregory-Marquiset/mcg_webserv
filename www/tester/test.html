@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Webserv Testeur</title>
+    <style>
+        body
+        {
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        h1
+        {
+            margin-bottom: 1rem;
+        }
+
+        form
+        {
+            background-color: #2e2e2e;
+            padding: 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        label
+        {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input, select, textarea
+        {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: none;
+            font-family: monospace;
+        }
+
+        button
+        {
+            padding: 0.75rem;
+            background-color: #4c589c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #result
+        {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 600px;
+            background: #111;
+            padding: 1rem;
+            border-radius: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Webserv Testeur - Requête HTTP</h1>
+
+    <form id="httpForm">
+        <label>
+            URL relative à tester :
+            <input type="text" id="url" value="/cgi-bin/test.py" required />
+        </label>
+
+        <label>
+            Méthode :
+            <select id="method">
+                <option>GET</option>
+                <option>POST</option>
+                <option>DELETE</option>
+            </select>
+        </label>
+
+        <label>
+            Corps de la requête (pour POST) :
+            <textarea id="body" rows="4"></textarea>
+        </label>
+
+        <button type="submit">Envoyer la requête</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        const form = document.getElementById("httpForm");
+        const resultDiv = document.getElementById("result");
+
+        form.addEventListener("submit", async (e) =>
+        {
+            e.preventDefault();
+
+            const method = document.getElementById("method").value;
+            const url = document.getElementById("url").value;
+            const body = document.getElementById("body").value;
+
+            try
+            {
+                const response = await fetch(url,
+                {
+                    method: method,
+                    headers:
+                    {
+                        "Content-Type": "text/plain"
+                    },
+                    body: method === "POST" ? body : null
+                });
+
+                const text = await response.text();
+                resultDiv.innerText = `Status: ${response.status} ${response.statusText}\n\n${text}`;
+            }
+            catch (err)
+            {
+                resultDiv.innerText = "Erreur : " + err;
+            }
+        });
+    </script>
+</body>
+</html>

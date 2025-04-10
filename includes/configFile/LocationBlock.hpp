@@ -15,6 +15,8 @@ class LocationBlock {
        std::vector<std::string> _allowMethods;
        std::vector<CgiHandler> _cgiExtension;
        std::string _client_max_body_size;
+       std::string _auto_index;
+       std::vector<std::string> _redirection;
 
     public:
         LocationBlock();
@@ -28,6 +30,8 @@ class LocationBlock {
         void setAllowMethods(std::vector<std::string> allowMethods);
         void setCgiExtension(std::vector<CgiHandler> cgiExtension);
         void setClientMaxBodySize(std::string client_max_body_size);
+        void setAutoIndex(std::string status);
+        void setRedirection(std::vector<std::string> redirection);
         
         /* getters */
 
@@ -37,6 +41,8 @@ class LocationBlock {
         std::vector<std::string> getAllowMethods() const;
         std::vector<CgiHandler> getCgiExtension() const;
         std::string getClientMaxBodySize() const;
+        std::string getAutoIndex() const;
+        std::vector<std::string> getRedirection() const;
 
         void addCgi(const CgiHandler& cgi);
         void addAllowMethod(const std::string& method);

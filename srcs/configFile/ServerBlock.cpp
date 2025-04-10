@@ -58,6 +58,14 @@ void ServerBlock::setClientMaxBodySize(std::string client_max_body_size) {
     this->_client_max_body_size = client_max_body_size;
 }
 
+void ServerBlock::setAutoIndex(std::string status) {
+    this->_auto_index = status;
+}
+
+void ServerBlock::setRedirection(std::vector<std::string> redirection) {
+    this->_redirection = redirection;
+}
+
 /* ================= GETTERS ======================== */
 
 std::string ServerBlock::getServer() const {
@@ -104,7 +112,15 @@ std::string ServerBlock::getClientMaxBodySize() const {
     return (this->_client_max_body_size);
 }
 
-/* ================= HELPERS  & CHECKS ======================== */
+std::string ServerBlock::getAutoIndex() const {
+    return (this->_auto_index);
+}
+
+std::vector<std::string> ServerBlock::getRedirection() const {
+    return (this->_redirection);
+}
+
+/* ================= HELPERS ======================== */
 
 int myStoi(std::string& s) {
     int i;
@@ -159,12 +175,12 @@ void ServerBlock::indexCheck() {
 /* SETTER DU SERVER BLOCK SANS LOCATION BLOCK IMBRIQUEE */
 
 void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive) {
-    
+
     if (directive.empty()) {
         std::cerr << "Error: Provide some directives in .conf" << std::endl;
         exit(EXIT_FAILURE);
     }
-    
+
     // root
     if (directive.count("root") == 0) {
         oneServerBlock.setRoot("");
@@ -189,10 +205,10 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
     /*
     // if (directive.count("listen") == 0) {
-    //    oneServerBlock.setPort(-1); nop changer ca 
+    //    oneServerBlock.setPort(-1); nop changer ca
     // } else {
     // for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-        
+
     //     if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
     //         std::cerr << "Error: Invalid Port Number" << std::endl;
     //         exit(EXIT_FAILURE);
@@ -245,7 +261,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::multimap<std::string, std::string>::iterator itServerName = directive.find("server_name");
 
         HostHandler host;
-        
+
         host.filter(itServerName->second);
         if (host.getHostFormat() == 1) {
             host.parseIp(itServerName->second);
@@ -279,7 +295,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     // cgi
     for (std::multimap<std::string, std::string>::iterator itCgi = directive.lower_bound("cgi_extension"); itCgi != directive.upper_bound("cgi_extension"); ++itCgi) {
         CgiHandler cgi;
-        cgi.parseCgi(itCgi->second); 
+        cgi.parseCgi(itCgi->second);
         oneServerBlock._cgiExtension.push_back(cgi);
     }
 
@@ -298,17 +314,56 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::cerr << "Error: too many allow_methods" << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    // auto index
+    if (directive.count("autoindex") == 0) {
+        oneServerBlock.setAutoIndex("off");
+    }
+    else if (directive.count("autoindex") == 1) {
+        std::multimap<std::string, std::string>::iterator itAutoIndex = directive.find("autoindex");
+        oneServerBlock.setAutoIndex(itAutoIndex->second);
+    }
+    else {
+        std::cerr << "Error: too many autoindexes" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // redirection
+    if (directive.count("return") == 0) {
+        std::vector<std::string> res;
+        res.clear();
+        oneServerBlock.setRedirection(res);
+    }
+    else if (directive.count("return") == 1) {
+        std::multimap<std::string, std::string>::iterator itRedir = directive.find("return");
+
+        std::stringstream ss(itRedir->second);
+        std::vector<std::string> res;
+        std::string word;
+        while (ss >> word) {
+            res.push_back(word);
+        }
+        if (res.size() != 2) {
+            std::cerr << "Error: redirection format is not correct" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        oneServerBlock.setRedirection(res);
+    }
+    else {
+        std::cerr << "Error: too many returns" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
 
 void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive) {
-    
+
     if (directive.empty()) {
         std::cerr << "Error: Provide some directives in .conf" << std::endl;
         exit(EXIT_FAILURE);
     }
-    
+
     // root
     if (directive.count("root") == 0) {
         locBlock.setRoot("");
@@ -333,7 +388,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
 
     // body size
     if (directive.count("client_max_body_size") == 0) {
-        locBlock.setClientMaxBodySize("1Mo");
+        locBlock.setClientMaxBodySize("1M");
     } else if (directive.count("client_max_body_size") == 1) {
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         locBlock.setClientMaxBodySize(itBodySize->second);
@@ -345,7 +400,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
     // cgi
     for (std::multimap<std::string, std::string>::iterator itCgi = directive.lower_bound("cgi_extension"); itCgi != directive.upper_bound("cgi_extension"); ++itCgi) {
         CgiHandler cgi;
-        cgi.parseCgi(itCgi->second); 
+        cgi.parseCgi(itCgi->second);
         locBlock.addCgi(cgi);
     }
 
@@ -364,18 +419,60 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
         std::cerr << "Error: too many allow_methods" << std::endl;
         exit(EXIT_FAILURE);
     }
+
+    // auto index
+    if (directive.count("autoindex") == 0) {
+        locBlock.setAutoIndex("off");
+    }
+    else if (directive.count("autoindex") == 1) {
+        std::multimap<std::string, std::string>::iterator itAutoIndex = directive.find("autoindex");
+        locBlock.setAutoIndex(itAutoIndex->second);
+    }
+    else {
+        std::cerr << "Error: too many autoindexes" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    // redirection
+    if (directive.count("return") == 0) {
+        std::vector<std::string> res;
+        res.clear();
+        locBlock.setRedirection(res);
+    }
+    else if (directive.count("return") == 1) {
+        std::multimap<std::string, std::string>::iterator itRedir = directive.find("return");
+
+        std::stringstream ss(itRedir->second);
+        std::vector<std::string> res;
+        std::string word;
+        while (ss >> word) {
+            res.push_back(word);
+        }
+
+        if (res.size() != 2) {
+            std::cerr << "Error: redirection format is not correct" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        locBlock.setRedirection(res);
+    }
+    else {
+        std::cerr << "Error: too many returns" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 }
 
 /* MAIN FUNCTION TO CREATE SERVER BLOCKS */
 
 std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent rawConfig) {
-    
+
     std::vector<ServerBlock> cleanServers;
-    
+
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
     for (std::vector<Block>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
                 
+    for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
+
         if (it->getName() == "server") {
 
             ServerBlock oneServerBlock;
@@ -391,9 +488,9 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
 
                     LocationBlock locBlock;
-                    
+
                     locBlock.setPath(itLocation->getName());
-                    
+
                     for (size_t iBlock = 0; iBlock < oneServerBlock.getLocationBlock().size(); ++iBlock) {
                         if (locBlock.getPath() == oneServerBlock.getLocationBlock()[iBlock].getPath()) {
                             std::cerr << "Error: identical location path" << std::endl;
