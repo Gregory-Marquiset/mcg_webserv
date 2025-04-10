@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 11:42:11 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 12:16:47 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -173,7 +173,7 @@ void	ProcessRequest::checkMaxBodySize(void)
 
 	//std::cout << "str max body: " << str_max_body_size << std::endl;
 	if (str_max_body_size.empty())
-		str_max_body_size = "1M";
+		str_max_body_size += "1M";
 	pos = str_max_body_size.find_first_not_of("0123456789");
 	if (pos != std::string::npos)
 	{

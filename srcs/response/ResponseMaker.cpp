@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 11:01:36 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 12:09:15 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,6 +243,7 @@ void	ResponseMaker::createGetResponse(void)
 		response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 		response += "Content-Type: text/html\r\n";
 		response += "Content-Length: " + body_size + "\r\n";
+		response += "\r\n";
 		response += this->_req_infos.getBody();
 	}
 
