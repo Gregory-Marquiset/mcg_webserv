@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 
         std::cout << "=============================================" << std::endl;
         
-        //epollManager.run();
+        epollManager.run();
     }
     else
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
