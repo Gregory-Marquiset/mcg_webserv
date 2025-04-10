@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/02 11:08:06 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 09:07:37 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,10 @@ ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : 
 	{
 		if (this->_error_class.getErrorCode() != 0)
 		{
-			this->createErrorResponse();
+			if (this->_error_class.getErrorCode() == 301 || this->_error_class.getErrorCode() == 302)
+				this->createRedirectionResponse();
+			else
+				this->createErrorResponse();
 		}
 		else
 		{
@@ -149,15 +152,29 @@ void	ResponseMaker::createErrorResponse(void)
 	this->_final_response = response;
 }
 
+void	ResponseMaker::createRedirectionResponse(void)
+{
+	std::string	response;
+	std::string	path = this->_req_infos.getFinalPath();
+
+	response += this->_req_infos.getHTTP() + Utils::getErrorString(this->_error_class.getErrorCode());
+	response += "Server: webserv\r\n";
+	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+	response += "Location: " + path + "\r\n";
+
+	this->_final_response = response;
+}
+
 void	ResponseMaker::createGetResponse(void)
 {
-	std::string		response;
+	std::string	response;
 	if (this->_req_infos.getCgi() == true)
 	{
 		//on verra
 		return;
 	}
-	std::string path = this->_req_infos.getFinalPath();
+
+	std::string	path = this->_req_infos.getFinalPath();
 	if (access(path.c_str(), F_OK) != 0)
 	{
 		this->_error_class.setErrorCode(404);
@@ -221,7 +238,7 @@ void	ResponseMaker::createDeleteResponse(void)
 		this->_error_class.setErrorCode(500);
 		throw ResponseMaker::ResponseException("Erreur lors de la suppresion du fichier");
 	}
-	
+
 	response += this->_req_infos.getHTTP() + " 204 No Content\r\n";
 	response += "Server: webserv\r\n";
 	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";

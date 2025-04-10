@@ -6,11 +6,12 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/02 10:51:42 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/10 09:01:06 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../../includes/request/ProcessRequest.hpp"
+#include "../../includes/utils/Utils.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 ProcessRequest::ProcessRequest(void)
@@ -224,10 +225,21 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 
 void	ProcessRequest::addRootPath(void)
 {
+	std::vector<std::string>	redir;
 	std::string	uri;
 	size_t		path_size;
 
 	std::cout << "Uri sans modif : " << this->_request.getURI() << std::endl;
+
+	redir = this->_location_to_use.getRedirection();
+	if (!redir.empty())
+	{
+		if (this->_error_class.getErrorCode() == 0)
+				this->_error_class.setErrorCode(Utils::strtoi(redir[0]));
+		this->_final_path = redir[1];
+		return;
+	}
+
 	this->_final_path += this->_location_to_use.getRoot();
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] != '/')
