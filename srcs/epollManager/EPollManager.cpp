@@ -5,7 +5,6 @@
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-
 EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
 
     this->_epollFd = epoll_create1(0); // c est le fd monitor
@@ -93,7 +92,6 @@ void EPollManager::addSocketToEpoll(int fd) {
     struct epoll_event event;
     event.data.fd = fd;
     event.events = EPOLLIN;
-    // std::cout << "+ " << epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &event) << std::endl;
     if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &event) == -1) {
         perror("epoll_ctl: ajout socket");
         exit(EXIT_FAILURE);
@@ -128,10 +126,12 @@ void EPollManager::run() {
             // check si c est server
             int isServerSocket = 0;
             for (size_t j = 0; j < _servers.size(); j++) {
-                if (fd == _servers[j].getListeningSocket().front().getSockFd()) { // changer le .front() faire en sorte d avoir la bonne listening socket
-                    acceptConnection(fd);
-                    isServerSocket = 1;
-                    break;
+                for (size_t k = 0; k < this->_servers[j].getListeningSocket().size(); ++k) {
+                    if (fd == _servers[j].getListeningSocket()[k].getSockFd()) { // changer le .front() faire en sorte d avoir la bonne listening socket
+                        acceptConnection(fd);
+                        isServerSocket = 1;
+                        break;
+                    }
                 }
             }
 
@@ -185,9 +185,12 @@ void EPollManager::acceptConnection(int serverFd) {
 
     // pour associer la requete cliente au bon server
     for (size_t j = 0; j < _servers.size(); j++) {
-        if (serverFd == _servers[j].getListeningSocket().front().getSockFd()) {
-            clientToServerMap[newClientFd] = &_servers[j];
-            break;
+        for (size_t k = 0; k < this->_servers[j].getListeningSocket().size(); ++k) {
+
+            if (serverFd == _servers[j].getListeningSocket()[k].getSockFd()) {
+                clientToServerMap[newClientFd] = &_servers[j];
+                break;
+            }
         }
     }
     addSocketToEpoll(newClientFd);
