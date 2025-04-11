@@ -186,4 +186,5 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::cout << "Reponse :" << std::endl;
 	std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
+    close(clientFd);
 }
