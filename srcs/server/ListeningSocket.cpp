@@ -35,6 +35,10 @@ void ListeningSocket::startListening() {
     this->_listening = listen(getSockFd(), this->_backlog);
 }
 
+int ListeningSocket::getPort() const {
+  return (this->_port);
+}
+
 /* ================= HELPER TO PRINT STUFF ======================== */
 
 void ListeningSocket::printListeningSocketArgs(int domain, int service, int protocol, int port, u_long interface, int backlog) {

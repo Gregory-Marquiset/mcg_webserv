@@ -16,6 +16,8 @@ class ListeningSocket : public ASocket {
   public:
     ListeningSocket(int domain, int serice, int protocol, int port, u_long interface, int bklg);
     ~ListeningSocket();
+
+    int getPort() const;
     
     int bindToNetwork(int sockFd, struct sockaddr_in address);
     void startListening();

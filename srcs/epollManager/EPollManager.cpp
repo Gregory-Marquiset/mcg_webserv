@@ -16,19 +16,56 @@ EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
 
     determineDefaultServersAccordingToPort(this->_servers);
 
-    std::vector<Server>::iterator it;
-    std::vector<ListeningSocket>::iterator iSock;
-    std::cout << "server count = " << this->_servers.size() << std::endl;
-    for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
-        for (iSock = it->getListeningSocket().begin(); iSock != it->getListeningSocket().end(); ++iSock) {
+    // std::vector<Server>::iterator it;
+    // std::vector<ListeningSocket>::iterator iSock;
+    // std::cout << "server count = " << this->_servers.size() << std::endl;
+    // for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
 
-            std::cout << "-> " << iSock->getSockFd() << std::endl;
-            std::cout << "Trying to add fd: " << iSock->getSockFd() << std::endl;
-            // if (it->getDefaultServer() == 1)
-                addSocketToEpoll(iSock->getSockFd());
+    //     for (iSock = it->getListeningSocket().begin(); iSock != it->getListeningSocket().end(); ++iSock) {
+
+    //         std::cout << "-> " << iSock->getSockFd() << std::endl;
+    //         std::cout << "Trying to add fd: " << iSock->getSockFd() << std::endl;
+    //         // if (it->getServerStatusAccordingToPort().second == 1) {
+    //         //     std::cout << "1\n";
+    //             addSocketToEpoll(iSock->getSockFd());
+    //     }
+    // }
+    for (size_t i = 0; i < this->_servers.size(); ++i) {
+        std::cout << "nb de listenng socket " << this->_servers[i].getListeningSocket().size() << std::endl;
+        for (size_t iSock = 0; iSock < this->_servers[i].getListeningSocket().size(); ++iSock) {
+            std::cout << "-> " << this->_servers[i].getListeningSocket()[iSock].getSockFd() << std::endl;
+            std::cout << "Trying to add fd: " << this->_servers[i].getListeningSocket()[iSock].getSockFd() << std::endl;
+            
+            std::map<int, int> status = this->_servers[i].getServerStatusAccordingToPort();
+            for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+                std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+                if ((this->_servers[i].getListeningSocket()[iSock].getPort() == it->first) && (it->second == 1)) {
+                    std::cout << "ici\n";
+                    addSocketToEpoll(this->_servers[i].getListeningSocket()[iSock].getSockFd());
+                }
+            }
+        
+            
+            // if (this->_servers[i].getServerStatusAccordingToPort().second == 1) {
+            //     std::cout << "1\n";
+            //     addSocketToEpoll(this->_servers[i].getListeningSocket()[iSock].getSockFd());
+            // }
         }
     }
 }
+
+    // for (size_t i = 0; i < this->_servers.size(); ++i) {
+
+    //     // std::cout << "size = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+    //     std::map<int, int> status = this->_servers[i].getServerStatusAccordingToPort();
+    //     for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+    //         std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+    //         if (it->second == 1)
+    //                 addSocketToEpoll(this->_servers[i].getListeningSocket()[iSock].getSockFd());
+
+    //     }
+    // }
+
     
 void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& servers) {
 
@@ -214,7 +251,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 		std::cout << buf << std::endl;
 		if (bytes_read <= 0)
 		{
-			close(clientFd);
+			// close(clientFd);
 			std::cerr << "erreur handleClientRequest" << std::endl;
 			close(clientFd);
 			break;
