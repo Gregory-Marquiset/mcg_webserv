@@ -115,10 +115,10 @@ int main(int argc, char **argv) {
         EPollManager epollManager(servers);
 
         std::cout << "===== Default Servers according to Port =====" << std::endl;
-
+        std::cout << "server nb = " << servers.size() << std::endl;
         for (size_t i = 0; i < servers.size(); ++i) {
 
-            std::cout << "siwe = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+            std::cout << "size = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
             std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
             for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
                 std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;

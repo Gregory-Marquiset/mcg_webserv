@@ -25,6 +25,7 @@ class LocationBlock {
         /* setters */
 
         void setPath(std::string path);
+        void setPathSpecial(std::string path);
         void setRoot(std::string root);
         void setIndex(std::string index);
         void setAllowMethods(std::vector<std::string> allowMethods);

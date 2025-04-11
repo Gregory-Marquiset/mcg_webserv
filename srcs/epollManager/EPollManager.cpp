@@ -236,7 +236,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	ProcessRequest	process_req(serv, req_parser, err);
 	if (req_parser.getIsCgi() == true)
 	{
-		//GREG TU TE DEMERDES POUR LA REP
+		// GREG TU TE DEMERDES POUR LA REP
 	}
 
 	ResponseMaker	resp(err, process_req);

@@ -194,6 +194,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
     // index
     if (directive.count("index") == 0) {
+        std::cout << "set a rien\n";
         oneServerBlock.setIndex("");
     } else if (directive.count("index") == 1) {
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
@@ -203,42 +204,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     }
 
-    /*
-    // if (directive.count("listen") == 0) {
-    //    oneServerBlock.setPort(-1); nop changer ca
-    // } else {
-    // for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-
-    //     if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
-    //         std::cerr << "Error: Invalid Port Number" << std::endl;
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     oneServerBlock._port.push_back(std::atoi((itPort->second).c_str()));
-    // }
-    // }
-
     // listen
-    if (directive.count("listen") != 1) {
-        std::cerr << "Error: Provide ONE port per each server" << std::endl;
-        exit(EXIT_FAILURE);
-    }
-    if (directive.count("listen") == 1) {
-        
-            std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
-            if (std::atoi((itPort->second).c_str()) < 0 || std::atoi((itPort->second).c_str()) > 65535) {
-                std::cerr << "Error: Invalid Port Number" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            oneServerBlock.setPort(std::atoi((itPort->second).c_str()));
-        
-        HostHandler host;
-         
-         std::multimap<std::string, std::string>::iterator itPort = directive.find("listen");
-         host.checkListenFormat(itPort->second, oneServerBlock);
-    }
-    */
-
-     // listen
     if (directive.count("listen") == 0) {
         std::cerr << "Error: Provide a port where to listen" << std::endl;
         exit(EXIT_FAILURE);
@@ -283,7 +249,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
     // body size
     if (directive.count("client_max_body_size") == 0) {
-        oneServerBlock.setClientMaxBodySize("1Mo");
+        oneServerBlock.setClientMaxBodySize("1M");
     } else if (directive.count("client_max_body_size") == 1) {
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         oneServerBlock.setClientMaxBodySize(itBodySize->second);
@@ -357,7 +323,9 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
 
-void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive) {
+// donc ici faire check supplemetaires pour regarder si le servers a certaines directives ou non 
+
+void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive) {
 
     if (directive.empty()) {
         std::cerr << "Error: Provide some directives in .conf" << std::endl;
@@ -376,8 +344,11 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
     }
 
     // index
-    if (directive.count("index") == 0) {
-        locBlock.setIndex("");
+    if (directive.count("index") == 0 && oneServerBlock.getIndex() == "") {
+        std::cerr << "Error: Please provide an index" << std::endl;
+        exit(EXIT_FAILURE);
+    } else if (directive.count("index") == 0 && oneServerBlock.getIndex() != "") {
+        locBlock.setIndex(oneServerBlock.getIndex());
     } else if (directive.count("index") == 1) {
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
         locBlock.setIndex(itIndex->second);
@@ -388,7 +359,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
 
     // body size
     if (directive.count("client_max_body_size") == 0) {
-        locBlock.setClientMaxBodySize("1M");
+        locBlock.setClientMaxBodySize(oneServerBlock.getClientMaxBodySize());
     } else if (directive.count("client_max_body_size") == 1) {
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         locBlock.setClientMaxBodySize(itBodySize->second);
@@ -422,9 +393,8 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
 
     // auto index
     if (directive.count("autoindex") == 0) {
-        locBlock.setAutoIndex("off");
-    }
-    else if (directive.count("autoindex") == 1) {
+        locBlock.setAutoIndex(oneServerBlock.getAutoIndex());
+    } else if (directive.count("autoindex") == 1) {
         std::multimap<std::string, std::string>::iterator itAutoIndex = directive.find("autoindex");
         locBlock.setAutoIndex(itAutoIndex->second);
     }
@@ -461,18 +431,21 @@ void ServerBlock::caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::mul
     }
 }
 
+// faire une fonction dans le cas ou pas de location /
+// faire un tour d tous les paths, si pas de / alors:
+// creer location / bloc
+// index, autoindex, client_mx_size_body heritent des directives servers si non redefinis -> don a faire valoir pour tous les les locs blocks
+
 /* MAIN FUNCTION TO CREATE SERVER BLOCKS */
 
 std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent rawConfig) {
-
+    
     std::vector<ServerBlock> cleanServers;
 
     std::vector<Block> allBlocks = rawConfig.getServerBlocks();
 
     for (std::vector<Block>::iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
                 
-    for (std::vector<Block>::const_iterator it = allBlocks.begin(); it != allBlocks.end(); ++it) {
-
         if (it->getName() == "server") {
 
             ServerBlock oneServerBlock;
@@ -482,9 +455,26 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
             std::vector<Block> locations = it->getChildBlock();
             if (locations.empty()) {
                 caseWithNoLocationBlockEmbeded(oneServerBlock, directive);
+
+                LocationBlock locBlock;
+
+                locBlock.setPathSpecial("/");
+                caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive);
+                oneServerBlock.addLocationBlock(locBlock);
             }
             else {
-                caseWithNoLocationBlockEmbeded(oneServerBlock, directive);
+                int flag = 0;
+                
+                for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
+                    
+                    std::cout << "name = " << itLocation->getName() << std::endl;
+                    if (itLocation->getName() == "location /") {
+                        std::cout << "found\n";
+                        flag = 1;
+                    }
+                    caseWithNoLocationBlockEmbeded(oneServerBlock, directive);
+                }
+
                 for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
 
                     LocationBlock locBlock;
@@ -498,7 +488,14 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                         }
                     }
                     std::multimap<std::string, std::string> locDirective = itLocation->getDirective();
-                    caseWithLocationBlockEmbeded(locBlock, locDirective);
+                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, locDirective);
+                    oneServerBlock.addLocationBlock(locBlock);
+                }
+                if (flag == 0) {
+                    LocationBlock locBlock;
+
+                    locBlock.setPathSpecial("/");
+                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive);
                     oneServerBlock.addLocationBlock(locBlock);
                 }
             }
@@ -506,11 +503,10 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
             oneServerBlock.indexCheck();
             cleanServers.push_back(oneServerBlock);
         }
-
-    }
-    if (cleanServers.empty()) {
-        std::cerr << "Error: No server in .conf" << std::endl;
-        exit(EXIT_FAILURE);
+        if (cleanServers.empty()) {
+            std::cerr << "Error: No server in .conf" << std::endl;
+            exit(EXIT_FAILURE);
+        }
     }
     return (cleanServers);
 }

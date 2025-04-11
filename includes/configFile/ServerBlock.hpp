@@ -69,7 +69,7 @@ class ServerBlock {
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
         std::vector<ServerBlock> createAllServerBlocks(RecupBlockContent rawConfig);
         void caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive);
-        void caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
+        void caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
 };
 
 #endif
