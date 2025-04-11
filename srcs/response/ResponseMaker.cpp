@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 13:59:14 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 08:49:12 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,7 @@ void	ResponseMaker::createRedirectionResponse(void)
 	response += "Server: webserv\r\n";
 	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
 	response += "Location: " + path + "\r\n";
+	response += "Connection: close\r\n";
 	response += "\r\n";
 
 	this->_final_response = response;

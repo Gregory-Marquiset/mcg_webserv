@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 13:52:27 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 08:57:19 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,6 +161,8 @@ void	ProcessRequest::checkAllowedMethod(void)
 		if (this->_request.getMethod() == *it)
 			return ;
 	}
+	if (this->_error_class->getErrorCode() == 0)
+		this->_error_class->setErrorCode(405);
 	throw RequestParser::RequestException("Method not allowed in this location");
 }
 
