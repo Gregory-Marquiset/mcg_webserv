@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 12:56:54 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 09:15:42 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,31 +42,10 @@ class	RequestParser
 		std::string		getBody(void) const;
 		bool			getIsCgi(void) const;
 		std::map<std::string, std::string>	getHeaders(void) const;
+		std::string		getConnection(void) const;
+		std::string		getCookie(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
-
-		enum	e_parse_state
-		{
-			INIT,
-			METHOD,
-			URI,
-			HTTP,
-			HEADERS,
-			BODY,
-			FINAL
-		};
-
-		enum	e_error_state
-		{
-			NO_ERROR,
-			METHOD_ERROR,
-			URI_ERROR,
-			HTTP_ERROR,
-			REQUEST_LINE_ERROR,
-			HEADERS_ERROR,
-			BODY_ERROR,
-			FATAL_ERROR
-		};
 
 		class	RequestException : public std::exception
 		{
@@ -86,13 +65,12 @@ class	RequestParser
 		ErrorManagement	*_error_class;
 		std::string		_full_request;
 		std::string		_escaped_char;
-		int				_actual_state;
-		int				_error_state;
 		bool			_is_uri_cgi;
 
-		// Stockage des infos utile que pour le parsing de la requete ??
-		std::string		_host;
+		// Stockage des infos utile dans les headers
 		std::string		_content_type;
+		std::string		_connection;		//Pour close le fd ou pas
+		std::string		_cookie;			//Pour greg
 		unsigned long	_content_length;
 		bool			_cnt_lenght;
 		bool			_transfert_encoding;

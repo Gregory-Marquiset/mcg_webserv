@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 12:57:45 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 09:16:22 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,11 @@
 #include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _actual_state(RequestParser::INIT),
-_error_state(RequestParser::NO_ERROR), _is_uri_cgi(false)
+RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
 {
 }
 
-RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _actual_state(RequestParser::INIT),
-_error_state(RequestParser::NO_ERROR), _is_uri_cgi(false)
+RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
 {
 }
 
@@ -41,12 +39,11 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 	{
 		this->_full_request = inst._full_request;
 		this->_escaped_char = inst._escaped_char;
-		this->_actual_state = inst._actual_state;
-		this->_error_state = inst._error_state;
 		this->_error_class = inst._error_class;
 		this->_is_uri_cgi = inst._is_uri_cgi;
-		this->_host = inst._host;
 		this->_content_type = inst._content_type;
+		this->_connection = inst._connection;
+		this->_cookie = inst._cookie;
 		this->_content_length = inst._content_length;
 		this->_cnt_lenght = inst._cnt_lenght;
 		this->_transfert_encoding = inst._transfert_encoding;
@@ -110,6 +107,16 @@ std::map<std::string, std::string>	RequestParser::getHeaders(void) const
 	return (this->_request_headers);
 }
 
+std::string	RequestParser::getConnection(void) const
+{
+	return (this->_connection);
+}
+
+std::string	RequestParser::getCookie(void) const
+{
+	return (this->_cookie);
+}
+
 /* ================= NON MEMBER FUNCTIONS ======================== */
 static bool	is_non_printable(char c)
 {
@@ -156,7 +163,6 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
 	if (request.empty())
 	{
-		this->_actual_state = RequestParser::FATAL_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		return ;
@@ -197,13 +203,10 @@ void	RequestParser::parseMethod(std::string &req)
 	std::string	method;
 	int			space_pos = 0;
 
-	this->_actual_state = RequestParser::METHOD;
 	space_pos = req.find_first_of(" ");
 	method = req.substr(0, space_pos);
 	if (method != "GET" && method != "POST" && method != "DELETE")			//A changer, a verifier dans les infos du serveur
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::METHOD_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(405);
 		//std::cout << "*" << method << "*" << std::endl;
@@ -222,11 +225,8 @@ void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir
 	std::string	check_encoded;
 	int			space_pos = 0;
 
-	this->_actual_state = RequestParser::URI;
 	if (req.find_first_of(" ") == std::string::npos)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::URI_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid URI 1");
@@ -236,8 +236,6 @@ void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir
 	req.erase(0, space_pos + 1);
 	if (uri[0] != '/' || uri.find_first_not_of(VALID_CHARSET) != std::string::npos)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::URI_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid URI 2");
@@ -248,8 +246,6 @@ void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir
 		{
 			if (i + 2 >= uri.size())
 			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::URI_ERROR;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Invalid URI 3");
@@ -258,8 +254,6 @@ void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir
 			//std::cout << check_encoded << std::endl;
 			if (this->_escaped_char.find(check_encoded) == std::string::npos)
 			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::URI_ERROR;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Invalid URI 4");
@@ -276,11 +270,8 @@ void	RequestParser::parseHTTP(std::string &req)
 	int			i;
 	long		n;
 
-	this->_actual_state = RequestParser::HTTP;
 	if (req.find("HTTP/") != 0)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -290,8 +281,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	i = 0;
 	if (!(req[i] >= '0' && req[i] <= '9'))
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -301,8 +290,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	n = std::atoi(req.c_str());
 	if (n < 1 || n > std::numeric_limits<int>::max())
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -317,8 +304,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	}
 	else if (req[i] != '.' || !(req[i + 1] >= '0' && req[i + 1] <= '9'))
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -330,8 +315,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	n = std::atoi(req.c_str());
 	if (n < 0 || n > std::numeric_limits<int>::max())
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -340,8 +323,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	req.erase(0, i);
 	if (req[0] != '\r' && req[1] != '\n')
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HTTP_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid HTTP");
@@ -367,11 +348,8 @@ void	RequestParser::parseHeaders(std::string &req)
 	size_t					pos = 0;
 	size_t					end = 0;
 
-	this->_actual_state = RequestParser::HEADERS;
 	if (req.find("\r\n\r\n") == std::string::npos)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HEADERS_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("Invalid Headers end");
@@ -384,8 +362,6 @@ void	RequestParser::parseHeaders(std::string &req)
 		pos = req.find_first_of(":");
 		if (pos == std::string::npos || pos > end)
 		{
-			if (this->_error_state == RequestParser::NO_ERROR)
-				this->_error_state = RequestParser::HEADERS_ERROR;
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
 			throw RequestParser::RequestException("Invalid Headers Key");
@@ -395,8 +371,6 @@ void	RequestParser::parseHeaders(std::string &req)
 		its = std::find_if(temp_key.begin(), temp_key.end(), is_space);
 		if (it != temp_key.end() || its != temp_key.end())
 		{
-			if (this->_error_state == RequestParser::NO_ERROR)
-				this->_error_state = RequestParser::HEADERS_ERROR;
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
 			throw RequestParser::RequestException("Invalid Headers Key2");
@@ -435,17 +409,12 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 	for (it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
 	{
 		if (it->first == "Host")
-		{
 			host = 1;
-			this->_host = it->second;
-		}
 		else if (it->first == "Content-Length")
 		{
 			this->_cnt_lenght = 1;
 			if (it->second.find_first_not_of("0123456789") != std::string::npos)
 			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::HEADERS_ERROR;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Invalid Header Content-Length");
@@ -457,8 +426,6 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 			this->_transfert_encoding = 1;
 			if (it->second != "chunked")
 			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::HEADERS_ERROR;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Transfer-encoding error");
@@ -468,19 +435,23 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 		{
 			this->_content_type = it->second;
 		}
+		else if (it->first == "Cookie")
+		{
+			this->_cookie = it->second;
+		}
+		else if (it->first == "Connection")
+		{
+			this->_connection = it->second;
+		}
 	}
 	if (host == 0)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HEADERS_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("No Host header");
 	}
 	if (this->_request_method == "POST" && this->_cnt_lenght == 0 && this->_transfert_encoding == 0)
 	{
-		if (this->_error_state == RequestParser::NO_ERROR)
-			this->_error_state = RequestParser::HEADERS_ERROR;
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
 		throw RequestParser::RequestException("No body length");
@@ -502,7 +473,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	size_t		pos;
 	long		chunk_size;
 
-	this->_actual_state = RequestParser::BODY;
 	if (this->_content_length == 0 && this->_transfert_encoding == 0)
 		return;
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
@@ -516,8 +486,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
 			if (bytes_received <= 0)
 			{
-				if (this->_error_state == RequestParser::NO_ERROR)
-					this->_error_state = RequestParser::BODY_ERROR;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Wrong body size");
@@ -526,8 +494,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 		}
 		if (req.size() != this->_content_length)
 		{
-			if (this->_error_state == RequestParser::NO_ERROR)
-				this->_error_state = RequestParser::BODY_ERROR;
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
 			throw RequestParser::RequestException("Wrong body size");
@@ -551,8 +517,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				{
 					// std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
 					// std::cout << "temp_buf if byte received <= 0: *" << temp_buf << "*" << std::endl;
-					if (this->_error_state == RequestParser::NO_ERROR)
-						this->_error_state = RequestParser::BODY_ERROR;
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(400);
 					throw RequestParser::RequestException("Error with body");
@@ -568,8 +532,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				// std::cout << "chunk size : " << chunk_size << std::endl;
 				if (chunk_size == -1)
 				{
-					if (this->_error_state == RequestParser::NO_ERROR)
-						this->_error_state = RequestParser::BODY_ERROR;
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(400);
 					throw RequestParser::RequestException("Error with body chunk size");
@@ -581,8 +543,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 						buf += temp_buf;
 					if (buf.find("0\r\n\r\n") != 0)
 					{
-						if (this->_error_state == RequestParser::NO_ERROR)
-							this->_error_state = RequestParser::BODY_ERROR;
 						if (this->_error_class->getErrorCode() == 0)
 							this->_error_class->setErrorCode(400);
 						throw RequestParser::RequestException("Error with body end");
@@ -598,8 +558,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					//std::cerr << bytes_received << std::endl;
 					if (bytes_received <= 0)
 					{
-						if (this->_error_state == RequestParser::NO_ERROR)
-							this->_error_state = RequestParser::BODY_ERROR;
 						if (this->_error_class->getErrorCode() == 0)
 							this->_error_class->setErrorCode(400);
 						throw RequestParser::RequestException("Error with body");

@@ -174,10 +174,6 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	}
 
 	ProcessRequest	process_req(serv, req_parser, err);
-	if (req_parser.getIsCgi() == true)
-	{
-		//GREG TU TE DEMERDES POUR LA REP
-	}
 
 	ResponseMaker	resp(err, process_req);
 	std::string		response = resp.getFinalResponse();
@@ -186,5 +182,6 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::cout << "Reponse :" << std::endl;
 	std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
-    close(clientFd);
+	//if (req_parser.getConnection() != "keep-alive")
+		close(clientFd);
 }
