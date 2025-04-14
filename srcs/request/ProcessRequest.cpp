@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 13:08:08 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 14:09:18 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -434,10 +434,12 @@ void	ProcessRequest::manageFormCase(void)
 		if (path[i] == '/')
 			path[i] = '_';
 	}
-	if (path[size - 1] != '_')
-		path[size - 1] = '_';
 	if (generate == true)
-		path += Utils::getTime(1) + ".txt";
+	{
+		if (path[size - 1] != '_')
+			path[size - 1] = '_';
+		path += Utils::getTime(1) + ".json";
+	}
 	new_path += "/www/uploads/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
@@ -472,10 +474,132 @@ void	ProcessRequest::manageMultipartCase(void)
 
 void	ProcessRequest::manageJsonCase(void)
 {
+	std::string	path = this->_final_path;
+	std::string	new_path;
+	bool		generate = false;
+	size_t		slash_pos = 0;
+	size_t		dot_pos = 0;
+	size_t		size;
 
+	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Erreur dans le path pour POST");
+	}
+	if (path.find("./www/uploads/") == 0)
+		path.erase(0, 14);
+	else if (path.find("./www/") == 0)
+		path.erase(0, 6);
+
+	slash_pos = path.rfind("/");
+	if (slash_pos == std::string::npos)
+		slash_pos = 0;
+	dot_pos = path.find(".", slash_pos);
+	if (dot_pos == std::string::npos)
+		generate = true;
+	else if (path.substr(dot_pos) != ".json")
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Extension n'est pas .json");
+	}
+
+	size = path.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (path[i] == '/')
+			path[i] = '_';
+	}
+	if (generate == true)
+	{
+		if (path[size - 1] != '_')
+			path[size - 1] = '_';
+		path += Utils::getTime(1) + ".json";
+	}
+	new_path += "/www/uploads/" + path;
+
+	if (access(new_path.c_str(), F_OK) == 0)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(409);
+		throw RequestParser::RequestException("Fichier déja existant");
+	}
+	std::ofstream	file(new_path.c_str());
+
+	if (!file.is_open())
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Fichier non crée");
+	}
+	std::string	body = this->getBody();
+
+	file << body;
 }
 
 void	ProcessRequest::manageSimpleCase(void)
 {
+	std::string	path = this->_final_path;
+	std::string	new_path;
+	bool		generate = false;
+	size_t		slash_pos = 0;
+	size_t		dot_pos = 0;
+	size_t		size;
 
+	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Erreur dans le path pour POST");
+	}
+	if (path.find("./www/uploads/") == 0)
+		path.erase(0, 14);
+	else if (path.find("./www/") == 0)
+		path.erase(0, 6);
+
+	slash_pos = path.rfind("/");
+	if (slash_pos == std::string::npos)
+		slash_pos = 0;
+	dot_pos = path.find(".", slash_pos);
+	if (dot_pos == std::string::npos)
+		generate = true;
+	else if (path.substr(dot_pos) != ".txt")
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Extension n'est pas .txt");
+	}
+
+	size = path.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (path[i] == '/')
+			path[i] = '_';
+	}
+	if (generate == true)
+	{
+		if (path[size - 1] != '_')
+			path[size - 1] = '_';
+		path += Utils::getTime(1) + ".txt";
+	}
+	new_path += "/www/uploads/" + path;
+
+	if (access(new_path.c_str(), F_OK) == 0)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(409);
+		throw RequestParser::RequestException("Fichier déja existant");
+	}
+	std::ofstream	file(new_path.c_str());
+
+	if (!file.is_open())
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Fichier non crée");
+	}
+	std::string	body = this->getBody();
+
+	file << body;
 }
