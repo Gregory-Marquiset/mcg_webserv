@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 13:07:09 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 15:34:53 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ ResponseMaker::ResponseMaker(void)
 
 ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : _error_class(err), _req_infos(req_infos)
 {
-	std::cout << "Constructeur ResponseMaker :" << std::endl;
+	std::cout << std::endl << "CREATION DE LA REPONSE" << std::endl;
 	std::cout << "Method : " << this->_req_infos.getMethod() << std::endl;
 	std::cout << "HTTP version : " << this->_req_infos.getHTTP() << std::endl;
 	std::cout << std::endl << std::endl;
@@ -99,6 +99,7 @@ void	ResponseMaker::createErrorResponse(void)
 	std::map<int, std::string>	error_files = Utils::get_error_map();
 	int							error_code = this->_error_class.getErrorCode();
 
+	std::cout << "createErrorResponse error code : " << error_code << std::endl;
 	for (std::map<int, std::string>::iterator it = error_files.begin(); it != error_files.end(); it++)
 	{
 		if (error_code == it->first)
@@ -106,6 +107,7 @@ void	ResponseMaker::createErrorResponse(void)
 	}
 	if (error_path.empty() || access(error_path.c_str(), F_OK) != 0 || access(error_path.c_str(), R_OK) != 0)
 	{
+		std::cout << "createErrorResponse 1er if" << std::endl;
 		response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 		response += "Server: webserv\r\n";
 		response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
@@ -120,6 +122,7 @@ void	ResponseMaker::createErrorResponse(void)
 
 		if (!file.is_open())
 		{
+			std::cout << "createErrorResponse 2e if" << std::endl;
 			response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 			response += "Server: webserv\r\n";
 			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
@@ -288,4 +291,16 @@ void	ResponseMaker::createDeleteResponse(void)
 
 void	ResponseMaker::createPostResponse(void)
 {
+	if (this->_req_infos.getCgi() == true)
+	{
+		//on verra
+		return;
+	}
+	std::string		response;
+
+	response += this->_req_infos.getHTTP() + " 201 Created\r\n";
+	response += "Server: webserv\r\n";
+	response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
+
+	this->_final_response = response;
 }

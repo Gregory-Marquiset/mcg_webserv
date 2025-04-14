@@ -33,6 +33,7 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -f $(OBJS)
+	rm -rf ./www/uploads/*
 
 fclean: clean
 	rm -f $(NAME)

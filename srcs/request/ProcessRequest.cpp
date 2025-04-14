@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 14:09:18 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 15:29:55 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement
 _method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()),
 _autoindex(false), _index(true)
 {
+	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
 	this->processRequest();
 }
 
@@ -122,6 +123,14 @@ void	ProcessRequest::processRequest(void)
 		this->checkMaxBodySize();
 		this->addRootPath();
 		this->checkIfUriIsCgi();
+		if (this->_cgi == true)
+		{
+			return;
+		}
+		if (this->_method == "POST")
+		{
+			this->processPostRequest();
+		}
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{
@@ -367,25 +376,26 @@ void	ProcessRequest::processPostRequest(void)
 {
 	std::string	path = this->_final_path;
 
-	if (access(path.c_str(), F_OK) == 0)
+	std::cout << "path dans process post : " << path << std::endl;
+	if (access(path.c_str(), F_OK) == 0 && opendir(path.c_str()) == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(409);
 		throw RequestParser::RequestException("Fichier déjà existant");
 	}
-	if (opendir("/www/uploads") == NULL)
+	if (opendir("./www/uploads") == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
 		throw RequestParser::RequestException("Dossier \"uploads\" inexistant");
 	}
-	if (this->getContentType() == "application/x-www-form-urlencoded")
+	if (this->_request.getContentType() == "application/x-www-form-urlencoded")
 		this->manageFormCase();
-	else if (this->getContentType().find("multipart/form-data") != std::string::npos)
+	else if (this->_request.getContentType().find("multipart/form-data") != std::string::npos)
 		this->manageMultipartCase();
-	else if (this->getContentType() == "application/json")
+	else if (this->_request.getContentType() == "application/json")
 		this->manageJsonCase();
-	else if (this->getContentType() == "text/plain")
+	else if (this->_request.getContentType() == "text/plain")
 		this->manageSimpleCase();
 	else
 	{
@@ -397,11 +407,12 @@ void	ProcessRequest::processPostRequest(void)
 
 void	ProcessRequest::manageFormCase(void)
 {
+	std::cout << "CAS POST form" << std::endl;
 	std::string	path = this->_final_path;
 	std::string	new_path;
 	bool		generate = false;
 	size_t		slash_pos = 0;
-	size_t		dot_pos = 0;
+	size_t		dot_pos = std::string::npos;
 	size_t		size;
 
 	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
@@ -415,10 +426,13 @@ void	ProcessRequest::manageFormCase(void)
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
-	slash_pos = path.rfind("/");
-	if (slash_pos == std::string::npos)
-		slash_pos = 0;
-	dot_pos = path.find(".", slash_pos);
+	if (!path.empty())
+	{
+		slash_pos = path.rfind("/");
+		if (slash_pos == std::string::npos)
+			slash_pos = 0;
+		dot_pos = path.find(".", slash_pos);
+	}
 	if (dot_pos == std::string::npos)
 		generate = true;
 	else if (Utils::authorizedMIME(path.substr(dot_pos)) != 0)
@@ -428,19 +442,22 @@ void	ProcessRequest::manageFormCase(void)
 		throw RequestParser::RequestException("Extension interdite pour POST");
 	}
 
-	size = path.size();
-	for (size_t i = 0; i < size; i++)
+	if (!path.empty())
 	{
-		if (path[i] == '/')
-			path[i] = '_';
+		size = path.size();
+		for (size_t i = 0; i < size; i++)
+		{
+			if (path[i] == '/')
+				path[i] = '_';
+		}
 	}
 	if (generate == true)
 	{
-		if (path[size - 1] != '_')
+		if (!path.empty() && path[size - 1] != '_')
 			path[size - 1] = '_';
-		path += Utils::getTime(1) + ".json";
+		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "/www/uploads/" + path;
+	new_path += "./www/uploads/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -469,16 +486,17 @@ void	ProcessRequest::manageFormCase(void)
 
 void	ProcessRequest::manageMultipartCase(void)
 {
-
+	std::cout << "CAS POST multipart" << std::endl;
 }
 
 void	ProcessRequest::manageJsonCase(void)
 {
+	std::cout << "CAS POST json" << std::endl;
 	std::string	path = this->_final_path;
 	std::string	new_path;
 	bool		generate = false;
 	size_t		slash_pos = 0;
-	size_t		dot_pos = 0;
+	size_t		dot_pos = std::string::npos;
 	size_t		size;
 
 	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
@@ -492,10 +510,13 @@ void	ProcessRequest::manageJsonCase(void)
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
-	slash_pos = path.rfind("/");
-	if (slash_pos == std::string::npos)
-		slash_pos = 0;
-	dot_pos = path.find(".", slash_pos);
+	if (!path.empty())
+	{
+		slash_pos = path.rfind("/");
+		if (slash_pos == std::string::npos)
+			slash_pos = 0;
+		dot_pos = path.find(".", slash_pos);
+	}
 	if (dot_pos == std::string::npos)
 		generate = true;
 	else if (path.substr(dot_pos) != ".json")
@@ -505,19 +526,22 @@ void	ProcessRequest::manageJsonCase(void)
 		throw RequestParser::RequestException("Extension n'est pas .json");
 	}
 
-	size = path.size();
-	for (size_t i = 0; i < size; i++)
+	if (!path.empty())
 	{
-		if (path[i] == '/')
-			path[i] = '_';
+		size = path.size();
+		for (size_t i = 0; i < size; i++)
+		{
+			if (path[i] == '/')
+				path[i] = '_';
+		}
 	}
 	if (generate == true)
 	{
-		if (path[size - 1] != '_')
+		if (!path.empty() && path[size - 1] != '_')
 			path[size - 1] = '_';
 		path += Utils::getTime(1) + ".json";
 	}
-	new_path += "/www/uploads/" + path;
+	new_path += "./www/uploads/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -540,11 +564,13 @@ void	ProcessRequest::manageJsonCase(void)
 
 void	ProcessRequest::manageSimpleCase(void)
 {
+	std::cout << "CAS POST text/plain" << std::endl;
+
 	std::string	path = this->_final_path;
 	std::string	new_path;
 	bool		generate = false;
 	size_t		slash_pos = 0;
-	size_t		dot_pos = 0;
+	size_t		dot_pos = std::string::npos;
 	size_t		size;
 
 	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
@@ -558,10 +584,13 @@ void	ProcessRequest::manageSimpleCase(void)
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
-	slash_pos = path.rfind("/");
-	if (slash_pos == std::string::npos)
-		slash_pos = 0;
-	dot_pos = path.find(".", slash_pos);
+	if (!path.empty())
+	{
+		slash_pos = path.rfind("/");
+		if (slash_pos == std::string::npos)
+			slash_pos = 0;
+		dot_pos = path.find(".", slash_pos);
+	}
 	if (dot_pos == std::string::npos)
 		generate = true;
 	else if (path.substr(dot_pos) != ".txt")
@@ -571,19 +600,23 @@ void	ProcessRequest::manageSimpleCase(void)
 		throw RequestParser::RequestException("Extension n'est pas .txt");
 	}
 
-	size = path.size();
-	for (size_t i = 0; i < size; i++)
+	if (!path.empty())
 	{
-		if (path[i] == '/')
-			path[i] = '_';
+		size = path.size();
+		for (size_t i = 0; i < size; i++)
+		{
+			if (path[i] == '/')
+				path[i] = '_';
+		}
 	}
 	if (generate == true)
 	{
-		if (path[size - 1] != '_')
+		if (!path.empty() && path[size - 1] != '_')
 			path[size - 1] = '_';
 		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "/www/uploads/" + path;
+	new_path += "./www/uploads/" + path;
+	std::cout << "new_path : " << new_path << std::endl;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{

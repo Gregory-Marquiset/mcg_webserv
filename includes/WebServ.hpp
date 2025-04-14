@@ -19,6 +19,7 @@
 #include <sys/epoll.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <fcntl.h>
 
 #include <vector>
 #include <map>

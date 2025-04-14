@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 11:44:07 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 14:50:58 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,6 +157,7 @@ std::map<int, std::string>	Utils::get_error_map(void)
 	error_map[404] = "./www/error/4XX/404.html";
 	error_map[405] = "./www/error/4XX/405.html";
 	error_map[408] = "./www/error/4XX/408.html";
+	error_map[409] = "./www/error/4XX/409.html";
 	error_map[413] = "./www/error/4XX/413.html";
 	error_map[414] = "./www/error/4XX/414.html";
 	error_map[415] = "./www/error/4XX/415.html";
@@ -180,6 +181,7 @@ std::string	Utils::getErrorString(int error_code)
 	error_map[404] = "404 Not Found";
 	error_map[405] = "405 Method Not Allowed";
 	error_map[408] = "408 Request Timeout";
+	error_map[409] = "409 Conflict";
 	error_map[413] = "413 Request Entity Too Large";
 	error_map[414] = "414 Request-URI Too Long";
 	error_map[415] = "415 Unsupported Media Type";
