@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 10:09:34 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 14:35:44 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,6 +166,7 @@ static long	extract_size(std::string &str_chunk_size)
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
+	std::cout << std::endl << "PARSING DE LA REQUETE" << std::endl;
 	if (request.empty())
 	{
 		if (this->_error_class->getErrorCode() == 0)
@@ -497,13 +498,14 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 			}
 			req += temp_buf;
 		}
-		if (req.size() != this->_content_length)
+		this->_request_body = req.substr(0, this->_content_length);
+		if (this->_request_body.size() != this->_content_length)
 		{
+			std::cout << "size du body: " << req.size() << std::endl;
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Wrong body size");
+			throw RequestParser::RequestException("Wrong body size 1");
 		}
-		this->_request_body = req.substr(0, this->_content_length);
 		//std::cout << this->_request_body << std::endl;
 		return ;
 	}
