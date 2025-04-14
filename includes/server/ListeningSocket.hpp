@@ -19,7 +19,7 @@ class ListeningSocket : public ASocket {
     ~ListeningSocket();
 
     int getPort() const;
-    std::vector<int> getClientsFd() const;
+    std::vector<int>& getClientsFd();
     void addClientToListeningSocket(int newClientFd);
 
     

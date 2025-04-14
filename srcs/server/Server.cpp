@@ -28,7 +28,7 @@ int Server::getDefaultServer() const {
     return (this->_isDefaultServer);
 }
 
-std::vector<ListeningSocket> Server::getListeningSocket() const {
+std::vector<ListeningSocket>& Server::getListeningSocket() {
     return (this->_listeningSocket);
 }
 ServerBlock Server::getServerBlock() const {
@@ -53,10 +53,6 @@ void Server::addStatus(const std::map<int, int>& status) {
 // void Server::addClientToServerList(int newClientFd) {
 //     this->_clientsFd.push_back(newClientFd);
 //     std::cout << "client fd nb " << newClientFd << " added au server " << this->getListeningSocket().getSockFd() << std::endl;
-// }
-
-// std::vector<int> Server::getClientsFd() const {
-//     return (this->_clientsFd);
 // }
 
 void Server::printServerInfo() const {

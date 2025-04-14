@@ -12,7 +12,7 @@ class Server {
     std::vector<ListeningSocket> _listeningSocket;
     int _isDefaultServer;
     std::map<int, int> _serverStatusAccordingToPort;
-    // std::vector<int> _clientsFd;
+    std::vector<int> _clientsFd;
 
   public:
     Server(const ServerBlock& serverBlock);
@@ -25,7 +25,7 @@ class Server {
     /* getters */
 
     int getDefaultServer() const;
-    std::vector<ListeningSocket> getListeningSocket() const;
+    std::vector<ListeningSocket>& getListeningSocket();
     ServerBlock getServerBlock() const;
     static std::vector<Server> getAllServers(const std::vector<ServerBlock>& serverBlocks);
 
