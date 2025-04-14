@@ -183,5 +183,6 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
 	//if (req_parser.getConnection() != "keep-alive")
-		close(clientFd);
+	close(clientFd);
+	//std::cout << std::endl << "ca crash pas ici" << std::endl;
 }

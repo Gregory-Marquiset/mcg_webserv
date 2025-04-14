@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 09:15:42 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 10:08:55 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class	RequestParser
 		std::map<std::string, std::string>	getHeaders(void) const;
 		std::string		getConnection(void) const;
 		std::string		getCookie(void) const;
+		std::string		getContentType(void) const;
 
 		void			parseRequest(const std::string request, int clientFd);
 
