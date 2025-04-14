@@ -1,1 +1,4 @@
+POST:
+-checker si cgi
+-si pas cgi, checker si l'uri correspond à un fichier existant, si oui erreur
 

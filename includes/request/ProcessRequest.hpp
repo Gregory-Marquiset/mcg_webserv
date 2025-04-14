@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 12:54:34 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 12:56:01 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,9 +31,11 @@ class	ProcessRequest
 		std::string		getMethod(void) const;
 		std::string		getHTTP(void) const;
 		std::string		getBody(void) const;
+		std::string		getContentType(void) const;
 		std::map<std::string, std::string>	getHeaders(void) const;
 		bool			getCgi(void) const;
 		bool			getAutoIndex(void) const;
+		bool			getIndex(void) const;
 
 	private:
 		Server								*_serv_info;
@@ -46,9 +48,11 @@ class	ProcessRequest
 		std::string							_method;
 		std::string							_http_version;
 		std::string							_request_body;
+		std::string							_content_type;
 		std::map<std::string, std::string>	_headers;
 		bool								_cgi;
 		bool								_autoindex;
+		bool								_index;
 
 		void			processRequest(void);
 		void			compareUriWithLocations(void);
@@ -58,6 +62,11 @@ class	ProcessRequest
 		void			addRootPath(void);
 		void			extractDirectoryContent(void);
 		void			generateHTMLBody(std::map<std::string, std::string>	&directory_content);
+		void			processPostRequest(void);
+		void			manageFormCase(void);
+		void			manageMultipartCase(void);
+		void			manageJsonCase(void);
+		void			manageSimpleCase(void);
 };
 
 #endif

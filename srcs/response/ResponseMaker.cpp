@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 08:49:12 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 13:07:09 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : 
 			}
 			else if (_req_infos.getMethod() == "POST")
 			{
-
+				this->createPostResponse();
 			}
 			else if (_req_infos.getMethod() == "DELETE")
 			{
@@ -108,7 +108,7 @@ void	ResponseMaker::createErrorResponse(void)
 	{
 		response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 		response += "Server: webserv\r\n";
-		response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+		response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 		response += "Content-Type: text/plain\r\n";
 		response += "Content-Length: 26\r\n";
 		response += "\r\n";
@@ -122,7 +122,7 @@ void	ResponseMaker::createErrorResponse(void)
 		{
 			response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 			response += "Server: webserv\r\n";
-			response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 			response += "Content-Type: text/plain\r\n";
 			response += "Content-Length: 26\r\n";
 			response += "\r\n";
@@ -142,7 +142,7 @@ void	ResponseMaker::createErrorResponse(void)
 
 			response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(error_code) + "\r\n";
 			response += "Server: webserv\r\n";
-			response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 			response += "Content-Type: " + Utils::findMIME(error_path) + "\r\n";
 			response += "Content-Length: " + body_size + "\r\n";
 			response += "\r\n";
@@ -159,7 +159,7 @@ void	ResponseMaker::createRedirectionResponse(void)
 
 	response += this->_req_infos.getHTTP() + " " + Utils::getErrorString(this->_error_class.getErrorCode()) + "\r\n";
 	response += "Server: webserv\r\n";
-	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+	response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 	response += "Location: " + path + "\r\n";
 	response += "Connection: close\r\n";
 	response += "\r\n";
@@ -174,7 +174,7 @@ void	ResponseMaker::createAutoindexResponse(void)
 
 	response += this->_req_infos.getHTTP() + Utils::getErrorString(this->_error_class.getErrorCode());
 	response += "Server: webserv\r\n";
-	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+	response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 	response += "Location: " + path + "\r\n";
 
 	this->_final_response = response;
@@ -184,7 +184,24 @@ void	ResponseMaker::createGetResponse(void)
 {
 	std::string	response;
 
-	if (this->_req_infos.getAutoIndex() == false)
+
+	if (this->_req_infos.getAutoIndex() == true && this->_req_infos.getIndex() == false)
+	{
+		std::stringstream	size;
+		std::string			body_size;
+
+		size << this->_req_infos.getBody().size();
+		body_size = size.str();
+
+		response += this->_req_infos.getHTTP() + " 200 OK\r\n";
+		response += "Server: webserv\r\n";
+		response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
+		response += "Content-Type: text/html\r\n";
+		response += "Content-Length: " + body_size + "\r\n";
+		response += "\r\n";
+		response += this->_req_infos.getBody();
+	}
+	else
 	{
 		if (this->_req_infos.getCgi() == true)
 		{
@@ -226,27 +243,11 @@ void	ResponseMaker::createGetResponse(void)
 
 		response += this->_req_infos.getHTTP() + " 200 OK\r\n";
 		response += "Server: webserv\r\n";
-		response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+		response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 		response += "Content-Type: " + Utils::findMIME(this->_req_infos.getFinalPath()) + "\r\n";
 		response += "Content-Length: " + body_size + "\r\n";
 		response += "\r\n";
 		response += content.str();
-	}
-	else
-	{
-		std::stringstream	size;
-		std::string			body_size;
-
-		size << this->_req_infos.getBody().size();
-		body_size = size.str();
-
-		response += this->_req_infos.getHTTP() + " 200 OK\r\n";
-		response += "Server: webserv\r\n";
-		response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
-		response += "Content-Type: text/html\r\n";
-		response += "Content-Length: " + body_size + "\r\n";
-		response += "\r\n";
-		response += this->_req_infos.getBody();
 	}
 
 	this->_final_response = response;
@@ -254,7 +255,6 @@ void	ResponseMaker::createGetResponse(void)
 
 void	ResponseMaker::createDeleteResponse(void)
 {
-	std::string		response;
 	if (this->_req_infos.getCgi() == true)
 	{
 		//on verra
@@ -277,10 +277,15 @@ void	ResponseMaker::createDeleteResponse(void)
 		this->_error_class.setErrorCode(500);
 		throw ResponseMaker::ResponseException("Erreur lors de la suppresion du fichier");
 	}
+	std::string		response;
 
 	response += this->_req_infos.getHTTP() + " 204 No Content\r\n";
 	response += "Server: webserv\r\n";
-	response += "Date: " + Utils::getTime() + " GMT" + "\r\n";
+	response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 
 	this->_final_response = response;
+}
+
+void	ResponseMaker::createPostResponse(void)
+{
 }

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 09:16:22 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/11 10:09:34 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,6 +115,11 @@ std::string	RequestParser::getConnection(void) const
 std::string	RequestParser::getCookie(void) const
 {
 	return (this->_cookie);
+}
+
+std::string	RequestParser::getContentType(void) const
+{
+	return (this->_content_type);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */

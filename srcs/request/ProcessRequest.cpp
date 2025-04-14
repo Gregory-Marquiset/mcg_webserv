@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 08:57:19 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 13:08:08 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,8 @@ ProcessRequest::ProcessRequest(void)
 }
 
 ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(&err),
-_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()), _autoindex(false)
+_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()),
+_autoindex(false), _index(true)
 {
 	this->processRequest();
 }
@@ -50,6 +51,7 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 		this->_headers = inst._headers;
 		this->_cgi = inst._cgi;
 		this->_autoindex = inst._autoindex;
+		this->_index = inst._index;
 	}
 	return (*this);
 }
@@ -79,6 +81,11 @@ std::string	ProcessRequest::getBody(void) const
 	return (this->_request_body);
 }
 
+std::string	ProcessRequest::getContentType(void) const
+{
+	return (this->_content_type);
+}
+
 std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
 {
 	return (this->_headers);
@@ -92,6 +99,11 @@ bool	ProcessRequest::getCgi(void) const
 bool	ProcessRequest::getAutoIndex(void) const
 {
 	return (this->_autoindex);
+}
+
+bool	ProcessRequest::getIndex(void) const
+{
+	return (this->_index);
 }
 
 /* ================= NON MEMBER FUNCTIONS ======================== */
@@ -241,15 +253,15 @@ void	ProcessRequest::addRootPath(void)
 	std::cout << "Uri sans modif : " << this->_request.getURI() << std::endl;
 
 	redir = this->_location_to_use.getRedirection();
-	if (!redir.empty())
+	if (!redir.empty() && this->_request.getMethod() == "GET")
 	{
-		std::cout << "redir[0] = " << redir[0] << std::endl;
-		std::cout << "redir[1] = " << redir[1] << std::endl;
+		// std::cout << "redir[0] = " << redir[0] << std::endl;
+		// std::cout << "redir[1] = " << redir[1] << std::endl;
 		if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(Utils::strtoi(redir[0]));
 		this->_final_path = redir[1];
-		std::cout << this->_error_class->getErrorCode() << std::endl;
-		std::cout << this->_final_path << std::endl;
+		// std::cout << this->_error_class->getErrorCode() << std::endl;
+		// std::cout << this->_final_path << std::endl;
 		return;
 	}
 
@@ -263,19 +275,17 @@ void	ProcessRequest::addRootPath(void)
 	this->_final_path += uri;
 
 	path_size = this->_final_path.size();
-	if (this->_final_path[path_size - 1] == '/')
+	if (this->_final_path[path_size - 1] == '/' && this->_request.getMethod() != "POST")
 	{
 		std::string	index = this->_location_to_use.getIndex();
 
 		if (index.empty())
 		{
+			_index = false;
 			if (this->_location_to_use.getAutoIndex() == "on")
 			{
 				if (this->getMethod() == "GET")
-				{
-					std::cout << "prout" << std::endl;
 					return (this->extractDirectoryContent());
-				}
 			}
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(403);
@@ -351,4 +361,121 @@ void	ProcessRequest::generateHTMLBody(std::map<std::string, std::string>	&direct
 	body += "</html>\n";
 
 	this->_request_body = body;
+}
+
+void	ProcessRequest::processPostRequest(void)
+{
+	std::string	path = this->_final_path;
+
+	if (access(path.c_str(), F_OK) == 0)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(409);
+		throw RequestParser::RequestException("Fichier déjà existant");
+	}
+	if (opendir("/www/uploads") == NULL)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Dossier \"uploads\" inexistant");
+	}
+	if (this->getContentType() == "application/x-www-form-urlencoded")
+		this->manageFormCase();
+	else if (this->getContentType().find("multipart/form-data") != std::string::npos)
+		this->manageMultipartCase();
+	else if (this->getContentType() == "application/json")
+		this->manageJsonCase();
+	else if (this->getContentType() == "text/plain")
+		this->manageSimpleCase();
+	else
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(400);
+		throw RequestParser::RequestException("Bad Content Type");
+	}
+}
+
+void	ProcessRequest::manageFormCase(void)
+{
+	std::string	path = this->_final_path;
+	std::string	new_path;
+	bool		generate = false;
+	size_t		slash_pos = 0;
+	size_t		dot_pos = 0;
+	size_t		size;
+
+	if (path.find("..") != std::string::npos || path.find("\\") != std::string::npos || path.find(":") != std::string::npos)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Erreur dans le path pour POST");
+	}
+	if (path.find("./www/uploads/") == 0)
+		path.erase(0, 14);
+	else if (path.find("./www/") == 0)
+		path.erase(0, 6);
+
+	slash_pos = path.rfind("/");
+	if (slash_pos == std::string::npos)
+		slash_pos = 0;
+	dot_pos = path.find(".", slash_pos);
+	if (dot_pos == std::string::npos)
+		generate = true;
+	else if (Utils::authorizedMIME(path.substr(dot_pos)) != 0)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(403);
+		throw RequestParser::RequestException("Extension interdite pour POST");
+	}
+
+	size = path.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (path[i] == '/')
+			path[i] = '_';
+	}
+	if (path[size - 1] != '_')
+		path[size - 1] = '_';
+	if (generate == true)
+		path += Utils::getTime(1) + ".txt";
+	new_path += "/www/uploads/" + path;
+
+	if (access(new_path.c_str(), F_OK) == 0)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(409);
+		throw RequestParser::RequestException("Fichier déja existant");
+	}
+	std::ofstream	file(new_path.c_str());
+
+	if (!file.is_open())
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Fichier non crée");
+	}
+	std::string	body = this->getBody();
+
+	size = body.size();
+	for (size_t i = 0; i < size; i++)
+	{
+		if (body[i] == '&')
+			body[i] = '\n';
+	}
+	file << body;
+}
+
+void	ProcessRequest::manageMultipartCase(void)
+{
+
+}
+
+void	ProcessRequest::manageJsonCase(void)
+{
+
+}
+
+void	ProcessRequest::manageSimpleCase(void)
+{
+
 }

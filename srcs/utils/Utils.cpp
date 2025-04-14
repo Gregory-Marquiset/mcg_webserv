@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/01 14:06:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/10 13:46:56 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/14 11:44:07 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ Utils	&Utils::operator=(Utils const &inst)
 
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
-std::string	Utils::getTime(void)
+std::string	Utils::getTime(int n)
 {
 	char		buf[80];
 	time_t		rawTime;
@@ -56,8 +56,10 @@ std::string	Utils::getTime(void)
 
 	std::time(&rawTime);
 	timeInfo = std::gmtime(&rawTime);
-	std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S", timeInfo);
-
+	if (n == 0)
+		std::strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S", timeInfo);
+	else if (n == 1)
+		std::strftime(buf, sizeof(buf), "%G%m%e%H%M%S", timeInfo);
 	return (std::string(buf));
 }
 
@@ -210,4 +212,45 @@ int	Utils::strtoi(std::string str)
 	iss >> n;
 	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
 	return (n);
+}
+
+int	Utils::authorizedMIME(std::string ext)
+{
+	std::vector<std::string>	validMIME;
+
+	validMIME.push_back(".txt");
+	validMIME.push_back(".csv");
+	validMIME.push_back(".json");
+	validMIME.push_back(".xml");
+	validMIME.push_back(".yaml");
+	validMIME.push_back(".yml");
+	validMIME.push_back(".log");
+	validMIME.push_back(".pdf");
+	validMIME.push_back(".md");
+	validMIME.push_back(".docx");
+	validMIME.push_back(".odt");
+	validMIME.push_back(".png");
+	validMIME.push_back(".jpg");
+	validMIME.push_back(".jpeg");
+	validMIME.push_back(".gif");
+	validMIME.push_back(".bmp");
+	validMIME.push_back(".svg");
+	validMIME.push_back(".webp");
+	validMIME.push_back(".mp3");
+	validMIME.push_back(".wav");
+	validMIME.push_back(".ogg");
+	validMIME.push_back(".mp4");
+	validMIME.push_back(".webm");
+	validMIME.push_back(".avi");
+	validMIME.push_back(".zip");
+	validMIME.push_back(".tar");
+	validMIME.push_back(".gz");
+	validMIME.push_back(".7z");
+
+	for (std::vector<std::string>::iterator it = validMIME.begin(); it != validMIME.end(); it++)
+	{
+		if (*it == ext)
+			return (0);
+	}
+	return (1);
 }
