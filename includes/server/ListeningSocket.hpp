@@ -12,12 +12,16 @@ class ListeningSocket : public ASocket {
     int _backlog;
     int _listening;
     int _connection;
+    std::vector<int> _clientsFd;
 
   public:
     ListeningSocket(int domain, int serice, int protocol, int port, u_long interface, int bklg);
     ~ListeningSocket();
 
     int getPort() const;
+    std::vector<int> getClientsFd() const;
+    void addClientToListeningSocket(int newClientFd);
+
     
     int bindToNetwork(int sockFd, struct sockaddr_in address);
     void startListening();

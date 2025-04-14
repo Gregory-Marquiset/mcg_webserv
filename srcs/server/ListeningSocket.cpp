@@ -39,6 +39,16 @@ int ListeningSocket::getPort() const {
   return (this->_port);
 }
 
+// en faite non faire ca a partir de la listening socket
+void ListeningSocket::addClientToListeningSocket(int newClientFd) {
+  this->_clientsFd.push_back(newClientFd);
+  std::cout << "client fd nb " << newClientFd << " added au server " << this->getSockFd() << std::endl;
+}
+
+std::vector<int> ListeningSocket::getClientsFd() const {
+  return (this->_clientsFd);
+}
+
 /* ================= HELPER TO PRINT STUFF ======================== */
 
 void ListeningSocket::printListeningSocketArgs(int domain, int service, int protocol, int port, u_long interface, int backlog) {

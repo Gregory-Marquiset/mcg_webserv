@@ -2,22 +2,13 @@
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-/*
-Server::Server(const ServerBlock& serverBlock)
-    : _serverBlock(serverBlock),
-      _listeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort(), INADDR_ANY, 3)
-{
-    std::cout << "Initialisation du serveur " << this->_serverBlock.getHost().front().getHostName() << " sur le port " << this->_serverBlock.getPort() << std::endl;
-}
-    */
+Server::Server(const ServerBlock& serverBlock) {
 
-    Server::Server(const ServerBlock& serverBlock) {
-
-        this->_serverBlock = serverBlock;
-        for (size_t i = 0; i < this->_serverBlock.getPort().size(); ++i) {
-            this->_listeningSocket.push_back(ListeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort()[i], INADDR_ANY, 3));
-        }
+    this->_serverBlock = serverBlock;
+    for (size_t i = 0; i < this->_serverBlock.getPort().size(); ++i) {
+        this->_listeningSocket.push_back(ListeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort()[i], INADDR_ANY, 3));
     }
+}
 
 Server::~Server() {};
 
@@ -57,6 +48,16 @@ std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& server
 void Server::addStatus(const std::map<int, int>& status) {
     this->_serverStatusAccordingToPort.insert(status.begin(), status.end());
 }
+
+// // en faite non faire ca a partir de la listening socket
+// void Server::addClientToServerList(int newClientFd) {
+//     this->_clientsFd.push_back(newClientFd);
+//     std::cout << "client fd nb " << newClientFd << " added au server " << this->getListeningSocket().getSockFd() << std::endl;
+// }
+
+// std::vector<int> Server::getClientsFd() const {
+//     return (this->_clientsFd);
+// }
 
 void Server::printServerInfo() const {
     std::cout << "===== Server Info =====" << std::endl;
