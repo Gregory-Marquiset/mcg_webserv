@@ -15,6 +15,12 @@ class EPollManager {
   int _epollFd;                      // Descripteur epoll
   std::vector<struct epoll_event> _events; // Liste des événements
   std::vector<int> _validListeningSockets;
+  std::map<int, Server*> _fdToServer;
+  
+
+
+  // std::map<int, Server*> _clientToServer;  // clientFd => Server*
+
   // std::vector<int> _listOfClients;
   // std::map<int, Server*> _listeningFdToServer;
   // std::map<int, Server*> _clientFdToServer;
@@ -33,6 +39,7 @@ class EPollManager {
     void acceptConnection(int serverFd);
     void handleClientRequest(int clientFd, Server& serv);
     void responseFromServer(int clientFd, std::string filePath);
+
 };
 
 #endif

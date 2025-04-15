@@ -13,7 +13,8 @@ class ListeningSocket : public ASocket {
     int _listening;
     int _connection;
     std::vector<int> _clientsFd;
-
+    std::map<int, int> clientPortMap; // clientFd -> port
+    
   public:
     ListeningSocket(int domain, int serice, int protocol, int port, u_long interface, int bklg);
     ~ListeningSocket();

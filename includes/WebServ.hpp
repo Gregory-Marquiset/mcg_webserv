@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <fcntl.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -22,5 +23,10 @@
 
 #include <vector>
 #include <map>
+
+#include <bitset>
+#include <climits>
+#include <cstring>
+#include <iostream>
 
 #endif

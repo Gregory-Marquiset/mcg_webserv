@@ -11,6 +11,17 @@ ListeningSocket::ListeningSocket(int domain, int service, int protocol, int port
   this->getAddress().sin_port = htons(port);
   this->getAddress().sin_addr.s_addr = htonl(interface);
 
+  int flags = fcntl(this->getSockFd(), F_GETFL, 0);
+  if (flags == -1) {
+      perror("fcntl get");
+      exit(EXIT_FAILURE);
+  }
+
+  if (fcntl(this->getSockFd(), F_SETFL, flags | O_NONBLOCK) == -1) {
+      perror("fcntl set");
+      exit(EXIT_FAILURE);
+  }
+  
   // bind the socket to a port (sans ca on ne peut pas listen)
   this->_connection = bindToNetwork(getSockFd(), getAddress());
   testConnection(_connection);
