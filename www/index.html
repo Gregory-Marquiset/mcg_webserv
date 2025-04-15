@@ -1,90 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Accueil - MCG Webserv</title>
-    <style>
-        body
-        {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            font-family: Arial, sans-serif;
-            color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-
-        h1
-        {
-            margin-bottom: 40px;
-        }
-
-        h2
-        {
-            margin-bottom: 40px;
-        }
-
-        .btn_group
-        {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        a.button
-        {
-            padding: 15px 30px;
-            background-color: #4c589c;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-        }
-
-        a.button:hover
-        {
-            background-color: #6c7adf;
-        }
-    </style>
+	<meta charset="UTF-8">
+	<title>Accueil - MCG Webserv</title>
+	<link rel="stylesheet" href="css/style.css">
+	<script src="js/theme.js" defer></script>
 </head>
 <body>
-    <h1>Bienvenue sur MCG Webserv</h1>
-    <h2>Portfolio</h2>
-    <div class="btn_group">
-        <a class="button" href="greg/">Greg</a>
-        <a class="button" href="charles/">Charles</a>
-        <a class="button" href="marie/">Marie</a>
-    </div>
-    <div class="btn_group">
-        <a class="button" href="tester/test.html">Test</a>
-    </div>
-    <h2>Erreur 4XX</h2>
-    </div>
-    <div class="btn_group">
-        <a class="button" href="error/4XX/400.html">400</a>
-        <a class="button" href="error/4XX/403.html">403</a>
-        <a class="button" href="error/4XX/404.html">404</a>
-        <a class="button" href="error/4XX/405.html">405</a>
-    </div>
-    </div>
-    <div class="btn_group">
-        <a class="button" href="error/4XX/408.html">408</a>
-        <a class="button" href="error/4XX/413.html">413</a>
-        <a class="button" href="error/4XX/414.html">414</a>
-        <a class="button" href="error/4XX/415.html">415</a>
-    </div>
-    <h2>Erreur 5XX</h2>
-    </div>
-    <div class="btn_group">
-        <a class="button" href="error/5XX/500.html">500</a>
-        <a class="button" href="error/5XX/501.html">501</a>
-        <a class="button" href="error/5XX/502.html">502</a>
-        <a class="button" href="error/5XX/503.html">503</a>
-        <a class="button" href="error/5XX/504.html">504</a>
-    </div>
+	<div class="fixed-top-buttons">
+		<button onclick="toggleTheme()" title="Changer de thème">🎨</button>
+		<a href="/login.html" title="Se connecter">🔐</a>
+	</div>
+
+	<h1>Bienvenue sur MCG Webserv</h1>
+
+	<h2>Portfolio</h2>
+	<div class="btn_group">
+		<a class="button" href="greg/">Greg</a>
+		<a class="button" href="charles/">Charles</a>
+		<a class="button" href="marie/">Marie</a>
+	</div>
+	<div class="btn_group">
+		<a class="button" href="tester/test.html">Test</a>
+	</div>
+
+	<h2>Erreur 4XX</h2>
+	</div>
+	<div class="btn_group">
+		<a class="button" href="error/4XX/400.html">400</a>
+		<a class="button" href="error/4XX/403.html">403</a>
+		<a class="button" href="error/4XX/404.html">404</a>
+		<a class="button" href="error/4XX/405.html">405</a>
+	</div>
+	</div>
+	<div class="btn_group">
+		<a class="button" href="error/4XX/408.html">408</a>
+		<a class="button" href="error/4XX/413.html">413</a>
+		<a class="button" href="error/4XX/414.html">414</a>
+		<a class="button" href="error/4XX/415.html">415</a>
+	</div>
+
+	<h2>Erreur 5XX</h2>
+	</div>
+	<div class="btn_group">
+		<a class="button" href="error/5XX/500.html">500</a>
+		<a class="button" href="error/5XX/501.html">501</a>
+		<a class="button" href="error/5XX/502.html">502</a>
+		<a class="button" href="error/5XX/503.html">503</a>
+		<a class="button" href="error/5XX/504.html">504</a>
+	</div>
 </body>
 </html>
