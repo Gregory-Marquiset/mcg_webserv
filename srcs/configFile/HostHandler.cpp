@@ -71,9 +71,7 @@ void HostHandler::parseIp(std::string hostLine) {
             }
         }
         if (dotPos != std::string::npos) {
-                
-            // std::cout << "part " << myStoi2(part) << std::endl;
-            
+                            
             if (myStoi2(part) < 0 || myStoi2(part) > 255) {
                 std::cout << "Error: Invalid IP in .conf\n";    
                 exit(EXIT_FAILURE);
@@ -90,7 +88,6 @@ void HostHandler::parseIp(std::string hostLine) {
             exit(EXIT_FAILURE);
         }
     }
-    // std::cout << "part " << myStoi2(lastPart) << std::endl;
     if (myStoi2(lastPart) < 0 || myStoi2(lastPart) > 255) {
         std::cout << "Error: Invalid IP in .conf\n";    
         exit(EXIT_FAILURE);
@@ -99,3 +96,97 @@ void HostHandler::parseIp(std::string hostLine) {
     this->setHostName(hostLine);
 }
 
+void HostHandler::checkListenFormat(std::string listenLine, ServerBlock& server) {
+ 
+    HostHandler host;
+
+    // std::cout << "check listen: " << listenLine << std::endl;
+    int onlyPort = 1;
+
+    for (size_t  i = 0; i < listenLine.size(); ++i) {
+        if (!std::isdigit(listenLine[i]))
+            onlyPort = 0;
+    }
+    // std::cout << "onlyPort = " << onlyPort << std::endl;
+ 
+    if (onlyPort == 1) {
+        int tmpRes = myStoi2(listenLine);
+        // std::cout << "ppppp" << tmpRes << std::endl;
+        if (tmpRes < 0 || tmpRes > 65535) {
+            std::cout << "Error: Invalid Port" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        else {
+            // std::cout << "Valid Port" << std::endl;
+            server.addPort(tmpRes);
+            std::cout << "port " << tmpRes << " added\n";
+            // server.setIp("127.0.0.1");
+        }
+    }
+    else {
+        size_t pos = listenLine.find(':');
+        std::string tmpPort = listenLine.substr(pos + 1);
+        for (size_t i = 0; i < tmpPort.size(); ++i) {
+            if (!std::isdigit(tmpPort[i])) {
+                std::cout << "Error: Invalid Port in .conf\n";
+                exit(EXIT_FAILURE);
+            }
+        }
+        std::cout << "tmpPort = " << tmpPort << std::endl;
+        int tmpRes = myStoi2(tmpPort);
+        // std::cout << "ppppp" << tmpRes << std::endl;
+        if (tmpRes < 0) {
+            std::cout << "Error: Invalid Port in .conf" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        else {
+            // std::cout << "Valid Port" << std::endl;
+            server.addPort(tmpRes);
+        }
+        if (pos != std::string::npos) {
+ 
+            std::string tmpIp = listenLine.substr(0, pos);
+            // std::cout << "res IP = " << tmpIp << std::endl;
+            std::string::size_type dotPos = -1;
+
+            int start = 0;
+            while ((dotPos = listenLine.find('.', dotPos + 1)) != std::string::npos) {
+                std::string part = tmpIp.substr(start, dotPos - start);
+                for (size_t i = 0; i < part.size(); ++i) {
+                    if (!std::isdigit(part[i])) {
+
+                        std::cout << "Error: Invalid IP in .conf\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                if (dotPos != std::string::npos) {
+ 
+                    // std::cout << "part " << myStoi2(part) << std::endl;
+ 
+                    if (myStoi2(part) < 0 || myStoi2(part) > 255) {
+                        std::cout << "Error: Invalid IP in .conf\n";
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                start = (dotPos + 1);
+            }
+            std::string lastPart = tmpIp.substr(start);
+
+            for (size_t i = 0; i < lastPart.size(); ++i) {
+
+                if (!std::isdigit(lastPart[i])) {
+
+                    std::cout << "Error: Invalid IP in .conf\n";
+
+                    exit(EXIT_FAILURE);
+                }
+            }
+            // std::cout << "part " << myStoi2(lastPart) << std::endl;
+            if (myStoi2(lastPart) < 0 || myStoi2(lastPart) > 255) {
+                std::cout << "Error: Invalid IP in .conf\n";
+                exit(EXIT_FAILURE);
+            }
+            // server.addHost(host);
+        }
+    }
+}

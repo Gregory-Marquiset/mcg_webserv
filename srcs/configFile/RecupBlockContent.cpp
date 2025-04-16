@@ -68,6 +68,12 @@ void RecupBlockContent::createTree(std::string file) {
 
         for (size_t i = 0; i < content.size(); ++i) {
             
+            // ignorer les commentaires 
+            if (content[i] == '#') {
+                std::cout << "coucou\n";
+                break ;
+            }
+
             // entree d un block 
             if (content[i] == '{') {
                handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
@@ -76,10 +82,6 @@ void RecupBlockContent::createTree(std::string file) {
             // sortie d un block
             if (content[i] == '}') 
                 handleExitBlock(parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
-
-            // ignorer les commentaires 
-            if (content[i] == '#')
-                continue ;
 
             // init directives
             if (content[i] == ';') {

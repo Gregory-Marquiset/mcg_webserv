@@ -2,6 +2,9 @@
 #define HOSTHANDLER_HPP
 
 #include "../WebServ.hpp"
+#include "ServerBlock.hpp"
+
+class ServerBlock;
 
 class HostHandler {
 
@@ -21,6 +24,7 @@ class HostHandler {
         
         void filter(std::string hostLine);
         void parseIp(std::string hostLine);
+        void checkListenFormat(std::string listenLine, ServerBlock& server);
 };
 
 #endif

@@ -10,6 +10,11 @@
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
 
+// ca a l air a peu pres ok pour l attributaion des servers par defaut
+// gerer les invalides files : non exiting
+// gerer que les requetes visent les bons servers et dans le cas echeant le server par defaut
+// leak lorsque je exit failure mais sinon c est good 
+
 void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
 
     if (serverBlocks.empty()) {
@@ -24,7 +29,9 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
             std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
         }
 
-        std::cout << "      port : " << serverBlocks[i].getPort() << std::endl;
+        for (size_t iPort = 0; iPort < serverBlocks[i].getPort().size(); ++iPort) {
+            std::cout << "      port: " << serverBlocks[i].getPort()[iPort] << std::endl;
+        }
         std::cout << "      root: " << serverBlocks[i].getRoot() << std::endl;
         std::cout << "      index: " << serverBlocks[i].getIndex() << std::endl;
         std::cout << "      client max body size : " << serverBlocks[i].getClientMaxBodySize() << std::endl;

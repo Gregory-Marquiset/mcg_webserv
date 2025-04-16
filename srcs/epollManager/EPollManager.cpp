@@ -8,9 +8,7 @@
 // epoll_create1(0) crée un file descriptor epoll.
 // S'il échoue, un message d'erreur est affiché, et le programme quitte immédiatement.
 
-EPollManager::EPollManager(const std::vector<Server>& servers) {
-
-    this->_servers = servers;
+EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
 
     this->_epollFd = epoll_create1(0);
     if (this->_epollFd == -1) {
@@ -22,7 +20,9 @@ EPollManager::EPollManager(const std::vector<Server>& servers) {
     // au file descriptor epoll via addSocketToEpoll.
     std::vector<Server>::iterator it;
     for (it = this->_servers.begin(); it != this->_servers.end(); ++it) {
-        addSocketToEpoll(it->getListeningSocket().getSockFd());
+        for (size_t i = 0; i < it->getListeningSocket().size(); ++i) {
+            addSocketToEpoll(it->getListeningSocket()[i].getSockFd());
+        }
     }
 }
 
@@ -68,10 +68,12 @@ void EPollManager::run() {
             // check si c est server
             int isServerSocket = 0;
             for (size_t j = 0; j < _servers.size(); j++) {
-                if (fd == _servers[j].getListeningSocket().getSockFd()) {
-                    acceptConnection(fd);
-                    isServerSocket = 1;
-                    break;
+                for (size_t k = 0; k < _servers[j].getListeningSocket().size(); ++k) {
+                    if (fd == _servers[j].getListeningSocket()[k].getSockFd()) {
+                        acceptConnection(fd);
+                        isServerSocket = 1;
+                        break;
+                    }
                 }
             }
 
@@ -125,9 +127,11 @@ void EPollManager::acceptConnection(int serverFd) {
 
     // pour associer la requete cliente au bon server
     for (size_t j = 0; j < _servers.size(); j++) {
-        if (serverFd == _servers[j].getListeningSocket().getSockFd()) {
-            clientToServerMap[newClientFd] = &_servers[j];
-            break;
+        for (size_t k = 0; k < _servers[j].getListeningSocket().size(); ++k) {
+            if (serverFd == _servers[j].getListeningSocket()[k].getSockFd()) {
+                clientToServerMap[newClientFd] = &_servers[j];
+                break;
+            }
         }
     }
     addSocketToEpoll(newClientFd);

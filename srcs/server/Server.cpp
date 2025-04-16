@@ -2,11 +2,12 @@
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
 
-Server::Server(const ServerBlock& serverBlock)
-    : _serverBlock(serverBlock),
-      _listeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort(), INADDR_ANY, 3)
-{
-    std::cout << "Initialisation du serveur " << this->_serverBlock.getHost().front().getHostName() << " sur le port " << this->_serverBlock.getPort() << std::endl;
+Server::Server(const ServerBlock& serverBlock) {
+
+    this->_serverBlock = serverBlock;
+    for (size_t i = 0; i < this->_serverBlock.getPort().size(); ++i) {
+        this->_listeningSocket.push_back(ListeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort()[i], INADDR_ANY, 3));
+    }
 }
 
 Server::~Server() {};
@@ -23,9 +24,10 @@ int Server::getDefaultServer() const {
     return (this->_isDefaultServer);
 }
 
-ListeningSocket Server::getListeningSocket() const {
+std::vector<ListeningSocket>& Server::getListeningSocket() {
     return (this->_listeningSocket);
 }
+
 ServerBlock Server::getServerBlock() const {
     return (this->_serverBlock);
 }
@@ -42,8 +44,14 @@ std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& server
 
 void Server::printServerInfo() const {
     std::cout << "===== Server Info =====" << std::endl;
-    std::cout << "Server Socket: " << this->_listeningSocket.getSockFd() << std::endl;
-    std::cout << "Port: " << this->_serverBlock.getPort() << std::endl;
+    
+    for (size_t i = 0; i < this->_listeningSocket.size(); ++i) {
+        std::cout << "Server Socket: " << this->_listeningSocket[i].getSockFd() << std::endl;
+    }    
+    for (size_t i = 0; i < this->_serverBlock.getPort().size(); ++i) {
+        std::cout << "Port: " << this->_serverBlock.getPort()[i] << std::endl;
+    }    
+    
     std::cout << "Root: " << this->_serverBlock.getRoot() << std::endl;
     std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
     std::cout << "Body size: " << this->_serverBlock.getClientMaxBodySize() << std::endl;

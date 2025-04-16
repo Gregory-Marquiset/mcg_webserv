@@ -13,7 +13,6 @@ void Block::setName(std::string name) {
 }
 
 void Block::setDirective(std::string key, std::string value) {
-    // this->_directive[key] = value;
     this->_directive.insert(std::make_pair(key, value));
 }
 
@@ -36,4 +35,3 @@ std::vector<Block> Block::getChildBlock() const {
 void Block::addChildBlock(const Block& child) {
     this->_childBlock.push_back(child);
 }
-
