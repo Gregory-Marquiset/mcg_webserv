@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 14:38:05 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 17:46:50 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void	ProcessRequest::processRequest(void)
 	{
 		this->compareUriWithLocations();
 		this->checkAllowedMethod();
-		this->checkMaxBodySize();
+		//this->checkMaxBodySize();
 		this->addRootPath();
 		this->checkIfUriIsCgi();
 		if (this->_cgi == true)
@@ -503,8 +503,91 @@ void	ProcessRequest::manageMultipartCase(void)
 	boundary = request_content_type.substr(pos + 9);
 	std::cout << "Boundary: " << boundary << std::endl;
 	
-	std::string	body = this->_request.getBody();
+	std::string					body = this->_request.getBody();
+	size_t						start;
+	size_t						end;
+	size_t						token_start;
+	size_t						token_end;
 	
+	int n = 0;
+	for (size_t i = 0; i < body.size(); i++)
+	{
+		if (body[i] == '\r' && body[i + 1] == '\n')
+		{
+			n++;
+			std::cerr << "prout " << n << "\ti = " << i << std::endl;
+		}
+	}
+	std::cerr << "n = " << n << std::endl;
+	
+	while (1)
+	{
+		start = body.find(boundary);
+		if (start == std::string::npos)
+		{
+			if(this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(400);
+			throw RequestParser::RequestException("Boundary error");
+		}
+		end = body.find(boundary, boundary.size());
+		std::cout << "start: " << start << std::endl;
+		std::cout << "end: " << end << std::endl;
+		std::cout << "npos: " << std::string::npos << std::endl << std::endl;
+		if (end == std::string::npos)
+		{
+			std::cout << "the end" << std::endl;
+			break;
+		}
+		std::string	type;
+		std::string	filename = "./www/upload/";
+		std::string	file_body;
+		
+		token_start = body.find("name=\"");
+		token_end = body.find("\"", token_start + 6);
+		type = body.substr(token_start + 6, token_end - token_start - 6);
+		body.erase(0, token_end - 1);
+		std::cout << "token_start: " << start << std::endl;
+		std::cout << "token_end: " << end << std::endl;
+		std::cout << "type: " << type << std::endl << std::endl;
+		if (type == "file")
+		{
+			token_start = body.find("filename=\"");
+			token_end = body.find("\"", token_start + 10);
+			filename += body.substr(token_start + 10, token_end - token_start - 10);
+			std::cout << "token_start: " << start << std::endl;
+			std::cout << "token_end: " << end << std::endl;
+			std::cout << "filename: " << filename << std::endl;
+			
+			size_t	pos = body.find("\r\n\r\n");
+			if (pos == std::string::npos)
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(400);
+				throw RequestParser::RequestException("Pas de double retour a la ligne");
+			}
+			body.erase(0, pos + 4);
+			file_body += body.substr(0, end);
+			
+			if (access(filename.c_str(), F_OK) == 0)
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(409);
+				throw RequestParser::RequestException("Fichier déja existant");
+			}
+			std::ofstream	file(filename.c_str());
+		
+			if (!file.is_open())
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(500);
+				throw RequestParser::RequestException("Fichier non crée");
+			}
+			std::string	body = this->getBody();
+		
+			file << file_body;
+		}
+		break;
+	}
 }
 
 void	ProcessRequest::manageJsonCase(void)

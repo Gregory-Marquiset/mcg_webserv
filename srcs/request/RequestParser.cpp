@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 14:31:21 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 18:04:36 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -498,9 +498,10 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Wrong body size");
 			}
-			req += temp_buf;
+			req += temp_buf.substr(0, bytes_received);
+			temp_buf.resize(BUFFER_SIZE);
 		}
-		this->_request_body = req.substr(0, this->_content_length);
+		this->_request_body = req;
 		if (this->_request_body.size() != this->_content_length)
 		{
 			
