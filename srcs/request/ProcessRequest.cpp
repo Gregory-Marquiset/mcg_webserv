@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 19:30:44 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 00:19:33 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -550,7 +550,7 @@ void	ProcessRequest::manageMultipartCase(void)
 		std::cout << "token_start: " << start << std::endl;
 		std::cout << "token_end: " << end << std::endl;
 		std::cout << "type: " << type << std::endl << std::endl;
-		if (type == "file")
+		if (type == "file" || type == "files[]")
 		{
 			token_start = body.find("filename=\"");
 			token_end = body.find("\"", token_start + 10);
