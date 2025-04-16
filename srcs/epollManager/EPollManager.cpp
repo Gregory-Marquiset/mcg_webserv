@@ -35,16 +35,15 @@ EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
                 for (size_t k = 0; k < servers[i].getListeningSocket().size(); ++k) {
                     if (port == servers[i].getListeningSocket()[k].getPort()) {
                         int fd = servers[i].getListeningSocket()[k].getSockFd();
-                        std::cout << "closing fd " << fd << std::endl;
                         close(fd);
                     }
                 }
             }
         }
     }
-    for (size_t i = 0; i < this->getValidListeningSockets().size(); ++i) {
-        std::cout << "registerered listening sockets: " << this->getValidListeningSockets()[i] << std::endl;
-    }
+    // for (size_t i = 0; i < this->getValidListeningSockets().size(); ++i) {
+    //     std::cout << "registerered listening sockets: " << this->getValidListeningSockets()[i] << std::endl;
+    // }
 }
 
 std::vector<int> EPollManager::getValidListeningSockets() const {
@@ -67,6 +66,8 @@ void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& s
             if (portAlreadyAssigned.empty()) {
                 res[portToCheck] = 1;
                 servers[i].addStatus(res);
+                servers[i].setDefaultServer(1);
+
                 portAlreadyAssigned.push_back(portToCheck);
             } else {
                 int found = 0;
@@ -81,11 +82,16 @@ void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& s
                 } else {
                     res[portToCheck] = 1;
                     portAlreadyAssigned.push_back(portToCheck);
+                    servers[i].setDefaultServer(1);
                 }
                 servers[i].addStatus(res);
             }
         }
     }
+
+    // for (size_t i = 0; i < servers.size(); ++i) {
+    //     std::cout << "--> " << servers[i].getDefaultServer() << std::endl;
+    // }
 }
 
 EPollManager::~EPollManager() {
@@ -101,7 +107,7 @@ EPollManager::~EPollManager() {
 // epoll_ctl() ajoute (EPOLL_CTL_ADD) la socket fd au descripteur epoll _epollFd
 
 void EPollManager::addSocketToEpoll(int fd) {
-    std::cout << "FD = " << fd << std::endl; 
+    // std::cout << "FD = " << fd << std::endl; 
 
     struct epoll_event event;
     event.data.fd = fd;
@@ -110,57 +116,41 @@ void EPollManager::addSocketToEpoll(int fd) {
         perror("epoll_ctl: ajout socket");
         exit(EXIT_FAILURE);
     }
-    std::cout << "Socket " << fd << " added\n";
+    // std::cout << "Socket " << fd << " added\n";
 }
 
 
-// // epoll_wait() bloque jusqu'à ce qu'un événement survienne. Il remplit _events avec les descripteurs actifs. En cas d'erreur, le programme s'arrête.
-// void EPollManager::run() {
+void EPollManager::acceptConnection(int serverFd) {
+    // std::cout << "accept co: " << serverFd << std::endl;
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
 
-//     const int MAX_EVENTS = 10; // le nombre maximal d'événements à traiter simultanément
-//     this->_events.resize(MAX_EVENTS);
+    int newClientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+    if (newClientFd < 0) {
+        perror("Error: avec connect() function...");
+        exit(EXIT_FAILURE);
+    }
+    // std::cout << "SERVER: Nouvelle connexion acceptée : FD " << newClientFd << std::endl;
+    
+    // Mapping client fd to the correct server and socket
+    for (size_t i = 0; i < this->_servers.size(); ++i) {
+        for (size_t j = 0; j < this->_servers[i].getListeningSocket().size(); ++j) {
+            if (serverFd == this->_servers[i].getListeningSocket()[j].getSockFd() && this->_servers[i].getDefaultServer() == 1) {
+                this->_servers[i].getListeningSocket()[j].addClientToListeningSocket(newClientFd);
 
-//     while (1) {
-//         int n = epoll_wait(_epollFd, _events.data(), MAX_EVENTS, -1);
-//         if (n == -1) {
-//             perror("epoll_wait");
-//             exit(EXIT_FAILURE);
-//         }
-
-//         for (int i = 0; i < n; ++i) {
-//             int fd = _events[i].data.fd; // le fd sur lequel event repere
-
-//             // check si c est server
-//             int isServerSocket = 0;
-//             for (size_t j = 0; j < _servers.size(); j++) {
-//                 for (size_t k = 0; k < _servers[j].getListeningSocket().size(); ++k) {
-//                     if (fd == _servers[j].getListeningSocket()[k].getSockFd()) {
-//                         acceptConnection(fd);
-//                         isServerSocket = 1;
-//                         break;
-//                     }
-//                 }
-//             }
-
-//             // client donc handle requête
-//             if (!isServerSocket) {
-//                 if (clientToServerMap.find(fd) != clientToServerMap.end()) {
-//                     Server* server = clientToServerMap[fd]; // Récupérer le serveur correspondant
-//                     handleClientRequest(fd, server);
-//                 } else {
-//                     std::cerr << "Error: le serveur fd: " << fd << " est introuvable." << std::endl;
-//                     close(fd);
-//                 }
-//             }
-//         }
-
-//     }
-// }
+                std::cout << "accept co function: client fd nb " << newClientFd << " ajouté au server " << this->_servers[i].getListeningSocket()[j].getSockFd() << std::endl;
+                addSocketToEpoll(newClientFd);
+                this->_clientToServer[newClientFd] = &this->_servers[i]; // où i est le server qui a accepté
+                break;
+            }
+        }
+    }
+}
 
 
 void EPollManager::run() {
 
-    const int MAX_EVENTS = 100; // le nombre maximal d'événements à traiter simultanément
+    const int MAX_EVENTS = 100;
     this->_events.clear();
     this->_events.resize(MAX_EVENTS);
 
@@ -180,10 +170,10 @@ void EPollManager::run() {
             for (size_t j = 0; j < this->_servers.size(); j++) {
                 for (size_t k = 0; k < this->_servers[j].getListeningSocket().size(); ++k) {
                     for (size_t l = 0; l < this->_validListeningSockets.size(); ++l) {
-                        if  (fd == this->_validListeningSockets[l]) { 
-                            std::cout << "MAAAAAAAAAAATCH\n";
+                        if  (fd == this->_validListeningSockets[l] && this->_servers[j].getDefaultServer() == 1) { 
+                            // std::cout << "MAAAAAAAAAAATCH\n";
                             acceptConnection(fd);
-                            std::cout << "j ai bien accepte une connection sur le fd " << fd << std::endl;
+                            // std::cout << "j ai bien accepte une connection sur le fd " << fd << std::endl;
                             isServerSocket = 1;
                             break;
                         }
@@ -203,17 +193,24 @@ void EPollManager::run() {
 
                 for (size_t i = 0; i < this->_servers.size(); ++i) {
                     for (size_t j = 0; j < this->_servers[i].getListeningSocket().size(); ++j) { 
+
                         std::vector<int>& clients = this->_servers[i].getListeningSocket()[j].getClientsFd();
-                        std::cout << "client size: " << clients.size() << std::endl;
+                        // std::cout << "client size: " << clients.size() << std::endl;
                         for (size_t k = 0; k < clients.size(); ++k) {
-                            std::cout << "clients[k] = " << clients[k] << std::endl;
-                            if (fd == clients[k]) {
-                                std::cout << "Client trouvé sur fd = " << fd << std::endl;
-                                handleClientRequest(fd, &this->_servers[i]);
-                                clientHandled = 1;
-                                break;
+                            // std::cout << "clients[k] = " << clients[k] << std::endl;
+                            if (fd == clients[k] && this->_servers[i].getDefaultServer() == 1) {
+                                // Maintenant, utilise la map clientFd -> server pour retrouver le bon Server*
+                                Server* realServer = this->_clientToServer[fd];
+                                
+                                if (realServer) {
+                                    // std::cout << "Client trouvé sur fd = " << fd << std::endl;
+                                    handleClientRequest(fd, realServer);
+                                    clientHandled = 1;
+                                    break;
+                                }
                             }
-                            std::cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
+                            
+                            // std::cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaa\n";
                         }
                         if (clientHandled == 1) 
                             break;
@@ -230,6 +227,9 @@ void EPollManager::run() {
         }
     }
 }
+
+
+
 
 // Initialisation (EPollManager)
 
@@ -252,56 +252,8 @@ void EPollManager::run() {
 // (le accept() va dupliquer server socket
 // et c est ce qui permet de laisser le socket serveur libre de toujours ecouter
 // accept() cree une nouvelle socket cliente
-// void EPollManager::acceptConnection(int serverFd) {
-
-//     struct sockaddr_in clientAddr;
-//     socklen_t clientAddrLen = sizeof(clientAddr);
-
-//     int newClientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
-//     if (newClientFd < 0) {
-//         perror("Error: avec connect() fucntion...");
-//         exit(EXIT_FAILURE);
-//     }
-//     std::cout << "SERVER: Nouvelle connexion acceptée : FD " << newClientFd << std::endl;
-
-//     // pour associer la requete cliente au bon server
-//     for (size_t j = 0; j < _servers.size(); j++) {
-//         for (size_t k = 0; k < _servers[j].getListeningSocket().size(); ++k) {
-//             if (serverFd == _servers[j].getListeningSocket()[k].getSockFd()) {
-//                 clientToServerMap[newClientFd] = &_servers[j];
-//                 break;
-//             }
-//         }
-//     }
-//     addSocketToEpoll(newClientFd);
-// }
 
 
-void EPollManager::acceptConnection(int serverFd) {
-    std::cout << "accept co: " << serverFd << std::endl;
-    struct sockaddr_in clientAddr;
-    socklen_t clientAddrLen = sizeof(clientAddr);
-
-    int newClientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
-    if (newClientFd < 0) {
-        perror("Error: avec connect() function...");
-        exit(EXIT_FAILURE);
-    }
-    std::cout << "SERVER: Nouvelle connexion acceptée : FD " << newClientFd << std::endl;
-    
-    // Mapping client fd to the correct server and socket
-    for (size_t i = 0; i < this->_servers.size(); ++i) {
-        for (size_t j = 0; j < this->_servers[i].getListeningSocket().size(); ++j) {
-            if (serverFd == this->_servers[i].getListeningSocket()[j].getSockFd()) {
-                this->_servers[i].getListeningSocket()[j].addClientToListeningSocket(newClientFd);
-
-                std::cout << "accept co function: client fd nb " << newClientFd << " ajouté au server " << this->_servers[i].getListeningSocket()[j].getSockFd() << std::endl;
-                addSocketToEpoll(newClientFd);
-                break;
-            }
-        }
-    }
-}
 
 
 // void EPollManager::handleClientRequest(int clientFd, Server* serv) {
@@ -355,10 +307,15 @@ void EPollManager::acceptConnection(int serverFd) {
 //     std::cout << "+++++++++++++++++++++++++++++++++++++ Fin handleClientRequest" << std::endl;
 // }
 
+
+
+
 /*=====REECRITURE FONCTIONS PAR CHARLES=====*/
 void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 {
-	std::string		buf;
+    
+    std::cout << " received server = " << &serv << std::endl;
+    std::string		buf;
 	std::string		request;
 	ssize_t			bytes_read;
 
@@ -373,7 +330,6 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 		std::cout << buf << std::endl;
 		if (bytes_read <= 0)
 		{
-			//close(clientFd);
 			std::cerr << "erreur handleClientRequest" << std::endl;
 			close(clientFd);
 			break;
@@ -385,11 +341,7 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	RequestParser	req_parser(err);
 
 	req_parser.parseRequest(request, clientFd);
-	// std::cout << "Elem de la requete apres le parse :" << std::endl;
-	// std::cout << "Method : " << req_parser.getMethod() << std::endl;
-	// std::cout << "URI : " << req_parser.getURI() << std::endl;
-	// std::cout << "HTTP version : " << req_parser.getHTTP() << std::endl;
-	// std::cout << std::endl;
+	
 	if (err.getErrorCode() != 0)
 	{
 		return ;
@@ -404,10 +356,8 @@ void	EPollManager::handleClientRequest(int clientFd, Server *serv)
 	std::cout << "Reponse :" << std::endl;
 	std::cout << response << std::endl;
 	send(clientFd, &response[0], size, 0);
-	//if (req_parser.getConnection() != "keep-alive")
     if (epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL) == -1) {
         perror("epoll_ctl: remove clientFd");
     }
 	close(clientFd);
-	//std::cout << std::endl << "ca crash pas ici" << std::endl;
 }

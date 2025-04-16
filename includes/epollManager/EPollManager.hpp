@@ -14,7 +14,7 @@ class EPollManager {
     std::vector<Server>& _servers;     // Liste des serveurs
     int _epollFd;                      // Descripteur epoll
     std::vector<struct epoll_event> _events; // Liste des événements
-    std::map<int, Server*> clientToServerMap; // pour savoir a quel server le client est associe
+    std::map<int, Server*> _clientToServer; // pour savoir a quel server le client est associe
     std::vector<int> _validListeningSockets;
 
     public:
@@ -26,11 +26,8 @@ class EPollManager {
       void addSocketToEpoll(int fd);
       void acceptConnection(int serverFd);
       void handleClientRequest(int clientFd, Server *serv);
-      void responseFromServer(int clientFd, std::string filePath);
-
       std::vector<int> getValidListeningSockets() const;
       void determineDefaultServersAccordingToPort(std::vector<Server>& servers);
-
 };
 
 #endif

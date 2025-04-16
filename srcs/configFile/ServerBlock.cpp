@@ -174,7 +174,6 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     }
 
     // index
-    std::cout << "idx: " << directive.count("index") << std::endl;
 
     if (directive.count("index") == 0) {
         oneServerBlock.setIndex("");
@@ -187,16 +186,12 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     }
 
     // listen
-    std::cout << "listen: " << directive.count("listen") << std::endl;
     if (directive.count("listen") == 0) {
         std::cerr << "Error: Provide a port where to listen" << std::endl;
         exit(EXIT_FAILURE);
     } else {
-        std::cout << "WITHOUT" << std::endl;
-
         for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
             HostHandler host;
-            std::cout << itPort->first << " => " << itPort->second << std::endl;
             host.checkListenFormat(itPort->second, oneServerBlock);
             // oneServerBlock._host.push_back(host);
             flag = 1;
@@ -353,21 +348,6 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         exit(EXIT_FAILURE);
     }
 
-    //  // listen
-    // if (directive.count("listen") == 0) {
-    //     std::cerr << "Error: Provide a port where to listen" << std::endl;
-    //     exit(EXIT_FAILURE);
-    // } else {
-    //     std::cout << "WITH" << std::endl;
-    //     std::cout << directive.count("listen") << std::endl;
-    //     for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-    //         // HostHandler host;
-    //         std::cout << itPort->first << " => " << itPort->second << std::endl;
-    //         host.checkListenFormat(itPort->second, oneServerBlock);
-    //         // oneServerBlock._host.push_back(host);
-    //     }
-    // }
-
     // body size
     if (directive.count("client_max_body_size") == 0) {
         locBlock.setClientMaxBodySize(oneServerBlock.getClientMaxBodySize());
@@ -466,7 +446,6 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
 
             std::vector<Block> locations = it->getChildBlock();
             if (locations.empty()) {
-                std::cout << "entree IF\n";
                 caseWithNoLocationBlockEmbeded(oneServerBlock, directive, host);
 
                 LocationBlock locBlock;
@@ -476,7 +455,6 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 oneServerBlock.addLocationBlock(locBlock);
             }
             else {
-                std::cout << "entree ELSE\n";
                 int flag = 0;
                 
                 for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {

@@ -119,7 +119,7 @@ void HostHandler::checkListenFormat(std::string listenLine, ServerBlock& server)
         else {
             // std::cout << "Valid Port" << std::endl;
             server.addPort(tmpRes);
-            std::cout << "port " << tmpRes << " added\n";
+            // std::cout << "port " << tmpRes << " added\n";
             // server.setIp("127.0.0.1");
         }
     }
