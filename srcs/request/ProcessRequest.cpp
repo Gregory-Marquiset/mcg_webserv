@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 19:21:01 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 19:30:44 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,10 +360,10 @@ void	ProcessRequest::generateHTMLBody(std::map<std::string, std::string>	&direct
 
 	for (std::map<std::string, std::string>::iterator it = directory_content.begin(); it != directory_content.end(); it++)
 	{
-		// if (it->second == "dir")
-		// 	body += "        <p><a href=\"" + it->first + "\">" + it->first + "/</a></p>\n";
-		// else
-		body += "        <p><a href=\"" + it->first + "\">" + it->first + "</a></p>\n";
+		if (it->second == "dir")
+			body += "        <p><a href=\"" + it->first + "/" + "\">" + it->first + "/</a></p>\n";
+		else
+			body += "        <p><a href=\"" + it->first + "\">" + it->first + "</a></p>\n";
 	}
 	body += "    </div>\n";
 	body += "</body>\n";
