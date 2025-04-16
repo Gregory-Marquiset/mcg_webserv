@@ -35,6 +35,19 @@ void ListeningSocket::startListening() {
     this->_listening = listen(getSockFd(), this->_backlog);
 }
 
+int ListeningSocket::getPort() const {
+  return (this->_port);
+}
+
+void ListeningSocket::addClientToListeningSocket(int newClientFd) {
+  this->_clientsFd.push_back(newClientFd);
+  std::cout << "add client to listening socket: client fd nb " << newClientFd << " added au server " << this->getSockFd() << std::endl;
+}
+
+std::vector<int>& ListeningSocket::getClientsFd() {
+  return (this->_clientsFd);
+}
+
 /* ================= HELPER TO PRINT STUFF ======================== */
 
 void ListeningSocket::printListeningSocketArgs(int domain, int service, int protocol, int port, u_long interface, int backlog) {

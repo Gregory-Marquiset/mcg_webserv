@@ -24,6 +24,10 @@ int Server::getDefaultServer() const {
     return (this->_isDefaultServer);
 }
 
+std::map<int, int> Server::getServerStatusAccordingToPort() const {
+    return (this->_serverStatusAccordingToPort);
+}
+
 std::vector<ListeningSocket>& Server::getListeningSocket() {
     return (this->_listeningSocket);
 }
@@ -40,6 +44,10 @@ std::vector<Server> Server::getAllServers(const std::vector<ServerBlock>& server
         servers.push_back(Server(*it));
     }
     return (servers);
+}
+
+void Server::addStatus(const std::map<int, int>& status) {
+    this->_serverStatusAccordingToPort.insert(status.begin(), status.end());
 }
 
 void Server::printServerInfo() const {
