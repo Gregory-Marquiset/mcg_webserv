@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 17:46:50 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 18:32:59 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ void	ProcessRequest::processRequest(void)
 	{
 		this->compareUriWithLocations();
 		this->checkAllowedMethod();
-		//this->checkMaxBodySize();
+		this->checkMaxBodySize();
 		this->addRootPath();
 		this->checkIfUriIsCgi();
 		if (this->_cgi == true)
