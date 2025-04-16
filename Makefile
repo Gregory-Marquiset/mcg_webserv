@@ -20,6 +20,7 @@ SRCS :=		main.cpp\
 			srcs/errorManagement/ErrorManagement.cpp\
 			srcs/response/ResponseMaker.cpp\
 			srcs/utils/Utils.cpp\
+			srcs/cgi/cgi.cpp\
 
 OBJS := $(SRCS:.cpp=.o)
 
