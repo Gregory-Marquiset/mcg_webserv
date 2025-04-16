@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 18:32:59 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 19:21:01 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -520,9 +520,10 @@ void	ProcessRequest::manageMultipartCase(void)
 	}
 	std::cerr << "n = " << n << std::endl;
 	
+	end = body.find(boundary);
 	while (1)
 	{
-		start = body.find(boundary);
+		start = end;
 		if (start == std::string::npos)
 		{
 			if(this->_error_class->getErrorCode() == 0)
@@ -586,7 +587,6 @@ void	ProcessRequest::manageMultipartCase(void)
 		
 			file << file_body;
 		}
-		break;
 	}
 }
 
