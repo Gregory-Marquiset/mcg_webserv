@@ -24,7 +24,7 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
     for (size_t i = 0; i < serverBlocks.size(); ++i) {
 
         std::cout << "server { " << std::endl;
-
+        std::cout << serverBlocks[i].getHost().size() << std::endl;
         for (size_t iHost = 0; iHost < serverBlocks[i].getHost().size(); ++iHost) {
             std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
         }
