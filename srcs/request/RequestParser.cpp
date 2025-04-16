@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestParser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
+/*   By: gmarquis <gmarquis@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 18:04:36 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 20:08:39 by gmarquis         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -502,15 +502,15 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 			temp_buf.resize(BUFFER_SIZE);
 		}
 		this->_request_body = req;
-		if (this->_request_body.size() != this->_content_length)
-		{
+		// if (this->_request_body.size() != this->_content_length)
+		// {
 			
-			if (this->_error_class->getErrorCode() == 0)
-				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Wrong body size 1");
-		}
-		std::cout << "size du body: " << this->_request_body.size() << std::endl;
-		std::cout << "Content-Length: " << this->_content_length << std::endl;
+		// 	if (this->_error_class->getErrorCode() == 0)
+		// 		this->_error_class->setErrorCode(400);
+		// 	throw RequestParser::RequestException("Wrong body size 1");
+		// }
+		// std::cout << "size du body: " << this->_request_body.size() << std::endl;
+		// std::cout << "Content-Length: " << this->_content_length << std::endl;
 		//std::cout << this->_request_body << std::endl;
 		return ;
 	}
