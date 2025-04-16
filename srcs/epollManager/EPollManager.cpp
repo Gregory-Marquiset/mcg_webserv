@@ -158,7 +158,6 @@ void EPollManager::run() {
         int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1);
         if (n == -1) {
             perror("epoll_wait");
-            std::cerr << "errno = " << errno << std::endl;
             exit(EXIT_FAILURE);
         }
 

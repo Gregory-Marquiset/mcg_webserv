@@ -26,7 +26,7 @@ int ListeningSocket::bindToNetwork(int sockFd, struct sockaddr_in address) {
 
   int yes = 1;
   if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEPORT, (void*)&yes, sizeof(yes)) < 0) {
-      fprintf(stderr, "setsockopt() failed. Error: %d\n", errno);
+    std::cout << "setsockopt() failed" << std::endl;
   }
   return bind(sockFd, (struct sockaddr *)&address, sizeof(address));
 }

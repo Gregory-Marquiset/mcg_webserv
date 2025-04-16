@@ -191,7 +191,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     } else {
         for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-            HostHandler host;
+            HostHandler host; // -> peut etre enlever ca ?
             host.checkListenFormat(itPort->second, oneServerBlock);
             // oneServerBlock._host.push_back(host);
             flag = 1;

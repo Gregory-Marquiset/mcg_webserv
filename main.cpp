@@ -172,3 +172,13 @@ int main(int argc, char **argv) {
 // ServerBlock	        Transforme les blocs en objets exploitables
 // Server	            Représente un serveur unique basé sur un ServerBlock + Ajout d'une ListeningSocket
 // ServerManager	    Gère plusieurs serveurs et stocke un std::vector<Server>
+
+
+
+
+
+// problem du meme listen qui ne renvoie pas d erreur
+// problem avec le hostname
+// Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
+// donc try catch blocks
+// possible leaks
