@@ -89,15 +89,6 @@ std::string	we_loadSessionFromFile( const std::string& sessionID )
 	return ( buffer.str( ) );
 }
 
-/*#include <iostream>
-
-bool		we_ensureSessionDirectoryExists( );
-bool		we_saveSessionToFile( const std::string& sessionID, const std::string& data );
-std::string	we_generateSessionID( );
-std::string	we_createSession( );
-
-std::string	we_loadSessionFromFile( const std::string& sessionID );
-
 int	main( int argc, char **argv )
 {
 	std::string sessionID;
@@ -117,4 +108,4 @@ int	main( int argc, char **argv )
 	std::cout << "Contenu session :\n" << data << std::endl;
 
 	return ( 0 );
-}*/
+}

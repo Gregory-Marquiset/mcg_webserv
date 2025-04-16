@@ -1,14 +1,14 @@
 /* =================== THEME =================== */
-body.dark-theme
-{
-	background-color: #1e1e1e;
-	color: #f0f0f0;
-}
-
 body.light-theme
 {
 	background-color: #ffffff;
 	color: #222222;
+}
+
+body.dark-theme
+{
+	background-color: #1e1e1e;
+	color: #f0f0f0;
 }
 
 /* =================== STRUCTURE =================== */
