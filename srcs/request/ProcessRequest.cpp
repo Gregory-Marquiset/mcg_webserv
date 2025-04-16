@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 15:29:55 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/16 14:38:05 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,7 +383,7 @@ void	ProcessRequest::processPostRequest(void)
 			this->_error_class->setErrorCode(409);
 		throw RequestParser::RequestException("Fichier déjà existant");
 	}
-	if (opendir("./www/uploads") == NULL)
+	if (opendir("./www/upload") == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
@@ -421,8 +421,8 @@ void	ProcessRequest::manageFormCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -453,11 +453,12 @@ void	ProcessRequest::manageFormCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -487,6 +488,23 @@ void	ProcessRequest::manageFormCase(void)
 void	ProcessRequest::manageMultipartCase(void)
 {
 	std::cout << "CAS POST multipart" << std::endl;
+	
+	std::string	request_content_type = this->_request.getContentType();
+	std::string	boundary;
+	size_t		pos = 0;
+
+	pos = request_content_type.find("boundary=");
+	if (pos == std::string::npos)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(400);
+		throw RequestParser::RequestException("Boundary absent");
+	}
+	boundary = request_content_type.substr(pos + 9);
+	std::cout << "Boundary: " << boundary << std::endl;
+	
+	std::string	body = this->_request.getBody();
+	
 }
 
 void	ProcessRequest::manageJsonCase(void)
@@ -505,8 +523,8 @@ void	ProcessRequest::manageJsonCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -537,11 +555,12 @@ void	ProcessRequest::manageJsonCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".json";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -579,8 +598,8 @@ void	ProcessRequest::manageSimpleCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -611,11 +630,12 @@ void	ProcessRequest::manageSimpleCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 	std::cout << "new_path : " << new_path << std::endl;
 
 	if (access(new_path.c_str(), F_OK) == 0)
