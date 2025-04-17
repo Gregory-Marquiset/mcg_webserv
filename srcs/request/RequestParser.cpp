@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   RequestParser.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gmarquis <gmarquis@student.42.fr>          +#+  +:+       +#+        */
+/*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/16 20:08:39 by gmarquis         ###   ########.fr       */
+/*   Updated: 2025/04/17 04:42:00 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,9 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 {
 	if (this != &inst)
 	{
+		this->_error_class = inst._error_class;
 		this->_full_request = inst._full_request;
 		this->_escaped_char = inst._escaped_char;
-		this->_error_class = inst._error_class;
 		this->_is_uri_cgi = inst._is_uri_cgi;
 		this->_content_type = inst._content_type;
 		this->_connection = inst._connection;

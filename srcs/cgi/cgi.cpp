@@ -7,8 +7,9 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include "../../includes/response/ResponseMaker.hpp"
 
-std::string	we_executeCGI( const std::string &binary, const std::string &scriptPath )
+std::string	we_executeCGI( const std::string &binary, const std::string &scriptPath , ErrorManagement &err )
 {
 	char	*argv[] = {( char * )binary.c_str(), ( char * )scriptPath.c_str(), NULL };
 
@@ -16,16 +17,18 @@ std::string	we_executeCGI( const std::string &binary, const std::string &scriptP
 
 	if ( pipe( pipefd ) == -1 )
 	{
-		std::cerr << "Erreur : Impossible de créer le pipe\n";
-		return ( "500 Internal Server Error" );
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(500);
+		throw ResponseMaker::ResponseException("Erreur : Impossible de créer le pipe\n");
 	}
 
 	pid_t	pid = fork( );
 
 	if ( pid < 0 )
 	{
-		std::cerr << "Erreur : Échec du fork()\n";
-		return ( "500 Internal Server Error" );
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(500);
+		throw ResponseMaker::ResponseException("Erreur : Échec du fork()\n");
 	}
 
 	if ( pid == 0 )
@@ -63,7 +66,9 @@ std::string	we_executeCGI( const std::string &binary, const std::string &scriptP
 		{
 			std::cerr << "Erreur : Problème lors de la lecture du pipe ( " << strerror( errno ) << " )\n";
 			close( pipefd[0] );
-			return ( "500 Internal Server Error" );
+			if (err.getErrorCode() == 0)
+				err.setErrorCode(500);
+			throw ResponseMaker::ResponseException("");
 		}
 		close ( pipefd[0] );
 
@@ -73,37 +78,45 @@ std::string	we_executeCGI( const std::string &binary, const std::string &scriptP
 		if (WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
 		{
 			std::cerr << "Erreur : Le CGI a retourné un code d'erreur ( " << WEXITSTATUS( status ) << " )\n";
-			return ( "500 Internal Server Error" );
-		}
+			if (err.getErrorCode() == 0)
+				err.setErrorCode(500);
+			throw ResponseMaker::ResponseException("");		}
 
 		return ( output );
 	}
 }
 
-std::string	we_checkCGI( const std::string& binary, const std::string& file )
+std::string	we_checkCGI( const std::string& binary, const std::string& file, ErrorManagement &err )
 {
-	std::string	scriptPath = ".";
+	std::string	scriptPath;
 	scriptPath += file;
 
 	if ( access( scriptPath.c_str( ), F_OK ) == -1 )
 	{
 		std::cerr << "Erreur : Fichier CGI introuvable ( " << scriptPath << " )\n";
-		return ( "404 Not Found" );
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(404);
+		throw ResponseMaker::ResponseException("");
 	}
 	if ( access( scriptPath.c_str( ), X_OK ) == -1 )
 	{
 		std::cerr << "Erreur : Fichier CGI non exécutable ( " << scriptPath << " )\n";
-		return ( "403 Forbidden" );
-	}
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(403);
+		throw ResponseMaker::ResponseException("");	}
 	if ( access( binary.c_str( ), F_OK ) == -1 )
 	{
-		std::cerr << "Erreur : Binaire CGI introuvable ( " << scriptPath << " )\n";
-		return ( "404 Not Found" );
+		std::cerr << "Erreur : Binaire CGI introuvable ( " << binary << " )\n";
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(404);
+		throw ResponseMaker::ResponseException("");
 	}
 	if ( access( binary.c_str( ), X_OK ) == -1 )
 	{
-		std::cerr << "Erreur : binaire CGI non exécutable ( " << scriptPath << " )\n";
-		return ( "403 Forbidden" );
+		std::cerr << "Erreur : binaire CGI non exécutable ( " << binary << " )\n";
+		if (err.getErrorCode() == 0)
+			err.setErrorCode(403);
+		throw ResponseMaker::ResponseException("");
 	}
-	return ( we_executeCGI( binary, scriptPath ) );
+	return ( we_executeCGI( binary, scriptPath, err ) );
 }

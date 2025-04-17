@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 00:19:33 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 04:53:54 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 		this->_method = inst._method;
 		this->_http_version = inst._http_version;
 		this->_request_body = inst._request_body;
+		this->_content_type = inst._content_type;
+		this->_cgi_path = inst._cgi_path;
 		this->_headers = inst._headers;
 		this->_cgi = inst._cgi;
 		this->_autoindex = inst._autoindex;
@@ -90,6 +92,11 @@ std::string	ProcessRequest::getContentType(void) const
 std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
 {
 	return (this->_headers);
+}
+
+std::string	ProcessRequest::getCgiPath(void) const
+{
+	return (this->_cgi_path);
 }
 
 bool	ProcessRequest::getCgi(void) const
@@ -155,6 +162,13 @@ void	ProcessRequest::compareUriWithLocations(void)
 	for (it = locations.begin(); it != locations.end(); it++)
 	{
 		location_path = it->getPath();
+		// std::cout << "location path: " << location_path << std::endl;
+		// if (it->getCgiExtension().empty())
+		// {
+		// 	std::cout << "cgi class is empty" << std::endl;
+		// }
+		// else
+		// 	std::cout << "not empty" << std::endl;
 		if (location_path == "/" && last_location_match_size == -1)
 			this->_location_to_use = *it;
 		location_path_size = location_path.size();
@@ -237,17 +251,30 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 	std::string				extension;
 	size_t					pos;
 
+	// this->_cgi = true;
+	// this->_cgi_path = "/usr/bin/python3";
+	// return;
+	
 	cgi_ext = this->_location_to_use.getCgiExtension();
-	uri = this->_request.getURI();
+	if (cgi_ext.empty())
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Block CGI manquant");
+	}
+	uri = this->_final_path;
 	pos = uri.rfind(".");
 	if (pos == std::string::npos)
 		return ;
 	extension = uri.substr(pos, std::string::npos);
+	//std::cout << "extension: " << extension << std::endl;
 	for (std::vector<CgiHandler>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
 	{
+		//std::cout << "extension: " << extension << " et it->getKey" << it->getKey() << std::endl;
 		if (extension == it->getKey())
 		{
 			this->_request.setIsCgi(true);
+			this->_cgi_path = it->getValue();
 			return ;
 		}
 	}
@@ -274,6 +301,7 @@ void	ProcessRequest::addRootPath(void)
 		return;
 	}
 
+	std::cout << "Root path: " << this->_location_to_use.getRoot() << std::endl;
 	this->_final_path += this->_location_to_use.getRoot();
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] != '/')
