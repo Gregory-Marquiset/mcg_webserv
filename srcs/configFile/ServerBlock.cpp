@@ -150,6 +150,23 @@ void ServerBlock::indexCheck() {
     }
 }
 
+void ServerBlock::portCheck() {
+
+    if (this->getPort().empty()) {
+        std::cout << "Error: no port found" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    for (size_t i = 0; i < this->getPort().size(); ++i) {
+        for (size_t j = i + 1; j < this->getPort().size(); ++j) {
+            if (this->getPort()[i] == this->getPort()[j]) {
+                std::cout << "Error: same ports found" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+}
+
 /* SETTER DU SERVER BLOCK SANS LOCATION BLOCK IMBRIQUEE */
 
 void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive, HostHandler& host) {
@@ -191,7 +208,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         exit(EXIT_FAILURE);
     } else {
         for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-            HostHandler host; // -> peut etre enlever ca ?
+            // HostHandler host; // -> peut etre enlever ca ?
             host.checkListenFormat(itPort->second, oneServerBlock);
             // oneServerBlock._host.push_back(host);
             flag = 1;
@@ -495,10 +512,11 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
             }
             oneServerBlock.rootCheck();
             oneServerBlock.indexCheck();
+            oneServerBlock.portCheck();
             cleanServers.push_back(oneServerBlock);
         }
         if (cleanServers.empty()) {
-            std::cerr << "Error: No server in .conf" << std::endl;
+            std::cerr << "Error: Something went wrong in .conf" << std::endl;
             exit(EXIT_FAILURE);
         }
     }

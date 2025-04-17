@@ -32,6 +32,11 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
 
 std::string trim(const std::string& str) {
 
+    if (str.empty()) {
+        std::cout << "Error in .conf" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
     size_t start = 0;
     while (start < str.size() && isspace(str[start])) {
         ++start;
@@ -40,6 +45,12 @@ std::string trim(const std::string& str) {
     size_t end = str.size();
     while (end > start && isspace(str[end - 1])) {
         --end;
+    }
+
+   
+    if (str.substr(start, end - start).empty()) {
+        std::cout << "Error in .conf" << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     return str.substr(start, end - start);
@@ -67,10 +78,8 @@ void RecupBlockContent::createTree(std::string file) {
             continue ;
 
         for (size_t i = 0; i < content.size(); ++i) {
-            
             // ignorer les commentaires 
             if (content[i] == '#') {
-                std::cout << "coucou\n";
                 break ;
             }
 
@@ -80,8 +89,9 @@ void RecupBlockContent::createTree(std::string file) {
             }
 
             // sortie d un block
-            if (content[i] == '}') 
+            if (content[i] == '}') {
                 handleExitBlock(parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
+            }
 
             // init directives
             if (content[i] == ';') {
@@ -144,9 +154,9 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     std::string key = "";
     std::string value = "";
     int isKey = 1;
+
     std::string tmpDirective = content.substr(0, i);
     std::string cleanDirective = trim(tmpDirective);
-    // std::cout << "---> " << cleanDirective << std::endl;
 
     for (size_t j = 0; j < cleanDirective.size(); ++j) {
         if (isspace(cleanDirective[j]) && isKey == 1) {

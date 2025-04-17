@@ -60,6 +60,7 @@ void Server::printServerInfo() const {
         std::cout << "Port: " << this->_serverBlock.getPort()[i] << std::endl;
     }    
     
+    std::cout << "Server Name = " << this->_serverBlock.getHost().front().getHostName() << std::endl;
     std::cout << "Root: " << this->_serverBlock.getRoot() << std::endl;
     std::cout << "Index: " << this->_serverBlock.getIndex() << std::endl;
     std::cout << "Body size: " << this->_serverBlock.getClientMaxBodySize() << std::endl;

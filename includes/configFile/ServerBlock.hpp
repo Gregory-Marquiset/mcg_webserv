@@ -61,6 +61,7 @@ class ServerBlock {
         void addPort(const int& port);
         void rootCheck();
         void indexCheck();
+        void portCheck();
         // void addHost(const HostHandler& host);
 
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
