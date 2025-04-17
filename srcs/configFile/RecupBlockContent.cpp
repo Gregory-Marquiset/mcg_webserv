@@ -33,8 +33,7 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
 std::string trim(const std::string& str) {
 
     if (str.empty()) {
-        std::cout << "Error in .conf" << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::invalid_argument("trim(): Empty string passed. Error in .conf");
     }
     
     size_t start = 0;
@@ -49,8 +48,7 @@ std::string trim(const std::string& str) {
 
    
     if (str.substr(start, end - start).empty()) {
-        std::cout << "Error in .conf" << std::endl;
-        exit(EXIT_FAILURE);
+        throw std::invalid_argument("trim(): Empty string passed. Error in .conf");
     }
 
     return str.substr(start, end - start);
@@ -59,7 +57,7 @@ std::string trim(const std::string& str) {
 /* fonction principale pour hierarchiser les blocks (arbre parents - enfants) */
 
 void RecupBlockContent::createTree(std::string file) {
-     
+
     std::string content;
     std::istringstream iss(file);
     
@@ -85,7 +83,7 @@ void RecupBlockContent::createTree(std::string file) {
 
             // entree d un block 
             if (content[i] == '{') {
-               handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
+                handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
             }
 
             // sortie d un block
@@ -107,7 +105,7 @@ void RecupBlockContent::handleEntranceBlock(std::string content, size_t i, int &
 
     std::string tmpName = content.substr(0, i);
     std::string cleanName = trim(tmpName);
-
+    
     if (parentFlag == 0) {
             
         tmpFirstParent.setName(cleanName);

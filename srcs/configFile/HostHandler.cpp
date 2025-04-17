@@ -113,8 +113,7 @@ void HostHandler::checkListenFormat(std::string listenLine, ServerBlock& server)
         int tmpRes = myStoi2(listenLine);
         // std::cout << "ppppp" << tmpRes << std::endl;
         if (tmpRes < 0 || tmpRes > 65535) {
-            std::cout << "Error: Invalid Port" << std::endl;
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: Invalid Port"));
         }
         else {
             // std::cout << "Valid Port" << std::endl;
@@ -128,16 +127,14 @@ void HostHandler::checkListenFormat(std::string listenLine, ServerBlock& server)
         std::string tmpPort = listenLine.substr(pos + 1);
         for (size_t i = 0; i < tmpPort.size(); ++i) {
             if (!std::isdigit(tmpPort[i])) {
-                std::cout << "Error: Invalid Port in .conf\n";
-                exit(EXIT_FAILURE);
+                throw (std::invalid_argument("Error: Invalid Port"));
             }
         }
         std::cout << "tmpPort = " << tmpPort << std::endl;
         int tmpRes = myStoi2(tmpPort);
         // std::cout << "ppppp" << tmpRes << std::endl;
         if (tmpRes < 0) {
-            std::cout << "Error: Invalid Port in .conf" << std::endl;
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: Invalid Port"));
         }
         else {
             // std::cout << "Valid Port" << std::endl;

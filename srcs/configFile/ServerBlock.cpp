@@ -127,8 +127,7 @@ void ServerBlock::rootCheck() {
             noRootInLoc = 1;
     }
     if (noRootInServer == 1 && noRootInLoc == 1) {
-        std::cerr << "Error: there is a Block with no root available" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: there is a Block with no root available"));
     }
 }
 
@@ -145,23 +144,21 @@ void ServerBlock::indexCheck() {
             noIndexInLoc = 1;
     }
     if (noIndexInServer == 1 && noIndexInLoc == 1) {
-        std::cerr << "Error: there is a Block with no index available" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: there is a Block with no index available"));
     }
 }
 
 void ServerBlock::portCheck() {
 
     if (this->getPort().empty()) {
-        std::cout << "Error: no port found" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: no port found"));
     }
     
+
     for (size_t i = 0; i < this->getPort().size(); ++i) {
         for (size_t j = i + 1; j < this->getPort().size(); ++j) {
             if (this->getPort()[i] == this->getPort()[j]) {
-                std::cout << "Error: same ports found" << std::endl;
-                exit(EXIT_FAILURE);
+                throw (std::invalid_argument("Error: same ports found in one of the servers"));
             }
         }
     }
@@ -175,8 +172,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     int flag = 0;
 
     if (directive.empty()) {
-        std::cerr << "Error: Provide some directives in .conf" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Provide some directives in .conf"));
     }
 
     // root
@@ -186,8 +182,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::multimap<std::string, std::string>::iterator itRoot = directive.find("root");
         oneServerBlock.setRoot(itRoot->second);
     } else {
-        std::cerr << "Error: Too many roots" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Too many roots"));
     }
 
     // index
@@ -198,14 +193,12 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
         oneServerBlock.setIndex(itIndex->second);
     } else {
-        std::cerr << "Error: Too many indexes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Too many indexes"));
     }
 
     // listen
     if (directive.count("listen") == 0) {
-        std::cerr << "Error: Provide a port where to listen" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Provide a port where to listen"));
     } else {
         for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
             // HostHandler host; // -> peut etre enlever ca ?
@@ -245,8 +238,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
             }
         }
     } else {
-        std::cerr << "Error: Too many server_names" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Too many server_names"));
     }
 
     if (flag == 1)
@@ -260,8 +252,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         oneServerBlock.setClientMaxBodySize(itBodySize->second);
     } else {
-        std::cerr << "Error: too many client_max_body_sizes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many client_max_body_sizes"));
     }
 
     // cgi
@@ -283,8 +274,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         while (ss >> method)
             oneServerBlock._allowMethods.push_back(method);
     } else {
-        std::cerr << "Error: too many allow_methods" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many allow_methods"));
     }
 
     // auto index
@@ -296,8 +286,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         oneServerBlock.setAutoIndex(itAutoIndex->second);
     }
     else {
-        std::cerr << "Error: too many autoindexes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many autoindexes"));
     }
 
     // redirection
@@ -316,14 +305,12 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
             res.push_back(word);
         }
         if (res.size() != 2) {
-            std::cerr << "Error: redirection format is not correct" << std::endl;
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: redirection format is not correct"));
         }
         oneServerBlock.setRedirection(res);
     }
     else {
-        std::cerr << "Error: too many returns" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many returns"));
     }
 }
 
@@ -336,8 +323,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
     (void)host;
 
     if (directive.empty()) {
-        std::cerr << "Error: Provide some directives in .conf" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Provide some directives in .conf"));
     }
 
     // root
@@ -347,22 +333,19 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         std::multimap<std::string, std::string>::iterator itRoot = directive.find("root");
         locBlock.setRoot(itRoot->second);
     } else {
-        std::cerr << "Error: Too many roots" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Too many roots"));
     }
 
     // index
     if (directive.count("index") == 0 && oneServerBlock.getIndex() == "") {
-        std::cerr << "Error: Please provide an index" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Please provide an index"));
     } else if (directive.count("index") == 0 && oneServerBlock.getIndex() != "") {
         locBlock.setIndex(oneServerBlock.getIndex());
     } else if (directive.count("index") == 1) {
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
         locBlock.setIndex(itIndex->second);
     } else {
-        std::cerr << "Error: Too many indexes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: Too many indexes"));
     }
 
     // body size
@@ -372,8 +355,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         std::multimap<std::string, std::string>::iterator itBodySize = directive.find("client_max_body_size");
         locBlock.setClientMaxBodySize(itBodySize->second);
     } else {
-        std::cerr << "Error: too many client_max_body_sizes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many client_max_body_sizes"));
     }
 
     // cgi
@@ -395,8 +377,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         while (ss >> method)
             locBlock.addAllowMethod(method);
     } else {
-        std::cerr << "Error: too many allow_methods" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many allow_methods"));
     }
 
     // auto index
@@ -407,8 +388,7 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         locBlock.setAutoIndex(itAutoIndex->second);
     }
     else {
-        std::cerr << "Error: too many autoindexes" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many autoindexes"));
     }
 
     // redirection
@@ -426,16 +406,13 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
         while (ss >> word) {
             res.push_back(word);
         }
-
         if (res.size() != 2) {
-            std::cerr << "Error: redirection format is not correct" << std::endl;
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: redirection format is not correct"));
         }
         locBlock.setRedirection(res);
     }
     else {
-        std::cerr << "Error: too many returns" << std::endl;
-        exit(EXIT_FAILURE);
+        throw (std::invalid_argument("Error: too many returns"));
     }
 }
 
@@ -501,8 +478,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
 
                     for (size_t iBlock = 0; iBlock < oneServerBlock.getLocationBlock().size(); ++iBlock) {
                         if (locBlock.getPath() == oneServerBlock.getLocationBlock()[iBlock].getPath()) {
-                            std::cerr << "Error: identical location path" << std::endl;
-                            exit(EXIT_FAILURE);
+                            throw (std::invalid_argument("Error: identical location path"));
                         }
                     }
                     std::multimap<std::string, std::string> locDirective = itLocation->getDirective();
@@ -516,8 +492,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
             cleanServers.push_back(oneServerBlock);
         }
         if (cleanServers.empty()) {
-            std::cerr << "Error: Something went wrong in .conf" << std::endl;
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: Something went wrong in .conf - file might be empty"));
         }
     }
     return (cleanServers);

@@ -90,13 +90,25 @@ int main(int argc, char **argv) {
         RecupBlockContent rawConfig;
 
         std::string confFile = rawConfig.storeConfigFile(argv[1]);
-        rawConfig.createTree(confFile);
+        try {
+            rawConfig.createTree(confFile);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
+        }
 
         /* ================= Transforme les blocs en objets exploitables ======================== */
 
         ServerBlock data;
-        std::vector<ServerBlock> serverBlocks = data.createAllServerBlocks(rawConfig);
-        printConfigFileData(serverBlocks);
+        std::vector<ServerBlock> serverBlocks;
+        
+        try {
+            serverBlocks = data.createAllServerBlocks(rawConfig);
+            printConfigFileData(serverBlocks);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
+        }
 
         /* ================= Transforme les blocs en servers ======================== */
 
@@ -105,10 +117,10 @@ int main(int argc, char **argv) {
         for (size_t i = 0; i < serverBlocks.size(); ++i) {
 
             servers.push_back(Server(serverBlocks[i]));
-            servers[i].printServerInfo();
+            // servers[i].printServerInfo();
         }
 
-        /* ================= Les servers sont sous surveillance ======================== */
+        // /* ================= Les servers sont sous surveillance ======================== */
 
         EPollManager epollManager(servers);
 
@@ -130,41 +142,6 @@ int main(int argc, char **argv) {
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
 }
 
-// int main(int argc, char **argv) {
-
-//     if (argc == 2) {
-
-//         /* ================= Analyse le fichier et extrait les blocs ======================== */
-
-//         RecupBlockContent rawConfig;
-
-//         std::string confFile = rawConfig.storeConfigFile(argv[1]);
-//         rawConfig.createTree(confFile);
-
-//         /* ================= Transforme les blocs en objets exploitables ======================== */
-
-//         ServerBlock data;
-//         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
-
-//         /* ================= Transforme les blocs en servers ======================== */
-
-//         std::vector<Server> servers;
-
-//         for (size_t i = 0; i < serverBlocks.size(); ++i) {
-
-
-//             servers.push_back(Server(serverBlocks[i]));
-//             servers[i].printServerInfo();
-//         }
-//         /* ================= Les servers sont sous surveillance ======================== */
-
-//         EPollManager epollManager(servers);
-//             epollManager.run();
-//     }
-//     else
-//         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
-// }
-
 // Les classes:
 
 // Block                Structure d'un block de config
@@ -173,11 +150,6 @@ int main(int argc, char **argv) {
 // Server	            Représente un serveur unique basé sur un ServerBlock + Ajout d'une ListeningSocket
 // ServerManager	    Gère plusieurs serveurs et stocke un std::vector<Server>
 
-
-
-
-
-// problem du meme listen qui ne renvoie pas d erreur
 // problem avec le hostname
 // Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
 // donc try catch blocks
