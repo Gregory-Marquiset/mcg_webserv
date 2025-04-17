@@ -12,8 +12,7 @@ EPollManager::EPollManager(std::vector<Server>& servers) : _servers(servers) {
 
     this->_epollFd = epoll_create1(0);
     if (this->_epollFd == -1) {
-        perror("epoll_create1");
-        exit(EXIT_FAILURE);
+        throw (std::runtime_error("Error: epoll_create1() failed..."));
     }
 
     determineDefaultServersAccordingToPort(this->_servers);
@@ -96,7 +95,9 @@ void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& s
 
 EPollManager::~EPollManager() {
 
-    close(_epollFd);
+    if (this->_epollFd != -1) {
+        close(_epollFd);
+    }
 }
 
 /* ================= UTILS ======================== */
@@ -113,8 +114,7 @@ void EPollManager::addSocketToEpoll(int fd) {
     event.data.fd = fd;
     event.events = EPOLLIN;
     if (epoll_ctl(this->_epollFd, EPOLL_CTL_ADD, fd, &event) == -1) {
-        perror("epoll_ctl: ajout socket");
-        exit(EXIT_FAILURE);
+        throw (std::runtime_error("Error: accept function failed..."));
     }
     // std::cout << "Socket " << fd << " added\n";
 }
@@ -127,8 +127,7 @@ void EPollManager::acceptConnection(int serverFd) {
 
     int newClientFd = accept(serverFd, (struct sockaddr *)&clientAddr, &clientAddrLen);
     if (newClientFd < 0) {
-        perror("Error: avec connect() function...");
-        exit(EXIT_FAILURE);
+        throw (std::runtime_error("Error: accept function failed..."));
     }
     // std::cout << "SERVER: Nouvelle connexion acceptée : FD " << newClientFd << std::endl;
     
@@ -147,6 +146,24 @@ void EPollManager::acceptConnection(int serverFd) {
     }
 }
 
+void EPollManager::clean() {
+    for (size_t i = 0; i < this->_servers.size(); ++i) {
+        std::vector<ListeningSocket>& sockets = this->_servers[i].getListeningSocket();
+        for (size_t j = 0; j < sockets.size(); ++j) {
+            std::vector<int>& clients = sockets[j].getClientsFd();
+            for (size_t k = 0; k < clients.size(); ++k) {
+                close(clients[k]);
+            }
+            int sockFd = sockets[j].getSockFd();
+            if (sockFd != -1) {
+                close(sockFd);
+            }
+        }
+    }
+    close(this->_epollFd);
+}
+
+extern volatile sig_atomic_t exitFlag;
 
 void EPollManager::run() {
 
@@ -154,11 +171,17 @@ void EPollManager::run() {
     this->_events.clear();
     this->_events.resize(MAX_EVENTS);
 
-    while (1) {
+    while (exitFlag == 0) {
         int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1);
+        // if (n == -1) {
+        //     throw (std::runtime_error("Error: epoll_wait() failed..."));
+        // }
         if (n == -1) {
-            perror("epoll_wait");
-            exit(EXIT_FAILURE);
+            if (errno == EINTR && exitFlag == 1) {
+                // Interruption normale par signal → on sort
+                break;
+            }
+            throw std::runtime_error("Error: epoll_wait() failed...");
         }
 
         for (int i = 0; i < n; ++i) {

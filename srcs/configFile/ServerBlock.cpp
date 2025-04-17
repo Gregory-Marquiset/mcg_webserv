@@ -100,12 +100,6 @@ std::vector<std::string> ServerBlock::getRedirection() const {
 
 /* ================= HELPERS ======================== */
 
-int myStoi(std::string& s) {
-    int i;
-    std::istringstream(s) >> i;
-    return (i);
-}
-
 void ServerBlock::addLocationBlock(const LocationBlock& location) {
     this->_location.push_back(location);
 }
@@ -168,7 +162,6 @@ void ServerBlock::portCheck() {
 
 void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive, HostHandler& host) {
 
-    // HostHandler host;
     int flag = 0;
 
     if (directive.empty()) {
@@ -210,7 +203,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
     if (directive.count("server_name") == 0) {
         
-        // HostHandler host;
+    //     // HostHandler host;
 
         host.setHostName("localhost");
         // oneServerBlock._host.push_back(host);
@@ -316,8 +309,6 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
 
-// donc ici faire check supplemetaires pour regarder si le servers a certaines directives ou non 
-
 void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive, HostHandler& host) {
 
     (void)host;
@@ -416,11 +407,6 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
     }
 }
 
-// faire une fonction dans le cas ou pas de location /
-// faire un tour d tous les paths, si pas de / alors:
-// creer location / bloc
-// index, autoindex, client_mx_size_body heritent des directives servers si non redefinis -> don a faire valoir pour tous les les locs blocks
-
 /* MAIN FUNCTION TO CREATE SERVER BLOCKS */
 
 std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent rawConfig) {
@@ -453,9 +439,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 
                 for (std::vector<Block>::iterator itLocation = locations.begin(); itLocation != locations.end(); ++itLocation) {
                     
-                    // std::cout << "name = " << itLocation->getName() << std::endl;
                     if (itLocation->getName() == "location /") {
-                        // std::cout << "found\n";
                         flag = 1;
                     }
                 }

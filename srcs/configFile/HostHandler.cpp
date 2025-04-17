@@ -24,7 +24,7 @@ int HostHandler::getHostFormat() const {
     return (this->_hostFormat);
 }
 
-int myStoi2(std::string& s) {
+int myStoi(std::string& s) {
     int i;
     std::istringstream(s) >> i;
     return i;
@@ -45,9 +45,11 @@ void HostHandler::filter(std::string hostLine) {
             countDigit++;
         }
     }
-    
-    if (countDot == 3 && countDigit >= 4 && countDigit <= 12)
+
+    if (countDot == 3 && countDigit >= 4 && countDigit <= 12) {
         this->setHostFormat(1);
+        this->setHostName(hostLine);
+    }
     else
         this->setHostFormat(0);
 }
@@ -66,15 +68,13 @@ void HostHandler::parseIp(std::string hostLine) {
 
         for (size_t i = 0; i < part.size(); ++i) {
             if (!std::isdigit(part[i])) {
-                std::cout << "Error: Invalid IP in .conf\n";    
-                exit(EXIT_FAILURE);
+                throw (std::invalid_argument("Error: Invalid IP in .conf -> one of the character is not a digit"));
             }
         }
         if (dotPos != std::string::npos) {
                             
-            if (myStoi2(part) < 0 || myStoi2(part) > 255) {
-                std::cout << "Error: Invalid IP in .conf\n";    
-                exit(EXIT_FAILURE);
+            if (myStoi(part) < 0 || myStoi(part) > 255) {
+                throw (std::invalid_argument("Error: Invalid IP in .conf -> out of range"));
             }
         }
         start = (dotPos + 1);
@@ -84,106 +84,60 @@ void HostHandler::parseIp(std::string hostLine) {
 
     for (size_t i = 0; i < lastPart.size(); ++i) {
         if (!std::isdigit(lastPart[i])) {
-            std::cout << "Error: Invalid IP in .conf\n";    
-            exit(EXIT_FAILURE);
+            throw (std::invalid_argument("Error: Invalid IP in .conf -> one of the character is not a digit"));
         }
     }
-    if (myStoi2(lastPart) < 0 || myStoi2(lastPart) > 255) {
-        std::cout << "Error: Invalid IP in .conf\n";    
-        exit(EXIT_FAILURE);
+    if (myStoi(lastPart) < 0 || myStoi(lastPart) > 255) {
+        throw (std::invalid_argument("Error: Invalid IP in .conf -> out of range"));
     }
-    
-    this->setHostName(hostLine);
 }
 
 void HostHandler::checkListenFormat(std::string listenLine, ServerBlock& server) {
  
     HostHandler host;
 
-    // std::cout << "check listen: " << listenLine << std::endl;
     int onlyPort = 1;
 
-    for (size_t  i = 0; i < listenLine.size(); ++i) {
+    for (size_t  i = 0; i < listenLine.size(); ++i) { // je cherche les ":"
         if (!std::isdigit(listenLine[i]))
             onlyPort = 0;
     }
-    // std::cout << "onlyPort = " << onlyPort << std::endl;
  
-    if (onlyPort == 1) {
-        int tmpRes = myStoi2(listenLine);
-        // std::cout << "ppppp" << tmpRes << std::endl;
+    if (onlyPort == 1) { // cas ou il n y a pas d ip possible sur la ligne listen
+        
+        int tmpRes = myStoi(listenLine);
+        
         if (tmpRes < 0 || tmpRes > 65535) {
             throw (std::invalid_argument("Error: Invalid Port"));
         }
         else {
-            // std::cout << "Valid Port" << std::endl;
             server.addPort(tmpRes);
-            // std::cout << "port " << tmpRes << " added\n";
-            // server.setIp("127.0.0.1");
         }
     }
-    else {
+    else { // cas ou il y a une ip possible sur la ligne listen
+        
         size_t pos = listenLine.find(':');
+
         std::string tmpPort = listenLine.substr(pos + 1);
         for (size_t i = 0; i < tmpPort.size(); ++i) {
             if (!std::isdigit(tmpPort[i])) {
                 throw (std::invalid_argument("Error: Invalid Port"));
             }
         }
-        std::cout << "tmpPort = " << tmpPort << std::endl;
-        int tmpRes = myStoi2(tmpPort);
-        // std::cout << "ppppp" << tmpRes << std::endl;
-        if (tmpRes < 0) {
+
+        int tmpRes = myStoi(tmpPort);
+        if (tmpRes < 0 || tmpRes > 65535) {
             throw (std::invalid_argument("Error: Invalid Port"));
         }
         else {
-            // std::cout << "Valid Port" << std::endl;
             server.addPort(tmpRes);
         }
+
         if (pos != std::string::npos) {
  
             std::string tmpIp = listenLine.substr(0, pos);
-            // std::cout << "res IP = " << tmpIp << std::endl;
-            std::string::size_type dotPos = -1;
-
-            int start = 0;
-            while ((dotPos = listenLine.find('.', dotPos + 1)) != std::string::npos) {
-                std::string part = tmpIp.substr(start, dotPos - start);
-                for (size_t i = 0; i < part.size(); ++i) {
-                    if (!std::isdigit(part[i])) {
-
-                        std::cout << "Error: Invalid IP in .conf\n";
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                if (dotPos != std::string::npos) {
- 
-                    // std::cout << "part " << myStoi2(part) << std::endl;
- 
-                    if (myStoi2(part) < 0 || myStoi2(part) > 255) {
-                        std::cout << "Error: Invalid IP in .conf\n";
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                start = (dotPos + 1);
-            }
-            std::string lastPart = tmpIp.substr(start);
-
-            for (size_t i = 0; i < lastPart.size(); ++i) {
-
-                if (!std::isdigit(lastPart[i])) {
-
-                    std::cout << "Error: Invalid IP in .conf\n";
-
-                    exit(EXIT_FAILURE);
-                }
-            }
-            // std::cout << "part " << myStoi2(lastPart) << std::endl;
-            if (myStoi2(lastPart) < 0 || myStoi2(lastPart) > 255) {
-                std::cout << "Error: Invalid IP in .conf\n";
-                exit(EXIT_FAILURE);
-            }
-            // server.addHost(host);
+            parseIp(tmpIp);
+            filter(tmpIp);
         }
     }
 }

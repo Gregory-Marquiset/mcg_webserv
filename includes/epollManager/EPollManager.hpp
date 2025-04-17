@@ -4,17 +4,12 @@
 #include "../WebServ.hpp"
 #include "../server/Server.hpp"
 
-// strace pour check les process
-
-// epoll() en gros c est une structure de controle
-// to poll = interroger/sonder -> donc interrogation/controle des fd (des sockets)
-
 class EPollManager {
   private:
-    std::vector<Server>& _servers;     // Liste des serveurs
-    int _epollFd;                      // Descripteur epoll
-    std::vector<struct epoll_event> _events; // Liste des événements
-    std::map<int, Server*> _clientToServer; // pour savoir a quel server le client est associe
+    std::vector<Server>& _servers;
+    int _epollFd;
+    std::vector<struct epoll_event> _events;
+    std::map<int, Server*> _clientToServer;
     std::vector<int> _validListeningSockets;
 
     public:
@@ -28,6 +23,8 @@ class EPollManager {
       void handleClientRequest(int clientFd, Server *serv);
       std::vector<int> getValidListeningSockets() const;
       void determineDefaultServersAccordingToPort(std::vector<Server>& servers);
+
+      void clean();
 };
 
 #endif

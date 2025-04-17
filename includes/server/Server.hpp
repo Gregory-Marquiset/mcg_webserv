@@ -31,9 +31,6 @@ class Server {
     std::map<int, int> getServerStatusAccordingToPort() const;
 
     void printServerInfo() const;
-
-    // /* path handler */
-    // void pathHandler()
 };
 
 #endif

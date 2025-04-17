@@ -33,7 +33,7 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
 std::string trim(const std::string& str) {
 
     if (str.empty()) {
-        throw std::invalid_argument("trim(): Empty string passed. Error in .conf");
+        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
     }
     
     size_t start = 0;
@@ -48,10 +48,10 @@ std::string trim(const std::string& str) {
 
    
     if (str.substr(start, end - start).empty()) {
-        throw std::invalid_argument("trim(): Empty string passed. Error in .conf");
+        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
     }
 
-    return str.substr(start, end - start);
+    return (str.substr(start, end - start));
 }
 
 /* fonction principale pour hierarchiser les blocks (arbre parents - enfants) */
@@ -177,18 +177,3 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     else 
         childBlock.setDirective(key, value);
 }
-
-// un bloc c est forcement un nom + {}
-// des directives c est forcement une cle et une valeur 
-
-// read file line by line 
-// -> look for {
-// then look for }
-
-// if another { alors block enfant 
-
-// store everything that is in between
-// get what is on same line that { -> should be name
-// then get directives 
-
-/* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */

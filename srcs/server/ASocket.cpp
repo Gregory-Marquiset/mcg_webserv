@@ -13,6 +13,10 @@ ASocket::~ASocket() {};
 
 /* ================= SETTERS - GETTERS ======================== */
 
+void ASocket::setSockFd(int status) {
+  this->_sockFd = status;
+}
+
 void ASocket::setConnection(int con) {
   this->_connection = con;
 }
@@ -33,8 +37,7 @@ int ASocket::getConnection() {
 
 void ASocket::testConnection(int item) {
     if (item < 0) {
-        perror("Failed to connect...");
-        exit(EXIT_FAILURE);
+      throw (std::runtime_error("Error: socket() function failed..."));
     }
 }
 

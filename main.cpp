@@ -10,11 +10,6 @@
 #include "includes/configFile/LocationBlock.hpp"
 #include "includes/epollManager/EPollManager.hpp"
 
-// ca a l air a peu pres ok pour l attributaion des servers par defaut
-// gerer les invalides files : non exiting
-// gerer que les requetes visent les bons servers et dans le cas echeant le server par defaut
-// leak lorsque je exit failure mais sinon c est good 
-
 void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
 
     if (serverBlocks.empty()) {
@@ -81,9 +76,19 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
     }
 }
 
+volatile sig_atomic_t exitFlag = 0; 
+
+void signal_handler(int s)
+{
+    (void)s;
+    exitFlag = 1;
+}
+
 int main(int argc, char **argv) {
 
     if (argc == 2) {
+
+        signal(SIGINT, signal_handler);
 
         /* ================= Analyse le fichier et extrait les blocs ======================== */
 
@@ -104,7 +109,7 @@ int main(int argc, char **argv) {
         
         try {
             serverBlocks = data.createAllServerBlocks(rawConfig);
-            printConfigFileData(serverBlocks);
+            // printConfigFileData(serverBlocks);
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
             return (1);
@@ -122,35 +127,33 @@ int main(int argc, char **argv) {
 
         // /* ================= Les servers sont sous surveillance ======================== */
 
-        EPollManager epollManager(servers);
+        try {
 
-        std::cout << "===== Default Servers according to Port =====" << std::endl;
-        // std::cout << "server nb = " << servers.size() << std::endl;
-        for (size_t i = 0; i < servers.size(); ++i) {
+            EPollManager epollManager(servers);
 
-            // std::cout << "size = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
-            std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
-            for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
-                std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+            while (exitFlag == 0) {
+                epollManager.run();
+                // std::cout << "===== Default Servers according to Port =====" << std::endl;
+                // // std::cout << "server nb = " << servers.size() << std::endl;
+                // for (size_t i = 0; i < servers.size(); ++i) {
+                
+                //     // std::cout << "size = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+                //     std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
+                //     for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+                //         std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+                //     }
+                // }
+                // std::cout << "=============================================" << std::endl;
             }
+            epollManager.clean();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
         }
-        std::cout << "=============================================" << std::endl;
-
-        epollManager.run();
     }
-    else
+    else {
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
+        return (1);
+    }
+    return (0);
 }
-
-// Les classes:
-
-// Block                Structure d'un block de config
-// RecupBlockContent	Analyse le fichier et extrait les blocs
-// ServerBlock	        Transforme les blocs en objets exploitables
-// Server	            Représente un serveur unique basé sur un ServerBlock + Ajout d'une ListeningSocket
-// ServerManager	    Gère plusieurs serveurs et stocke un std::vector<Server>
-
-// problem avec le hostname
-// Launch multiple servers at the same time with different configurations but with common ports. Does it work? If it does, ask why the server should work if one of the configurations isn't functional. Keep going.
-// donc try catch blocks
-// possible leaks
