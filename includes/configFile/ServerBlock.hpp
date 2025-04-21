@@ -68,7 +68,7 @@ class ServerBlock {
 
         std::vector<ServerBlock> createAllServerBlocks(RecupBlockContent rawConfig);
         void caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive, HostHandler& host);
-        void caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive, HostHandler& host);
+        void caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
 };
 
 #endif

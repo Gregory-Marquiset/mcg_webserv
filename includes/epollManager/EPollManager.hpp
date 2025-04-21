@@ -9,8 +9,10 @@ class EPollManager {
     std::vector<Server>& _servers;
     int _epollFd;
     std::vector<struct epoll_event> _events;
-    std::map<int, Server*> _clientToServer;
     std::vector<int> _validListeningSockets;
+    std::map<int, Server*> _getServerBasedOnClientFd; // la je regarde le fd du client retourne par accept() et je cherhcer quel server a accepter le client (cle = fd client, value: Server*)
+    std::map<int, Server*> _getServerBasedOnServerFd; // la je regarde le fd server donc je cherche un server (cle = serverFd, value: Server*)
+    std::map<int, ListeningSocket*> _getListeningSocketBasedOnServerFd; // la je cherche la listening socket de mon server (cle = fd server, value: ListeningSocket*)
 
     public:
 

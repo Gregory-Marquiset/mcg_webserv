@@ -9,17 +9,17 @@ class ServerBlock;
 class HostHandler {
 
     private:
-        std::string _hostName;
+        std::vector<std::string> _hostName;
         int _hostFormat;
 
     public:
         HostHandler();
         ~HostHandler();
 
-        void setHostName(std::string hostName);
+        void setHostName(std::vector<std::string> hostName);
         void setHostFormat(int _hostFormat);
 
-        std::string getHostName() const;
+        std::vector<std::string>& getHostName();
         int getHostFormat() const;
         
         void filter(std::string hostLine);

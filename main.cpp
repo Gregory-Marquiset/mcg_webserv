@@ -20,7 +20,9 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
 
         std::cout << "server { " << std::endl;
         for (size_t iHost = 0; iHost < serverBlocks[i].getHost().size(); ++iHost) {
-            std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
+            for (size_t j = 0; j < serverBlocks[i].getHost()[iHost].getHostName().size(); ++j) {
+                std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName()[j] << std::endl;
+            }
         }
 
         for (size_t iPort = 0; iPort < serverBlocks[i].getPort().size(); ++iPort) {
@@ -109,7 +111,7 @@ int main(int argc, char **argv) {
         
         try {
             serverBlocks = data.createAllServerBlocks(rawConfig);
-            // printConfigFileData(serverBlocks);
+            printConfigFileData(serverBlocks);
         } catch (const std::exception& e) {
             std::cerr << e.what() << std::endl;
             return (1);
@@ -122,10 +124,10 @@ int main(int argc, char **argv) {
         for (size_t i = 0; i < serverBlocks.size(); ++i) {
 
             servers.push_back(Server(serverBlocks[i]));
-            // servers[i].printServerInfo();
+            servers[i].printServerInfo();
         }
 
-        // /* ================= Les servers sont sous surveillance ======================== */
+        /* ================= Les servers sont sous surveillance ======================== */
 
         try {
 

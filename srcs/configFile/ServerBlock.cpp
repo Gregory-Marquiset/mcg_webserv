@@ -148,7 +148,6 @@ void ServerBlock::portCheck() {
         throw (std::invalid_argument("Error: no port found"));
     }
     
-
     for (size_t i = 0; i < this->getPort().size(); ++i) {
         for (size_t j = i + 1; j < this->getPort().size(); ++j) {
             if (this->getPort()[i] == this->getPort()[j]) {
@@ -194,42 +193,26 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
         throw (std::invalid_argument("Error: Provide a port where to listen"));
     } else {
         for (std::multimap<std::string, std::string>::iterator itPort = directive.lower_bound("listen"); itPort != directive.upper_bound("listen"); ++itPort) {
-            // HostHandler host; // -> peut etre enlever ca ?
             host.checkListenFormat(itPort->second, oneServerBlock);
-            // oneServerBlock._host.push_back(host);
             flag = 1;
         }
     }
 
     if (directive.count("server_name") == 0) {
-        
-    //     // HostHandler host;
 
-        host.setHostName("localhost");
-        // oneServerBlock._host.push_back(host);
+        host.getHostName().push_back("localhost");
         flag = 1;
     }
     else if (directive.count("server_name") == 1) {
         std::multimap<std::string, std::string>::iterator itServerName = directive.find("server_name");
 
-        // HostHandler host;
-
-        host.filter(itServerName->second);
-        if (host.getHostFormat() == 1) {
-            host.parseIp(itServerName->second);
+        std::stringstream ss(itServerName->second);
+        std::string name;
+        while (ss >> name) {
+            host.getHostName().push_back(name);
             flag = 1;
-            // oneServerBlock._host.push_back(host);
         }
-        else {
-
-            std::stringstream ss(itServerName->second);
-            std::string name;
-            while (ss >> name) {
-                host.setHostName(name);
-                // oneServerBlock._host.push_back(host);
-                flag = 1;
-            }
-        }
+ 
     } else {
         throw (std::invalid_argument("Error: Too many server_names"));
     }
@@ -309,9 +292,7 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
 
 // /* SETTER DU SERVER BLOCK AVEC LOCATION BLOCK IMBRIQUEE */
 
-void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive, HostHandler& host) {
-
-    (void)host;
+void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive) {
 
     if (directive.empty()) {
         throw (std::invalid_argument("Error: Provide some directives in .conf"));
@@ -431,7 +412,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 LocationBlock locBlock;
 
                 locBlock.setPathSpecial("/");
-                caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive, host);
+                caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive);
                 oneServerBlock.addLocationBlock(locBlock);
             }
             else {
@@ -450,7 +431,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                     LocationBlock locBlock;
                     
                     locBlock.setPathSpecial("/");
-                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive, host);
+                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, directive);
                     oneServerBlock.addLocationBlock(locBlock);
                 }
                  
@@ -466,7 +447,7 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                         }
                     }
                     std::multimap<std::string, std::string> locDirective = itLocation->getDirective();
-                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, locDirective, host);
+                    caseWithLocationBlockEmbeded(oneServerBlock, locBlock, locDirective);
                     oneServerBlock.addLocationBlock(locBlock);
                 }
             }

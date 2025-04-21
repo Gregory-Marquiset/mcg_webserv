@@ -22,5 +22,6 @@
 #include <vector>
 #include <map>
 #include <signal.h>
+#include <arpa/inet.h>
 
 #endif

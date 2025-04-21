@@ -50,3 +50,25 @@ lancement de la boucle pour surveiller les eveents
 // faire un tour d tous les paths, si pas de / alors:
 // creer location / bloc
 // index, autoindex, client_mx_size_body heritent des directives servers si non redefinis -> don a faire valoir pour tous les les locs blocks
+
+// Initialisation (EPollManager)
+
+//     Crée epoll.
+//     Ajoute les sockets des serveurs à epoll.
+
+// Boucle principale (run())
+
+//     Attend des événements avec epoll_wait().
+//     Si un serveur est détecté : accepter une connexion (acceptConnection()).
+//     Si un client est détecté : traiter sa requête (handleClientRequest()).
+
+// Gestion des connexions (acceptConnection())
+
+//     Accepte le client via accept().
+//     Associe la socket client au bon serveur.
+//     Ajoute la socket client à epoll.
+
+
+// (le accept() va dupliquer server socket
+// et c est ce qui permet de laisser le socket serveur libre de toujours ecouter
+// accept() cree une nouvelle socket cliente
