@@ -6,7 +6,7 @@ Server::Server(const ServerBlock& serverBlock) {
 
     this->_serverBlock = serverBlock;
     for (size_t i = 0; i < this->_serverBlock.getPort().size(); ++i) {
-        this->_listeningSocket.push_back(ListeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort()[i], INADDR_ANY, 3));
+        this->_listeningSocket.push_back(ListeningSocket(AF_INET, SOCK_STREAM, 0, this->_serverBlock.getPort()[i], INADDR_ANY, 128));
     }
 }
 
