@@ -7,7 +7,79 @@
 #include <cerrno>
 #include <cstring>
 #include <fstream>
+#include <sys/select.h>
+#include <signal.h>
+#include <errno.h>
 #include "../../includes/response/ResponseMaker.hpp"
+
+
+std::string	we_readWithTimeout( int fd, pid_t child_pid, int timeout_sec )
+{
+	std::string		output;
+	char			buffer[1024];
+	fd_set			readfds;
+	struct timeval	timeout;
+	int				max_fd = fd;
+	int				elapsed = 0;
+	int				status;
+	bool			finished = false;
+
+	while ( elapsed < timeout_sec * 10 )
+	{
+		FD_ZERO( &readfds );
+		FD_SET( fd, &readfds );
+
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 100000;
+
+		int	ready = select( max_fd + 1, &readfds, NULL, NULL, &timeout );
+		if ( ready == -1 )
+		{
+			perror( "select" );
+			break;
+		}
+		else if ( ready == 0 )
+		{
+			elapsed++;
+			pid_t	result = waitpid(child_pid, &status, WNOHANG);
+			if (result == child_pid)
+			{
+				finished = true;
+				break;
+			}
+			continue;
+		}
+		else
+		{
+			if ( FD_ISSET( fd, &readfds ) )
+			{
+				ssize_t	bytesRead = read( fd, buffer, sizeof( buffer ) );
+				if (bytesRead > 0)
+					output.append( buffer, bytesRead );
+				else
+					break;
+			}
+		}
+	}
+
+	if ( !finished )
+	{
+		std::cerr << "CGI Timeout: killing process " << child_pid << "\n";
+		kill( child_pid, SIGKILL );
+		waitpid( child_pid, NULL, 0 );
+		throw std::runtime_error( "CGI Timeout exceeded" );
+	}
+
+	close(fd);
+
+	if ( WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
+	{
+		std::cerr << "CGI exited with status: " << WEXITSTATUS( status ) << "\n";
+		throw std::runtime_error( "CGI returned error" );
+	}
+
+	return ( output );
+}
 
 std::string	we_executeCGI( const std::string &binary, const std::string &scriptPath , ErrorManagement &err )
 {
@@ -56,33 +128,18 @@ std::string	we_executeCGI( const std::string &binary, const std::string &scriptP
 	{
 		close( pipefd[1] );
 
-		std::string	output;
-		char		buffer[1024];
-		ssize_t		bytesRead;
-
-		while ( ( bytesRead = read( pipefd[0], buffer, sizeof( buffer ) ) ) > 0 )
-			output.append( buffer, bytesRead );
-		if ( bytesRead == -1 )
+		try
 		{
-			std::cerr << "Erreur : Problème lors de la lecture du pipe ( " << strerror( errno ) << " )\n";
-			close( pipefd[0] );
+			std::string output = we_readWithTimeout(pipefd[0], pid, 5);
+			return ( output );
+		}
+		catch ( const std::exception &e )
+		{
+			std::cerr << "Erreur : " << e.what() << std::endl;
 			if (err.getErrorCode() == 0)
-				err.setErrorCode(500);
+				err.setErrorCode(504);
 			throw ResponseMaker::ResponseException("");
 		}
-		close ( pipefd[0] );
-
-		int	status;
-
-		waitpid( pid, &status, 0 );
-		if (WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
-		{
-			std::cerr << "Erreur : Le CGI a retourné un code d'erreur ( " << WEXITSTATUS( status ) << " )\n";
-			if (err.getErrorCode() == 0)
-				err.setErrorCode(500);
-			throw ResponseMaker::ResponseException("");		}
-
-		return ( output );
 	}
 }
 
