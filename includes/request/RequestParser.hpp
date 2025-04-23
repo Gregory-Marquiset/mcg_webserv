@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 12:56:35 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 14:41:36 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@
 %20%22%23%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3C%3D\
 %3E%3F%40%5B%5C%5D%5E%5F%60%7B%7C%7D"
 # define VALID_CHARSET "!$%&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"
+#define BUFFER_SIZE 15
 
 class	RequestParser
 {
@@ -67,6 +68,7 @@ class	RequestParser
 		std::string		_content_type;
 		std::string		_connection;		//Pour close le fd ou pas
 		std::string		_cookie;			//Pour greg
+		//size_t			_size;
 		unsigned long	_content_length;
 		bool			_cnt_lenght;
 		bool			_transfert_encoding;

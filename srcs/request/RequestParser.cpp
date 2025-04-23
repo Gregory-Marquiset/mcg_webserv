@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 12:57:24 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 15:08:17 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,7 @@ _content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
 
-RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR),
-_content_length(0), _cnt_lenght(0), _transfert_encoding(0)
+RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
 
@@ -172,8 +171,8 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		{
 			parseBody(this->_full_request, clientFd);
 			std::cout << "\033[31mFin parseBody\033[0m" << std::endl << std::endl;
-			if (!this->_request_body.empty())
-				std::cout << this->_request_body << std::endl;
+			// if (!this->_request_body.empty())
+			// 	std::cout << this->_request_body << std::endl;
 		}
 		std::cout << "Valid Request" << std::endl;
 	}
@@ -258,12 +257,12 @@ void	RequestParser::parseHTTP(std::string &req)
 	std::string	http;
 	int			i;
 	long		n;
-
+	
 	if (req.find("HTTP/") != 0)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 1");
 	}
 	http += req.substr(0, 5);
 	req.erase(0, 5);
@@ -272,7 +271,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 2");
 	}
 	while (req[i] && (req[i] >= '0' && req[i] <= '9'))
 		i++;
@@ -281,7 +280,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 3");
 	}
 	http += req.substr(0, i);
 	req.erase(0, i);
@@ -295,7 +294,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 4");
 	}
 	http += ".";
 	req.erase(0, 1);
@@ -306,7 +305,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 5");
 	}
 	http += req.substr(0, i);
 	req.erase(0, i);
@@ -314,7 +313,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP");
+		throw RequestParser::RequestException("Invalid HTTP 6");
 	}
 	req.erase(0, 2);
 	this->_request_http_version = http;
@@ -451,21 +450,21 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
 	{
-		temp_buf.resize(4096);
 		// std::cout << "Content length = " << this->_content_length << std::endl;
 		// std::cout << "req.size() = " << req.size() << std::endl;
 		// std::cout << req << std::endl;
 		while (req.size() < this->_content_length)
 		{
-			bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
-			if (bytes_received <= 0)
+			temp_buf.resize(BUFFER_SIZE);
+			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+			if (bytes_received < 0)
 			{
+				std::cout << "body size: " << req.size() << std::endl;
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Wrong body size");
+				throw RequestParser::RequestException("Error receiving body");
 			}
 			req += temp_buf.substr(0, bytes_received);
-			temp_buf.resize(4096);
 		}
 		this->_request_body = req;
 		// if (this->_request_body.size() != this->_content_length)
@@ -488,8 +487,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 			pos = buf.find("\r\n");
 			if (pos == std::string::npos)
 			{
-				temp_buf.resize(4096);
-				bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
+				temp_buf.resize(BUFFER_SIZE);
+				bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
 				if (bytes_received < 0 || (bytes_received == 0 && temp_buf.find("0\r\n\r\n") == std::string::npos))
 				{
 					// std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
@@ -515,8 +514,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				}
 				else if (chunk_size == 0)
 				{
-					temp_buf.resize(4096);
-					while (recv(clientFd, &temp_buf[0], 4096, 0) > 0)
+					temp_buf.resize(BUFFER_SIZE);
+					while (recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0) > 0)
 						buf += temp_buf;
 					if (buf.find("0\r\n\r\n") != 0)
 					{
@@ -530,8 +529,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				while (buf.size() < static_cast<size_t> (chunk_size + 2))
 				{
 					// std::cerr << "prout" << std::endl;
-					temp_buf.resize(4096);
-					bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
+					temp_buf.resize(BUFFER_SIZE);
+					bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
 					//std::cerr << bytes_received << std::endl;
 					if (bytes_received <= 0)
 					{
