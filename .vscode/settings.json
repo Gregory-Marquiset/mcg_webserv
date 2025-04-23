@@ -53,6 +53,7 @@
 		"ranges": "cpp",
 		"span": "cpp",
 		"ctime": "cpp",
-		"iomanip": "cpp"
+		"iomanip": "cpp",
+		"cstring": "cpp"
 	}
 }

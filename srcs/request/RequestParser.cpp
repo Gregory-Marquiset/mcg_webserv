@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 14:35:44 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 04:42:00 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,13 @@
 #include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
+RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false),
+_content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
 
-RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false)
+RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false),
+_content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
 
@@ -37,9 +39,9 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 {
 	if (this != &inst)
 	{
+		this->_error_class = inst._error_class;
 		this->_full_request = inst._full_request;
 		this->_escaped_char = inst._escaped_char;
-		this->_error_class = inst._error_class;
 		this->_is_uri_cgi = inst._is_uri_cgi;
 		this->_content_type = inst._content_type;
 		this->_connection = inst._connection;
@@ -185,7 +187,9 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		if (this->_request_method == "POST")
 		{
 			parseBody(this->_full_request, clientFd);
-			std::cout << this->_request_body << std::endl;
+			std::cout << "\033[31mFin parseBody\033[0m" << std::endl << std::endl;
+			if (!this->_request_body.empty())
+				std::cout << this->_request_body << std::endl;
 		}
 		std::cout << "Valid Request" << std::endl;
 	}
@@ -469,9 +473,9 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 {
 	// std::cout << "Full request : " << std::endl;
 	// std::cout << req;
-	// std::cout << "\033[31mFin du body et debut parseBody\033[0m" << std::endl << std::endl;
+	std::cout << "\033[31mDebut parseBody\033[0m" << std::endl << std::endl;
 
-	//A RAJOUTER !! : check dans fichier config si body size limite
+	
 	std::string	buf = req;
 	std::string	temp_buf;
 	std::string	str_chunk_size;
@@ -479,8 +483,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	size_t		pos;
 	long		chunk_size;
 
-	if (this->_content_length == 0 && this->_transfert_encoding == 0)
-		return;
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
 	{
 		temp_buf.resize(BUFFER_SIZE);
@@ -496,16 +498,19 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					this->_error_class->setErrorCode(400);
 				throw RequestParser::RequestException("Wrong body size");
 			}
-			req += temp_buf;
+			req += temp_buf.substr(0, bytes_received);
+			temp_buf.resize(BUFFER_SIZE);
 		}
-		this->_request_body = req.substr(0, this->_content_length);
-		if (this->_request_body.size() != this->_content_length)
-		{
-			std::cout << "size du body: " << req.size() << std::endl;
-			if (this->_error_class->getErrorCode() == 0)
-				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Wrong body size 1");
-		}
+		this->_request_body = req;
+		// if (this->_request_body.size() != this->_content_length)
+		// {
+			
+		// 	if (this->_error_class->getErrorCode() == 0)
+		// 		this->_error_class->setErrorCode(400);
+		// 	throw RequestParser::RequestException("Wrong body size 1");
+		// }
+		// std::cout << "size du body: " << this->_request_body.size() << std::endl;
+		// std::cout << "Content-Length: " << this->_content_length << std::endl;
 		//std::cout << this->_request_body << std::endl;
 		return ;
 	}

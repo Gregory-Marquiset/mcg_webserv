@@ -20,6 +20,7 @@ SRCS :=		main.cpp\
 			srcs/errorManagement/ErrorManagement.cpp\
 			srcs/response/ResponseMaker.cpp\
 			srcs/utils/Utils.cpp\
+			srcs/cgi/cgi.cpp\
 
 OBJS := $(SRCS:.cpp=.o)
 
@@ -33,7 +34,7 @@ $(NAME): $(OBJS)
 
 clean:
 	rm -f $(OBJS)
-	rm -rf ./www/uploads/*
+	rm -rf ./www/upload/*
 
 fclean: clean
 	rm -f $(NAME)

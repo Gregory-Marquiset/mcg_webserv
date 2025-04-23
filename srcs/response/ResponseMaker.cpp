@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 15:34:53 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 04:43:12 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,9 @@ ResponseMaker	&ResponseMaker::operator=(ResponseMaker const &inst)
 {
 	if (this != &inst)
 	{
-
+		this->_error_class = inst._error_class;
+		this->_req_infos = inst._req_infos;
+		this->_final_response = inst._final_response;
 	}
 	return (*this);
 }
@@ -206,9 +208,22 @@ void	ResponseMaker::createGetResponse(void)
 	}
 	else
 	{
+		//std::cout << this->_req_infos.getCgi() << std::endl;
 		if (this->_req_infos.getCgi() == true)
 		{
-			//on verra
+			std::string	cgi_return;
+			//std::cout << "FCKING CGI PATH: " << this->_req_infos.getCgiPath() << std::endl;
+			cgi_return = we_checkCGI(this->_req_infos.getCgiPath(), this->_req_infos.getFinalPath(), this->_error_class);
+			
+			// std::cout << "CGI RETURN: " << std::endl;
+			// std::cout << "*" << cgi_return << "*" << std::endl << std::endl;
+			
+			response += this->_req_infos.getHTTP() + " 200 OK\r\n";
+			response += "Server: webserv\r\n";
+			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
+			response += cgi_return;
+			
+			this->_final_response = response;
 			return;
 		}
 

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:46:03 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/11 10:27:34 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 01:38:41 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include "../../includes/errorManagement/ErrorManagement.hpp"
 # include "../../includes/request/ProcessRequest.hpp"
 # include "../../includes/utils/Utils.hpp"
+# include "../../includes/cgi/cgi.hpp"
 
 class	ResponseMaker
 {
@@ -56,5 +57,7 @@ class	ResponseMaker
 		void			createDeleteResponse(void);
 		void			createPostResponse(void);
 };
+
+
 
 #endif

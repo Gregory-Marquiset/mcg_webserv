@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/14 15:29:55 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/17 04:53:54 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 		this->_method = inst._method;
 		this->_http_version = inst._http_version;
 		this->_request_body = inst._request_body;
+		this->_content_type = inst._content_type;
+		this->_cgi_path = inst._cgi_path;
 		this->_headers = inst._headers;
 		this->_cgi = inst._cgi;
 		this->_autoindex = inst._autoindex;
@@ -90,6 +92,11 @@ std::string	ProcessRequest::getContentType(void) const
 std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
 {
 	return (this->_headers);
+}
+
+std::string	ProcessRequest::getCgiPath(void) const
+{
+	return (this->_cgi_path);
 }
 
 bool	ProcessRequest::getCgi(void) const
@@ -155,6 +162,13 @@ void	ProcessRequest::compareUriWithLocations(void)
 	for (it = locations.begin(); it != locations.end(); it++)
 	{
 		location_path = it->getPath();
+		// std::cout << "location path: " << location_path << std::endl;
+		// if (it->getCgiExtension().empty())
+		// {
+		// 	std::cout << "cgi class is empty" << std::endl;
+		// }
+		// else
+		// 	std::cout << "not empty" << std::endl;
 		if (location_path == "/" && last_location_match_size == -1)
 			this->_location_to_use = *it;
 		location_path_size = location_path.size();
@@ -237,17 +251,30 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 	std::string				extension;
 	size_t					pos;
 
+	// this->_cgi = true;
+	// this->_cgi_path = "/usr/bin/python3";
+	// return;
+	
 	cgi_ext = this->_location_to_use.getCgiExtension();
-	uri = this->_request.getURI();
+	if (cgi_ext.empty())
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(500);
+		throw RequestParser::RequestException("Block CGI manquant");
+	}
+	uri = this->_final_path;
 	pos = uri.rfind(".");
 	if (pos == std::string::npos)
 		return ;
 	extension = uri.substr(pos, std::string::npos);
+	//std::cout << "extension: " << extension << std::endl;
 	for (std::vector<CgiHandler>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
 	{
+		//std::cout << "extension: " << extension << " et it->getKey" << it->getKey() << std::endl;
 		if (extension == it->getKey())
 		{
 			this->_request.setIsCgi(true);
+			this->_cgi_path = it->getValue();
 			return ;
 		}
 	}
@@ -274,6 +301,7 @@ void	ProcessRequest::addRootPath(void)
 		return;
 	}
 
+	std::cout << "Root path: " << this->_location_to_use.getRoot() << std::endl;
 	this->_final_path += this->_location_to_use.getRoot();
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] != '/')
@@ -360,10 +388,10 @@ void	ProcessRequest::generateHTMLBody(std::map<std::string, std::string>	&direct
 
 	for (std::map<std::string, std::string>::iterator it = directory_content.begin(); it != directory_content.end(); it++)
 	{
-		// if (it->second == "dir")
-		// 	body += "        <p><a href=\"" + it->first + "\">" + it->first + "/</a></p>\n";
-		// else
-		body += "        <p><a href=\"" + it->first + "\">" + it->first + "</a></p>\n";
+		if (it->second == "dir")
+			body += "        <p><a href=\"" + it->first + "/" + "\">" + it->first + "/</a></p>\n";
+		else
+			body += "        <p><a href=\"" + it->first + "\">" + it->first + "</a></p>\n";
 	}
 	body += "    </div>\n";
 	body += "</body>\n";
@@ -383,7 +411,7 @@ void	ProcessRequest::processPostRequest(void)
 			this->_error_class->setErrorCode(409);
 		throw RequestParser::RequestException("Fichier déjà existant");
 	}
-	if (opendir("./www/uploads") == NULL)
+	if (opendir("./www/upload") == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
@@ -421,8 +449,8 @@ void	ProcessRequest::manageFormCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -453,11 +481,12 @@ void	ProcessRequest::manageFormCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -487,6 +516,106 @@ void	ProcessRequest::manageFormCase(void)
 void	ProcessRequest::manageMultipartCase(void)
 {
 	std::cout << "CAS POST multipart" << std::endl;
+	
+	std::string	request_content_type = this->_request.getContentType();
+	std::string	boundary;
+	size_t		pos = 0;
+
+	pos = request_content_type.find("boundary=");
+	if (pos == std::string::npos)
+	{
+		if (this->_error_class->getErrorCode() == 0)
+			this->_error_class->setErrorCode(400);
+		throw RequestParser::RequestException("Boundary absent");
+	}
+	boundary = request_content_type.substr(pos + 9);
+	std::cout << "Boundary: " << boundary << std::endl;
+	
+	std::string					body = this->_request.getBody();
+	size_t						start;
+	size_t						end;
+	size_t						token_start;
+	size_t						token_end;
+	
+	int n = 0;
+	for (size_t i = 0; i < body.size(); i++)
+	{
+		if (body[i] == '\r' && body[i + 1] == '\n')
+		{
+			n++;
+			std::cerr << "prout " << n << "\ti = " << i << std::endl;
+		}
+	}
+	std::cerr << "n = " << n << std::endl;
+	
+	end = body.find(boundary);
+	while (1)
+	{
+		start = end;
+		if (start == std::string::npos)
+		{
+			if(this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(400);
+			throw RequestParser::RequestException("Boundary error");
+		}
+		end = body.find(boundary, boundary.size());
+		std::cout << "start: " << start << std::endl;
+		std::cout << "end: " << end << std::endl;
+		std::cout << "npos: " << std::string::npos << std::endl << std::endl;
+		if (end == std::string::npos)
+		{
+			std::cout << "the end" << std::endl;
+			break;
+		}
+		std::string	type;
+		std::string	filename = "./www/upload/";
+		std::string	file_body;
+		
+		token_start = body.find("name=\"");
+		token_end = body.find("\"", token_start + 6);
+		type = body.substr(token_start + 6, token_end - token_start - 6);
+		body.erase(0, token_end - 1);
+		std::cout << "token_start: " << start << std::endl;
+		std::cout << "token_end: " << end << std::endl;
+		std::cout << "type: " << type << std::endl << std::endl;
+		if (type == "file" || type == "files[]")
+		{
+			token_start = body.find("filename=\"");
+			token_end = body.find("\"", token_start + 10);
+			filename += body.substr(token_start + 10, token_end - token_start - 10);
+			std::cout << "token_start: " << start << std::endl;
+			std::cout << "token_end: " << end << std::endl;
+			std::cout << "filename: " << filename << std::endl;
+			
+			size_t	pos = body.find("\r\n\r\n");
+			if (pos == std::string::npos)
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(400);
+				throw RequestParser::RequestException("Pas de double retour a la ligne");
+			}
+			body.erase(0, pos + 4);
+			file_body += body.substr(0, end);
+			
+			if (access(filename.c_str(), F_OK) == 0)
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(409);
+				throw RequestParser::RequestException("Fichier déja existant");
+			}
+			std::ofstream	file(filename.c_str());
+		
+			if (!file.is_open())
+			{
+				if (this->_error_class->getErrorCode() == 0)
+					this->_error_class->setErrorCode(500);
+				throw RequestParser::RequestException("Fichier non crée");
+			}
+			std::string	body = this->getBody();
+		
+			file << file_body;
+		}
+	}
 }
 
 void	ProcessRequest::manageJsonCase(void)
@@ -505,8 +634,8 @@ void	ProcessRequest::manageJsonCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -537,11 +666,12 @@ void	ProcessRequest::manageJsonCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".json";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 
 	if (access(new_path.c_str(), F_OK) == 0)
 	{
@@ -579,8 +709,8 @@ void	ProcessRequest::manageSimpleCase(void)
 			this->_error_class->setErrorCode(403);
 		throw RequestParser::RequestException("Erreur dans le path pour POST");
 	}
-	if (path.find("./www/uploads/") == 0)
-		path.erase(0, 14);
+	if (path.find("./www/upload/") == 0)
+		path.erase(0, 13);
 	else if (path.find("./www/") == 0)
 		path.erase(0, 6);
 
@@ -611,11 +741,12 @@ void	ProcessRequest::manageSimpleCase(void)
 	}
 	if (generate == true)
 	{
-		if (!path.empty() && path[size - 1] != '_')
-			path[size - 1] = '_';
+		size = path.size();
+		if (!path.empty() && path[size] != '_')
+			path += "_";
 		path += Utils::getTime(1) + ".txt";
 	}
-	new_path += "./www/uploads/" + path;
+	new_path += "./www/upload/" + path;
 	std::cout << "new_path : " << new_path << std::endl;
 
 	if (access(new_path.c_str(), F_OK) == 0)
