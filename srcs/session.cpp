@@ -4,108 +4,139 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string>
+#include <map>
 
-bool	we_ensureSessionDirectoryExists( )
+std::string	we_getSessionIDFromCookieHeader(const std::string &cookieHeader)
 {
-	if ( access( "sessions_bin", F_OK ) == -1 )
-	{
-		if ( mkdir( "sessions_bin", 0755 ) == -1 )
-		{
-			std::cerr << "Erreur : Impossible de créer le dossier 'sessions'\n";
-			return ( false );
-		}
-	}
-	return ( true );
+    std::istringstream ss(cookieHeader);
+    std::string pair;
+
+    while (std::getline(ss, pair, ';'))
+    {
+        size_t start = pair.find_first_not_of(" ");
+        if (start == std::string::npos)
+            continue;
+        pair = pair.substr(start);
+
+        size_t pos = pair.find('=');
+        if (pos == std::string::npos)
+            continue;
+
+        std::string key = pair.substr(0, pos);
+        std::string value = pair.substr(pos + 1);
+
+        if (key == "sessionID")
+            return value;
+    }
+    return "";
 }
 
-bool	we_saveSessionToFile( const std::string& sessionID, const std::string& data )
+bool we_ensureSessionDirectoryExists()
 {
-	if ( !we_ensureSessionDirectoryExists( ) )
-		return ( false );
-
-	std::string		filename = "sessions_bin/session_" + sessionID + ".dat";
-	std::ofstream	file( filename.c_str( ), std::ios::out | std::ios::trunc );
-
-	if ( !file )
-	{
-		std::cerr << "Erreur : Impossible de créer le fichier de session " << filename << "\n";
-		return ( false );
-	}
-	file << data;
-	file.close( );
-	return ( true );
+    if (access("sessions_bin", F_OK) == -1)
+    {
+        if (mkdir("sessions_bin", 0755) == -1)
+        {
+            std::cerr << "Erreur : Impossible de créer le dossier 'sessions_bin'\n";
+            return false;
+        }
+    }
+    return true;
 }
 
-std::string	we_generateSessionID( )
+bool we_saveSessionToFile(const std::string &sessionID, const std::string &data)
 {
-	std::ifstream	urandom( "/dev/urandom", std::ios::in | std::ios::binary );
+    if (!we_ensureSessionDirectoryExists())
+        return false;
 
-	if ( !urandom )
-	{
-		std::cerr << "Erreur : Impossible d'accéder à /dev/urandom\n";
-		return ( "500 Internal Server Error" );
-	}
+    std::string filename = "sessions_bin/session_" + sessionID + ".dat";
+    std::ofstream file(filename.c_str(), std::ios::out | std::ios::trunc);
 
-	std::stringstream	ss;
-	unsigned char		randomByte;
-
-	for ( int i = 0; i < 16; i++ )
-	{
-		urandom.read( reinterpret_cast<char *>( &randomByte ), sizeof( randomByte ) );
-		ss << std::hex << std::setw( 2 ) << std::setfill( '0' ) << ( int )randomByte;
-	}
-	urandom.close( );
-
-	return ( ss.str( ) );
+    if (!file)
+    {
+        std::cerr << "Erreur : Impossible de créer le fichier de session " << filename << "\n";
+        return false;
+    }
+    file << data;
+    file.close();
+    return true;
 }
 
-std::string	we_createSession( )
+std::string we_generateSessionID()
 {
-	std::string	sessionID = we_generateSessionID( );
-	std::string	initialData = "user=guest\npassword=none\nstatus=anonymous\ntheme=1";
+    std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
 
-	if ( sessionID == "500 Internal Server Error" || !we_saveSessionToFile( sessionID, initialData ) )
-		return ( "500 Internal Server Error" );
+    if (!urandom)
+    {
+        std::cerr << "Erreur : Impossible d'accéder à /dev/urandom\n";
+        return "500 Internal Server Error";
+    }
 
-	return ( sessionID );
+    std::stringstream ss;
+    unsigned char randomByte;
+
+    for (int i = 0; i < 16; i++)
+    {
+        urandom.read(reinterpret_cast<char *>(&randomByte), sizeof(randomByte));
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)randomByte;
+    }
+    urandom.close();
+
+    return ss.str();
 }
 
-std::string	we_loadSessionFromFile( const std::string& sessionID )
+std::string we_createSession()
 {
-	std::string		filename = "sessions_bin/session_" + sessionID + ".dat";
-	std::ifstream	file( filename.c_str( ) );
+    std::string sessionID = we_generateSessionID();
+    std::string initialData = "user=guest\npassword=none\nstatus=anonymous\ntheme=1";
 
-	if ( !file )
-	{
-		std::cerr << "Erreur : Impossible de lire le fichier de session " << filename << "\n";
-		return ( "500 Internal Server Error" );
-	}
+    if (sessionID == "500 Internal Server Error" || !we_saveSessionToFile(sessionID, initialData))
+        return "500 Internal Server Error";
 
-	std::stringstream	buffer;
-
-	buffer << file.rdbuf( );
-	file.close( );
-
-	return ( buffer.str( ) );
+    return sessionID;
 }
 
-int	main( int argc, char **argv )
+std::string we_loadSessionFromFile(const std::string &sessionID)
 {
-	std::string sessionID;
-	
-	if ( argc == 1 )
-		sessionID = we_createSession( );
-	else
-		sessionID = argv[1];
-	
-	if ( sessionID == "500 Internal Server Error" )
-	{
-		std::cerr << "Erreur : Création de session échouée\n";
-		return ( 1 );
-	}
-	std::cout << "Session ID : " << sessionID << std::endl;
-	std::string data = we_loadSessionFromFile( sessionID );
-	std::cout << "Contenu session :\n" << data << std::endl;
+    std::string filename = "sessions_bin/session_" + sessionID + ".dat";
+    std::ifstream file(filename.c_str());
 
-	return ( 0 );
+    if (!file)
+    {
+        std::cerr << "Erreur : Impossible de lire le fichier de session " << filename << "\n";
+        return "500 Internal Server Error";
+    }
+
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    file.close();
+
+    return buffer.str();
+}
+
+// =============================== TEST MAIN ================================
+
+int main(int argc, char **argv)
+{
+    std::string cookieHeader;
+
+    if (argc > 1)
+        cookieHeader = argv[1];
+
+    std::string sessionID = we_getSessionIDFromCookieHeader(cookieHeader);
+
+    if (sessionID.empty() || we_loadSessionFromFile(sessionID) == "500 Internal Server Error")
+    {
+        sessionID = we_createSession();
+        std::cout << "Set-Cookie: sessionID=" << sessionID << "\n";
+    }
+    else
+    {
+        std::cout << "Session récupérée : " << sessionID << "\n";
+    }
+
+    std::cout << "Contenu session :\n" << we_loadSessionFromFile(sessionID) << std::endl;
+
+    return 0;
 }
