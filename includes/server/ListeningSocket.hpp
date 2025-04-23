@@ -12,6 +12,7 @@ class ListeningSocket : public ASocket {
     int _backlog;
     int _listening;
     int _connection;
+    std::vector<int> _clientsFd;
 
   public:
     ListeningSocket(int domain, int serice, int protocol, int port, u_long interface, int bklg);
@@ -22,6 +23,9 @@ class ListeningSocket : public ASocket {
 
     void printListeningSocketArgs(int domain, int service, int protocol, int port, u_long interface, int backlog);
 
+    int getPort() const;
+    std::vector<int>& getClientsFd();
+    void addClientToListeningSocket(int newClientFd);
 };
 
 #endif

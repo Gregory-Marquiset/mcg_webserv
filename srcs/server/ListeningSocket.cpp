@@ -26,13 +26,26 @@ int ListeningSocket::bindToNetwork(int sockFd, struct sockaddr_in address) {
 
   int yes = 1;
   if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEPORT, (void*)&yes, sizeof(yes)) < 0) {
-      fprintf(stderr, "setsockopt() failed. Error: %d\n", errno);
+      throw (std::runtime_error("Error: setsockopt() failed..."));
   }
   return bind(sockFd, (struct sockaddr *)&address, sizeof(address));
 }
 
 void ListeningSocket::startListening() {
     this->_listening = listen(getSockFd(), this->_backlog);
+}
+
+int ListeningSocket::getPort() const {
+  return (this->_port);
+}
+
+void ListeningSocket::addClientToListeningSocket(int newClientFd) {
+  this->_clientsFd.push_back(newClientFd);
+  std::cout << "add client to listening socket: client fd nb " << newClientFd << " added au server " << this->getSockFd() << std::endl;
+}
+
+std::vector<int>& ListeningSocket::getClientsFd() {
+  return (this->_clientsFd);
 }
 
 /* ================= HELPER TO PRINT STUFF ======================== */

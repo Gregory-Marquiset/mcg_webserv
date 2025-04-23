@@ -23,6 +23,7 @@ class ASocket {
     /* setter */
 
     void setConnection(int con);
+    void setSockFd(int status);
     
     /* function qui check for success or not */
 

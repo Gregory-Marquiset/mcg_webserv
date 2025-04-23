@@ -8,12 +8,14 @@
 #include "CgiHandler.hpp"
 #include "HostHandler.hpp"
 
+class HostHandler;
+
 class ServerBlock {
 
     private:
        std::string _server;
-       int _port;
-       std::vector<HostHandler> _host;
+       std::vector<int> _port;
+       std::vector<HostHandler> _host; // peut etre ca a revoir ? pourquoi plusieurs hosts?
        std::string _root;
        std::string _index;
        std::vector<LocationBlock> _location;
@@ -30,7 +32,7 @@ class ServerBlock {
         /* setters */
 
         void setServer(std::string server);
-        void setPort(int port);
+        void setPort(std::vector<int> port);  
         void setHost(std::vector<HostHandler> host);
         void setRoot(std::string root);
         void setIndex(std::string index);
@@ -44,7 +46,7 @@ class ServerBlock {
         /* getters */
 
         std::string getServer() const;
-        int getPort() const;
+        std::vector<int> getPort() const;
         std::vector<HostHandler> getHost() const;
         std::string getRoot() const;
         std::string getIndex() const;
@@ -56,11 +58,17 @@ class ServerBlock {
         std::vector<std::string> getRedirection() const;
 
         void addLocationBlock(const LocationBlock& location);
+        void addPort(const int& port);
+        void rootCheck();
+        void indexCheck();
+        void portCheck();
+        // void addHost(const HostHandler& host);
 
         /* ca va permettre d exploiter les blocks qui ont ete construit sous forme d arbre  */
+
         std::vector<ServerBlock> createAllServerBlocks(RecupBlockContent rawConfig);
-        void caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive);
-        void caseWithLocationBlockEmbeded(LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
+        void caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, std::multimap<std::string, std::string> directive, HostHandler& host);
+        void caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, LocationBlock& locBlock, std::multimap<std::string, std::string> directive);
 };
 
 #endif

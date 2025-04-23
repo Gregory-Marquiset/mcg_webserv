@@ -9,8 +9,9 @@ class Server {
 
   private:
     ServerBlock _serverBlock;
-    ListeningSocket _listeningSocket;
+    std::vector<ListeningSocket> _listeningSocket;
     int _isDefaultServer;
+    std::map<int, int> _serverStatusAccordingToPort;
 
   public:
     Server(const ServerBlock& serverBlock);
@@ -23,14 +24,13 @@ class Server {
     /* getters */
 
     int getDefaultServer() const;
-    ListeningSocket getListeningSocket() const;
+    std::vector<ListeningSocket>& getListeningSocket();
     ServerBlock getServerBlock() const;
     static std::vector<Server> getAllServers(const std::vector<ServerBlock>& serverBlocks);
+    void addStatus(const std::map<int, int>& status);
+    std::map<int, int> getServerStatusAccordingToPort() const;
 
     void printServerInfo() const;
-
-    // /* path handler */
-    // void pathHandler()
 };
 
 #endif

@@ -32,6 +32,10 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
 
 std::string trim(const std::string& str) {
 
+    if (str.empty()) {
+        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
+    }
+    
     size_t start = 0;
     while (start < str.size() && isspace(str[start])) {
         ++start;
@@ -42,13 +46,18 @@ std::string trim(const std::string& str) {
         --end;
     }
 
-    return str.substr(start, end - start);
+   
+    if (str.substr(start, end - start).empty()) {
+        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
+    }
+
+    return (str.substr(start, end - start));
 }
 
 /* fonction principale pour hierarchiser les blocks (arbre parents - enfants) */
 
 void RecupBlockContent::createTree(std::string file) {
-     
+
     std::string content;
     std::istringstream iss(file);
     
@@ -67,19 +76,20 @@ void RecupBlockContent::createTree(std::string file) {
             continue ;
 
         for (size_t i = 0; i < content.size(); ++i) {
-            
+            // ignorer les commentaires 
+            if (content[i] == '#') {
+                break ;
+            }
+
             // entree d un block 
             if (content[i] == '{') {
-               handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
+                handleEntranceBlock(content, i, parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
             }
 
             // sortie d un block
-            if (content[i] == '}') 
+            if (content[i] == '}') {
                 handleExitBlock(parentFlag, childFlag, tmpFirstParent, parentBlock, childBlock);
-
-            // ignorer les commentaires 
-            if (content[i] == '#')
-                continue ;
+            }
 
             // init directives
             if (content[i] == ';') {
@@ -95,7 +105,7 @@ void RecupBlockContent::handleEntranceBlock(std::string content, size_t i, int &
 
     std::string tmpName = content.substr(0, i);
     std::string cleanName = trim(tmpName);
-
+    
     if (parentFlag == 0) {
             
         tmpFirstParent.setName(cleanName);
@@ -142,9 +152,9 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     std::string key = "";
     std::string value = "";
     int isKey = 1;
+
     std::string tmpDirective = content.substr(0, i);
     std::string cleanDirective = trim(tmpDirective);
-    // std::cout << "---> " << cleanDirective << std::endl;
 
     for (size_t j = 0; j < cleanDirective.size(); ++j) {
         if (isspace(cleanDirective[j]) && isKey == 1) {
@@ -167,18 +177,3 @@ void RecupBlockContent::handleDirectives(std::string content, size_t i, int &chi
     else 
         childBlock.setDirective(key, value);
 }
-
-// un bloc c est forcement un nom + {}
-// des directives c est forcement une cle et une valeur 
-
-// read file line by line 
-// -> look for {
-// then look for }
-
-// if another { alors block enfant 
-
-// store everything that is in between
-// get what is on same line that { -> should be name
-// then get directives 
-
-/* !!!! si l ordre des directives n apparait pas comme sur le .conf c est normal, j utilise une map qui range par ordre alphabetique */

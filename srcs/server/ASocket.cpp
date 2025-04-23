@@ -7,11 +7,23 @@
 ASocket::ASocket(int domain, int service, int protocol) {
   this->_sockFd = socket(domain, service, protocol);
   testConnection(this->_sockFd);
+
+  int flags = fcntl(this->_sockFd, F_GETFL, 0);
+  if (flags == -1) {
+      throw std::runtime_error("Error getting socket flags");
+  }
+  if (fcntl(this->_sockFd, F_SETFL, flags | O_NONBLOCK) == -1) {
+      throw std::runtime_error("Error setting socket to non-blocking");
+  }
 }
 
 ASocket::~ASocket() {};
 
 /* ================= SETTERS - GETTERS ======================== */
+
+void ASocket::setSockFd(int status) {
+  this->_sockFd = status;
+}
 
 void ASocket::setConnection(int con) {
   this->_connection = con;
@@ -33,8 +45,7 @@ int ASocket::getConnection() {
 
 void ASocket::testConnection(int item) {
     if (item < 0) {
-        perror("Failed to connect...");
-        exit(EXIT_FAILURE);
+      throw (std::runtime_error("Error: socket() function failed..."));
     }
 }
 

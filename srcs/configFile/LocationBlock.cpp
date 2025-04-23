@@ -12,6 +12,10 @@ void LocationBlock::setPath(std::string path) {
     this->_path = path.substr(9);
 }
 
+void LocationBlock::setPathSpecial(std::string path) {
+    this->_path = path;
+}
+
 void LocationBlock::setRoot(std::string root) {
     this->_root = root;
 }

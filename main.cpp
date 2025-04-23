@@ -19,12 +19,15 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
     for (size_t i = 0; i < serverBlocks.size(); ++i) {
 
         std::cout << "server { " << std::endl;
-
         for (size_t iHost = 0; iHost < serverBlocks[i].getHost().size(); ++iHost) {
-            std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName() << std::endl;
+            for (size_t j = 0; j < serverBlocks[i].getHost()[iHost].getHostName().size(); ++j) {
+                std::cout << "      hostName: " << serverBlocks[i].getHost()[iHost].getHostName()[j] << std::endl;
+            }
         }
 
-        std::cout << "      port : " << serverBlocks[i].getPort() << std::endl;
+        for (size_t iPort = 0; iPort < serverBlocks[i].getPort().size(); ++iPort) {
+            std::cout << "      port: " << serverBlocks[i].getPort()[iPort] << std::endl;
+        }
         std::cout << "      root: " << serverBlocks[i].getRoot() << std::endl;
         std::cout << "      index: " << serverBlocks[i].getIndex() << std::endl;
         std::cout << "      client max body size : " << serverBlocks[i].getClientMaxBodySize() << std::endl;
@@ -75,22 +78,44 @@ void printConfigFileData(std::vector<ServerBlock> serverBlocks) {
     }
 }
 
+volatile sig_atomic_t exitFlag = 0; 
+
+void signal_handler(int s)
+{
+    (void)s;
+    exitFlag = 1;
+}
+
 int main(int argc, char **argv) {
 
     if (argc == 2) {
+
+        signal(SIGINT, signal_handler);
 
         /* ================= Analyse le fichier et extrait les blocs ======================== */
 
         RecupBlockContent rawConfig;
 
         std::string confFile = rawConfig.storeConfigFile(argv[1]);
-        rawConfig.createTree(confFile);
+        try {
+            rawConfig.createTree(confFile);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
+        }
 
         /* ================= Transforme les blocs en objets exploitables ======================== */
 
         ServerBlock data;
-        std::vector<ServerBlock> serverBlocks = data.createAllServerBlocks(rawConfig);
-        printConfigFileData(serverBlocks);
+        std::vector<ServerBlock> serverBlocks;
+        
+        try {
+            serverBlocks = data.createAllServerBlocks(rawConfig);
+            printConfigFileData(serverBlocks);
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
+        }
 
         /* ================= Transforme les blocs en servers ======================== */
 
@@ -104,52 +129,33 @@ int main(int argc, char **argv) {
 
         /* ================= Les servers sont sous surveillance ======================== */
 
-        EPollManager epollManager(servers);
-            epollManager.run();
+        try {
+
+            EPollManager epollManager(servers);
+
+            while (exitFlag == 0) {
+                epollManager.run();
+                // std::cout << "===== Default Servers according to Port =====" << std::endl;
+                // // std::cout << "server nb = " << servers.size() << std::endl;
+                // for (size_t i = 0; i < servers.size(); ++i) {
+                
+                //     // std::cout << "size = " << servers[i].getServerStatusAccordingToPort().size() << std::endl;
+                //     std::map<int, int> status = servers[i].getServerStatusAccordingToPort();
+                //     for (std::map<int, int>::iterator it = status.begin(); it != status.end(); ++it) {
+                //         std::cout << "Server " << i << " Is default server for port: " << it->first << " = " << it->second << std::endl;
+                //     }
+                // }
+                // std::cout << "=============================================" << std::endl;
+            }
+            epollManager.clean();
+        } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            return (1);
+        }
     }
-    else
+    else {
         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
+        return (1);
+    }
+    return (0);
 }
-
-// int main(int argc, char **argv) {
-
-//     if (argc == 2) {
-
-//         /* ================= Analyse le fichier et extrait les blocs ======================== */
-
-//         RecupBlockContent rawConfig;
-
-//         std::string confFile = rawConfig.storeConfigFile(argv[1]);
-//         rawConfig.createTree(confFile);
-
-//         /* ================= Transforme les blocs en objets exploitables ======================== */
-
-//         ServerBlock data;
-//         std::vector<ServerBlock> serverBlocks = data.getAllServerBlocks(rawConfig);
-
-//         /* ================= Transforme les blocs en servers ======================== */
-
-//         std::vector<Server> servers;
-
-//         for (size_t i = 0; i < serverBlocks.size(); ++i) {
-
-
-//             servers.push_back(Server(serverBlocks[i]));
-//             servers[i].printServerInfo();
-//         }
-//         /* ================= Les servers sont sous surveillance ======================== */
-
-//         EPollManager epollManager(servers);
-//             epollManager.run();
-//     }
-//     else
-//         std::cerr << "Invalid Args: usage: ./webserv [configuration file]" << std::endl;
-// }
-
-// Les classes:
-
-// Block                Structure d'un block de config
-// RecupBlockContent	Analyse le fichier et extrait les blocs
-// ServerBlock	        Transforme les blocs en objets exploitables
-// Server	            Représente un serveur unique basé sur un ServerBlock + Ajout d'une ListeningSocket
-// ServerManager	    Gère plusieurs serveurs et stocke un std::vector<Server>
