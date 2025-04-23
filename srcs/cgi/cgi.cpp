@@ -11,96 +11,86 @@
 #include <signal.h>
 #include <errno.h>
 #include "../../includes/response/ResponseMaker.hpp"
-
+#include <sys/time.h>
 
 std::string	we_readWithTimeout( int fd, pid_t child_pid, int timeout_sec )
 {
-	std::string		output;
+	std::string		result;
 	char			buffer[1024];
 	fd_set			readfds;
-	struct timeval	timeout;
-	int				max_fd = fd;
-	int				elapsed = 0;
-	int				status;
-	bool			finished = false;
+	struct timeval	start, now, timeout;
+	long			elapsed_sec;
 
-	while ( elapsed < timeout_sec * 10 )
+	gettimeofday( &start, NULL );
+
+	while ( true )
 	{
+		gettimeofday( &now, NULL );
+		elapsed_sec = now.tv_sec - start.tv_sec;
+
+		if ( elapsed_sec >= timeout_sec )
+		{
+			kill( child_pid, SIGKILL );
+			waitpid( child_pid, NULL, 0 );
+			throw std::runtime_error( "Timeout dépassé pour l'exécution CGI" );
+		}
+
 		FD_ZERO( &readfds );
 		FD_SET( fd, &readfds );
 
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 100000;
+		timeout.tv_sec = timeout_sec - elapsed_sec;
+		timeout.tv_usec = 0;
 
-		int	ready = select( max_fd + 1, &readfds, NULL, NULL, &timeout );
-		if ( ready == -1 )
-		{
-			perror( "select" );
-			break;
-		}
-		else if ( ready == 0 )
-		{
-			elapsed++;
-			pid_t	result = waitpid(child_pid, &status, WNOHANG);
-			if (result == child_pid)
-			{
-				finished = true;
-				break;
-			}
+		int	activity = select( fd + 1, &readfds, NULL, NULL, &timeout );
+
+		if ( activity < 0 && errno != EINTR )
+			throw std::runtime_error( "Erreur avec select()" );
+
+		if ( activity == 0 )
 			continue;
-		}
-		else
+
+		if ( FD_ISSET( fd, &readfds ) )
 		{
-			if ( FD_ISSET( fd, &readfds ) )
-			{
-				ssize_t	bytesRead = read( fd, buffer, sizeof( buffer ) );
-				if (bytesRead > 0)
-					output.append( buffer, bytesRead );
-				else
-					break;
-			}
+			ssize_t	bytes_read = read( fd, buffer, sizeof( buffer ) - 1 );
+			if ( bytes_read < 0 )
+				throw std::runtime_error( "Erreur lors de la lecture du pipe" );
+
+			if ( bytes_read == 0 )
+				break;
+
+			buffer[bytes_read] = '\0';
+			result += buffer;
 		}
+
+		int	status;
+		if ( waitpid( child_pid, &status, WNOHANG ) > 0 )
+			break;
 	}
 
-	if ( !finished )
-	{
-		std::cerr << "CGI Timeout: killing process " << child_pid << "\n";
-		kill( child_pid, SIGKILL );
-		waitpid( child_pid, NULL, 0 );
-		throw std::runtime_error( "CGI Timeout exceeded" );
-	}
-
-	close(fd);
-
-	if ( WIFEXITED( status ) && WEXITSTATUS( status ) != 0 )
-	{
-		std::cerr << "CGI exited with status: " << WEXITSTATUS( status ) << "\n";
-		throw std::runtime_error( "CGI returned error" );
-	}
-
-	return ( output );
+	close( fd );
+	return ( result );
 }
 
 std::string	we_executeCGI( const std::string &binary, const std::string &scriptPath , ErrorManagement &err )
 {
-	char	*argv[] = {( char * )binary.c_str(), ( char * )scriptPath.c_str(), NULL };
+	char	*argv[] = { ( char * )binary.c_str(), ( char * )scriptPath.c_str(), NULL };
 
 	int	pipefd[2];
 
 	if ( pipe( pipefd ) == -1 )
 	{
-		if (err.getErrorCode() == 0)
-			err.setErrorCode(500);
-		throw ResponseMaker::ResponseException("Erreur : Impossible de créer le pipe\n");
+		if ( err.getErrorCode() == 0 )
+			err.setErrorCode( 500 );
+		throw ResponseMaker::ResponseException( "Erreur : Impossible de créer le pipe\n" );
 	}
 
 	pid_t	pid = fork( );
 
 	if ( pid < 0 )
 	{
-		if (err.getErrorCode() == 0)
-			err.setErrorCode(500);
-		throw ResponseMaker::ResponseException("Erreur : Échec du fork()\n");
+		if ( err.getErrorCode() == 0 )
+			err.setErrorCode( 500 );
+		throw ResponseMaker::ResponseException( "Erreur : Échec du fork()\n" );
 	}
 
 	if ( pid == 0 )
@@ -119,9 +109,6 @@ std::string	we_executeCGI( const std::string &binary, const std::string &scriptP
 		std::cout << "Status: 500 Internal Server Error\n"
 				<< "Content-Type: text/plain\n\n"
 				<< "500 Internal Server Error: CGI execution failed.\n";
-
-		/*	exeption	*/
-
 		_exit( 1 );
 	}
 	else
