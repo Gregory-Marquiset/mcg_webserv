@@ -167,18 +167,23 @@ void EPollManager::run() {
     this->_events.resize(MAX_EVENTS);
 
     while (exitFlag == 0) {
-        int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1);
+
+        if (exitFlag == 1) {
+            break;
+        }
+
+        int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1); // n c est le fd sur lequel epollin a lu quelque chose
         if (n == -1) {
-            if (errno == EINTR && exitFlag == 1) {
+            if (exitFlag == 1) {
                 break;
             }
             throw std::runtime_error("Error: epoll_wait() failed...");
         }
 
         for (int i = 0; i < n; ++i) {
-            int fd = _events[i].data.fd; // le fd sur lequel event repere (c est le fd actif)
+            int fd = this->_events[i].data.fd; // le fd sur lequel event repere (c est le fd actif)
 
-            if (std::find(this->_validListeningSockets.begin(), this->_validListeningSockets.end(), fd) != this->_validListeningSockets.end()) {
+            if (std::find(this->_validListeningSockets.begin(), this->_validListeningSockets.end(), fd) != this->_validListeningSockets.end()) { // si server
                 acceptConnection(fd);
             }
             // si c'est un client
@@ -190,6 +195,7 @@ void EPollManager::run() {
                 }
                 else {
                     std::cerr << "Erreur: fd client " << fd << " non trouvé dans aucune socket serveur. Fermeture." << std::endl;
+                    epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, fd, NULL);
                     close(fd);
                 }
             }
@@ -212,12 +218,14 @@ void EPollManager::handleClientRequest(int clientFd, Server* serv)
         if (bytes_read == 0)
         {
             std::cout << "Client " << clientFd << " a fermé la connexion." << std::endl;
+            epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
             close(clientFd);
             return;
         }
         else if (bytes_read < 0)
         {
             std::cerr << "Erreur lors de la lecture sur le clientFd: " << clientFd << std::endl;
+            epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
             close(clientFd);
             return;
         }
@@ -265,10 +273,12 @@ void EPollManager::clean() {
         for (size_t j = 0; j < sockets.size(); ++j) {
             std::vector<int>& clients = sockets[j].getClientsFd();
             for (size_t k = 0; k < clients.size(); ++k) {
+                epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clients[k], NULL);
                 close(clients[k]);
             }
             int sockFd = sockets[j].getSockFd();
             if (sockFd != -1) {
+                epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, sockFd, NULL);
                 close(sockFd);
             }
         }
