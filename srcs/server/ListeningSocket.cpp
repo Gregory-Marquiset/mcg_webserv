@@ -41,7 +41,6 @@ int ListeningSocket::getPort() const {
 
 void ListeningSocket::addClientToListeningSocket(int newClientFd) {
   this->_clientsFd.push_back(newClientFd);
-  std::cout << "add client to listening socket: client fd nb " << newClientFd << " added au server " << this->getSockFd() << std::endl;
 }
 
 std::vector<int>& ListeningSocket::getClientsFd() {
