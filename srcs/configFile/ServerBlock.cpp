@@ -178,13 +178,10 @@ void ServerBlock::caseWithNoLocationBlockEmbeded(ServerBlock& oneServerBlock, st
     }
 
     // index
-
-    if (directive.count("index") == 0) {
-        oneServerBlock.setIndex("");
-    } else if (directive.count("index") == 1) {
+    if (directive.count("index") == 1) {
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
         oneServerBlock.setIndex(itIndex->second);
-    } else {
+    } else if (directive.count("index") != 1 && directive.count("index") != 0) {
         throw (std::invalid_argument("Error: Too many indexes"));
     }
 
@@ -309,14 +306,12 @@ void ServerBlock::caseWithLocationBlockEmbeded(ServerBlock& oneServerBlock, Loca
     }
 
     // index
-    if (directive.count("index") == 0 && oneServerBlock.getIndex() == "") {
-        throw (std::invalid_argument("Error: Please provide an index"));
-    } else if (directive.count("index") == 0 && oneServerBlock.getIndex() != "") {
+    if (directive.count("index") == 0 && oneServerBlock.getIndex() != "") {
         locBlock.setIndex(oneServerBlock.getIndex());
     } else if (directive.count("index") == 1) {
         std::multimap<std::string, std::string>::iterator itIndex = directive.find("index");
         locBlock.setIndex(itIndex->second);
-    } else {
+    } else if (directive.count("index") != 1 && directive.count("index") != 0) {
         throw (std::invalid_argument("Error: Too many indexes"));
     }
 
@@ -452,7 +447,6 @@ std::vector<ServerBlock> ServerBlock::createAllServerBlocks(RecupBlockContent ra
                 }
             }
             oneServerBlock.rootCheck();
-            oneServerBlock.indexCheck();
             oneServerBlock.portCheck();
             cleanServers.push_back(oneServerBlock);
         }
