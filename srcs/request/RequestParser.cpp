@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 10:02:26 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 12:57:24 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,10 +59,6 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 
 
 /* ================= DEBUG ======================== */
-// static void	printDebugMsg(std::string msg)
-// {
-// 	std::cerr << msg << std::endl;
-// }
 
 
 /* ================= SETTERS ======================== */
@@ -149,7 +145,6 @@ static long	extract_size(std::string &str_chunk_size)
 
 	iss >> std::hex >> chunk_size;
 	str_chunk_size.clear();
-	//std::cout << "chunk_size in extract_size : " << chunk_size << std::endl;
 	return (chunk_size);
 }
 
@@ -204,21 +199,17 @@ void	RequestParser::parseMethod(std::string &req)
 
 	space_pos = req.find_first_of(" ");
 	method = req.substr(0, space_pos);
-	if (method != "GET" && method != "POST" && method != "DELETE")			//A changer, a verifier dans les infos du serveur
+	if (method != "GET" && method != "POST" && method != "DELETE")
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(405);
-		//std::cout << "*" << method << "*" << std::endl;
 		throw RequestParser::RequestException("Invalid Method");
 	}
 	this->_request_method = method;
 	req.erase(0, space_pos + 1);
-
-	// std::cout << "*" << method << "*" << std::endl;
-	// std::cout << "*" << req << "*" << std::endl;
 }
 
-void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir si l'uri correspond à un cgi du serveur
+void	RequestParser::parseURI(std::string &req)
 {
 	std::string	uri;
 	std::string	check_encoded;
@@ -250,7 +241,6 @@ void	RequestParser::parseURI(std::string &req)			//Rajouter une vérif pour voir
 				throw RequestParser::RequestException("Invalid URI 3");
 			}
 			check_encoded = uri.substr(i, 3);
-			//std::cout << check_encoded << std::endl;
 			if (this->_escaped_char.find(check_encoded) == std::string::npos)
 			{
 				if (this->_error_class->getErrorCode() == 0)
@@ -330,14 +320,6 @@ void	RequestParser::parseHTTP(std::string &req)
 	this->_request_http_version = http;
 }
 
-// void	RequestParser::printMap(void)
-// {
-//  	for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
-// 	{
-// 		std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
-// 	}
-// }
-
 void	RequestParser::parseHeaders(std::string &req)
 {
 	std::string::iterator	it;
@@ -386,21 +368,18 @@ void	RequestParser::parseHeaders(std::string &req)
 		its = std::find_if(temp_value.begin(), temp_value.end(), is_value_valid);
 		if (its != temp_value.end())
 		{
-			//std::cout << "*" << temp_value << "*" << std::endl;
+			if (this->_error_class->getErrorCode() == 0)
+				this->_error_class->setErrorCode(400);
 			throw RequestParser::RequestException("Invalid Headers Value");
 		}
 		this->_request_headers.insert(std::make_pair(temp_key, temp_value));
 		req.erase(0, end + 2);
 	}
-	// for (std::map<std::string, std::string>::iterator it = this->_request_headers.begin(); it != this->_request_headers.end(); it++)
-	// {
-	// 	std::cout << "*" << it->first << ": " << it->second << "*" << std::endl;
-	// }
 	req.erase(0, 2);
 }
 
-void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais pour le moment je sais pas
-{													// besoin de faire des tests avec des vrais requetes
+void	RequestParser::validateHeaders(void)
+{
 	std::map<std::string, std::string>::iterator	it;
 	std::string			cntt_type;
 	bool				host = 0;
@@ -460,8 +439,6 @@ void	RequestParser::validateHeaders(void)		// Surement des trucs a revoir mais p
 
 void	RequestParser::parseBody(std::string &req, int clientFd)
 {
-	// std::cout << "Full request : " << std::endl;
-	// std::cout << req;
 	std::cout << "\033[31mDebut parseBody\033[0m" << std::endl << std::endl;
 
 	
@@ -474,13 +451,13 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 
 	if (this->_cnt_lenght == 1 && this->_transfert_encoding == 0)
 	{
-		temp_buf.resize(BUFFER_SIZE);
+		temp_buf.resize(4096);
 		// std::cout << "Content length = " << this->_content_length << std::endl;
 		// std::cout << "req.size() = " << req.size() << std::endl;
 		// std::cout << req << std::endl;
 		while (req.size() < this->_content_length)
 		{
-			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+			bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
 			if (bytes_received <= 0)
 			{
 				if (this->_error_class->getErrorCode() == 0)
@@ -488,7 +465,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				throw RequestParser::RequestException("Wrong body size");
 			}
 			req += temp_buf.substr(0, bytes_received);
-			temp_buf.resize(BUFFER_SIZE);
+			temp_buf.resize(4096);
 		}
 		this->_request_body = req;
 		// if (this->_request_body.size() != this->_content_length)
@@ -505,15 +482,14 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 	}
 	if (this->_transfert_encoding == 1)
 	{
+		std::cout << "Transfer encoding body" << std::endl;
 		while (true)
 		{
 			pos = buf.find("\r\n");
 			if (pos == std::string::npos)
 			{
-				// std::cout << "pipi" << std::endl;
-				temp_buf.resize(BUFFER_SIZE);
-				bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
-				// std::cout << "bytes apres pipi: " << bytes_received << std::endl;
+				temp_buf.resize(4096);
+				bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
 				if (bytes_received < 0 || (bytes_received == 0 && temp_buf.find("0\r\n\r\n") == std::string::npos))
 				{
 					// std::cout << "buf if byte received <= 0: *" << buf << "*" << std::endl;
@@ -539,8 +515,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				}
 				else if (chunk_size == 0)
 				{
-					temp_buf.resize(BUFFER_SIZE);
-					while (recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0) > 0)
+					temp_buf.resize(4096);
+					while (recv(clientFd, &temp_buf[0], 4096, 0) > 0)
 						buf += temp_buf;
 					if (buf.find("0\r\n\r\n") != 0)
 					{
@@ -554,8 +530,8 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				while (buf.size() < static_cast<size_t> (chunk_size + 2))
 				{
 					// std::cerr << "prout" << std::endl;
-					temp_buf.resize(BUFFER_SIZE);
-					bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
+					temp_buf.resize(4096);
+					bytes_received = recv(clientFd, &temp_buf[0], 4096, 0);
 					//std::cerr << bytes_received << std::endl;
 					if (bytes_received <= 0)
 					{
@@ -566,8 +542,6 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					temp_buf.resize(bytes_received);
 					buf += temp_buf;
 				}
-				// std::cerr << "caca" << std::endl;
-				// std::cout << "buf.substr apres caca :" << std::endl;
 				// std::cout << buf.substr(0, chunk_size) << "*" << std::endl << std::endl;
 				this->_request_body += buf.substr(0, chunk_size);
 				// std::cout << "Request body:" << std::endl;
