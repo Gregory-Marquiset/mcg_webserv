@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 04:43:12 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 09:54:21 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ void	ResponseMaker::createGetResponse(void)
 	}
 	else
 	{
-		//std::cout << this->_req_infos.getCgi() << std::endl;
+		std::cout << "cgi status: " << this->_req_infos.getCgi() << std::endl;
 		if (this->_req_infos.getCgi() == true)
 		{
 			std::string	cgi_return;

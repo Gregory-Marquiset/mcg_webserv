@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 04:53:54 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 10:02:49 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ ProcessRequest::ProcessRequest(void)
 }
 
 ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(&err),
-_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(req.getIsCgi()),
+_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()),
 _autoindex(false), _index(true)
 {
 	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
@@ -61,7 +61,10 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 
 
 /* ================= SETTERS ======================== */
-
+void	ProcessRequest::setIsCgi(bool value)
+{
+	this->_cgi = value;
+}
 
 /* ================= GETTERS ======================== */
 std::string	ProcessRequest::getFinalPath(void) const
@@ -130,6 +133,7 @@ void	ProcessRequest::processRequest(void)
 		this->checkMaxBodySize();
 		this->addRootPath();
 		this->checkIfUriIsCgi();
+		std::cout << "cgi status: " << this->_cgi << std::endl;
 		if (this->_cgi == true)
 		{
 			return;
@@ -258,9 +262,11 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 	cgi_ext = this->_location_to_use.getCgiExtension();
 	if (cgi_ext.empty())
 	{
-		if (this->_error_class->getErrorCode() == 0)
-			this->_error_class->setErrorCode(500);
-		throw RequestParser::RequestException("Block CGI manquant");
+		std::cout << "prout" << std::endl;
+		return ;
+		// if (this->_error_class->getErrorCode() == 0)
+		// 	this->_error_class->setErrorCode(500);
+		// throw RequestParser::RequestException("Block CGI manquant");
 	}
 	uri = this->_final_path;
 	pos = uri.rfind(".");
@@ -273,8 +279,9 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 		//std::cout << "extension: " << extension << " et it->getKey" << it->getKey() << std::endl;
 		if (extension == it->getKey())
 		{
-			this->_request.setIsCgi(true);
+			this->setIsCgi(true);
 			this->_cgi_path = it->getValue();
+			std::cout << "cgi_path: " << this->_cgi_path << std::endl;
 			return ;
 		}
 	}

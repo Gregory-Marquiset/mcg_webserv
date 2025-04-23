@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 05:00:03 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 10:01:45 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,13 +34,10 @@ class	RequestParser
 
 		RequestParser	&operator=(RequestParser const &inst);
 
-		void			setIsCgi(bool value);
-
 		std::string		getMethod(void) const;
 		std::string		getURI(void) const;
 		std::string		getHTTP(void) const;
 		std::string		getBody(void) const;
-		bool			getIsCgi(void) const;
 		std::map<std::string, std::string>	getHeaders(void) const;
 		std::string		getConnection(void) const;
 		std::string		getCookie(void) const;
@@ -66,7 +63,6 @@ class	RequestParser
 		ErrorManagement	*_error_class;
 		std::string		_full_request;
 		std::string		_escaped_char;
-		bool			_is_uri_cgi;
 
 		// Stockage des infos utile dans les headers
 		std::string		_content_type;

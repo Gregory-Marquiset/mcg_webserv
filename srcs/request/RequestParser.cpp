@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 04:42:00 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 10:02:26 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,12 @@
 #include "../../includes/configFile/LocationBlock.hpp"
 
 /* ================= CONSTRUCTEUR - DESTRUCTEUR ======================== */
-RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false),
+RequestParser::RequestParser(void) : _escaped_char(ESCAPED_CHAR),
 _content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
 
-RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR), _is_uri_cgi(false),
+RequestParser::RequestParser(ErrorManagement &err) : _error_class(&err), _escaped_char(ESCAPED_CHAR),
 _content_length(0), _cnt_lenght(0), _transfert_encoding(0)
 {
 }
@@ -42,7 +42,6 @@ RequestParser	&RequestParser::operator=(RequestParser const &inst)
 		this->_error_class = inst._error_class;
 		this->_full_request = inst._full_request;
 		this->_escaped_char = inst._escaped_char;
-		this->_is_uri_cgi = inst._is_uri_cgi;
 		this->_content_type = inst._content_type;
 		this->_connection = inst._connection;
 		this->_cookie = inst._cookie;
@@ -72,11 +71,6 @@ void	RequestParser::setFullRequest(const std::string request)
 	this->_full_request = request;
 }
 
-void	RequestParser::setIsCgi(bool value)
-{
-	this->_is_uri_cgi = value;
-}
-
 
 /* ================= GETTERS ======================== */
 std::string	RequestParser::getMethod(void) const
@@ -97,11 +91,6 @@ std::string	RequestParser::getHTTP(void) const
 std::string	RequestParser::getBody(void) const
 {
 	return (this->_request_body);
-}
-
-bool	RequestParser::getIsCgi(void) const
-{
-	return (this->_is_uri_cgi);
 }
 
 std::map<std::string, std::string>	RequestParser::getHeaders(void) const
