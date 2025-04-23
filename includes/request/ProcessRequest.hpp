@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 01:46:24 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/23 10:01:01 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ class	ProcessRequest
 
 		ProcessRequest	&operator=(ProcessRequest const &inst);
 
+		void			setIsCgi(bool value);
+		
 		std::string		getFinalPath(void) const;
 		std::string		getMethod(void) const;
 		std::string		getHTTP(void) const;
