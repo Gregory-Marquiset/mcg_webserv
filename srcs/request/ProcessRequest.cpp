@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 15:18:11 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 16:35:33 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ ProcessRequest::ProcessRequest(void)
 
 ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv),
 _request(req), _error_class(&err), _method(req.getMethod()), _http_version(req.getHTTP()),
-_request_body(req.getBody()), _headers(req.getHeaders()), _cgi(false), _autoindex(false), _index(true)
+_request_body(req.getBody()), _cookie(req.getCookie()), _headers(req.getHeaders()), _cgi(false), _autoindex(false), _index(true)
 {
 }
 
@@ -49,6 +49,7 @@ ProcessRequest	&ProcessRequest::operator=(ProcessRequest const &inst)
 		this->_request_body = inst._request_body;
 		this->_content_type = inst._content_type;
 		this->_cgi_path = inst._cgi_path;
+		this->_cookie = inst._cookie;
 		this->_headers = inst._headers;
 		this->_cgi = inst._cgi;
 		this->_autoindex = inst._autoindex;
@@ -98,6 +99,11 @@ std::map<std::string, std::string>	ProcessRequest::getHeaders(void) const
 std::string	ProcessRequest::getCgiPath(void) const
 {
 	return (this->_cgi_path);
+}
+
+std::string	ProcessRequest::getCookie(void) const
+{
+	return (this->_cookie);
 }
 
 bool	ProcessRequest::getCgi(void) const

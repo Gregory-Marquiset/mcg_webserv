@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 07:48:55 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 16:35:16 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class	ProcessRequest
 		std::string		getBody(void) const;
 		std::string		getContentType(void) const;
 		std::string		getCgiPath(void) const;
+		std::string		getCookie(void) const;
 		std::map<std::string, std::string>	getHeaders(void) const;
 		bool			getCgi(void) const;
 		bool			getAutoIndex(void) const;
@@ -55,6 +56,7 @@ class	ProcessRequest
 		std::string							_request_body;
 		std::string							_content_type;
 		std::string							_cgi_path;
+		std::string							_cookie;
 		std::map<std::string, std::string>	_headers;
 		bool								_cgi;
 		bool								_autoindex;
