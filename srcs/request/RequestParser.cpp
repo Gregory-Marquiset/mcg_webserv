@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 11:47:25 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 15:45:04 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,7 +151,7 @@ static long	extract_size(std::string &str_chunk_size)
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	RequestParser::parseRequest(const std::string request, int clientFd)
 {
-	std::cout << std::endl << "PARSING DE LA REQUETE" << std::endl;
+	std::cout << "\033[32mPARSING THE REQUEST\033[0m" << std::endl;
 	if (request.empty())
 	{
 		if (this->_error_class->getErrorCode() == 0)
@@ -170,15 +170,13 @@ void	RequestParser::parseRequest(const std::string request, int clientFd)
 		if (this->_request_method == "POST")
 		{
 			parseBody(this->_full_request, clientFd);
-			std::cout << "\033[31mFin parseBody\033[0m" << std::endl << std::endl;
-			// if (!this->_request_body.empty())
-			// 	std::cout << this->_request_body << std::endl;
+			std::cout << "\033[32mBody has been parsed\033[0m" << std::endl << std::endl;
 		}
 		std::cout << "Valid Request" << std::endl;
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{
-		std::cerr << req_exc.what() << std::endl;
+		std::cerr << "\033[31m" << req_exc.what() << "\033[0m" << std::endl;
 	}
 }
 
@@ -202,7 +200,7 @@ void	RequestParser::parseMethod(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(405);
-		throw RequestParser::RequestException("Invalid Method");
+		throw RequestParser::RequestException("INVALID METHOD");
 	}
 	this->_request_method = method;
 	req.erase(0, space_pos + 1);
@@ -218,7 +216,7 @@ void	RequestParser::parseURI(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid URI 1");
+		throw RequestParser::RequestException("INVALID URI");
 	}
 	space_pos = req.find_first_of(" ");
 	uri = req.substr(0, space_pos);
@@ -227,7 +225,7 @@ void	RequestParser::parseURI(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid URI 2");
+		throw RequestParser::RequestException("INVALID URI");
 	}
 	for (size_t i = 0; i < uri.size(); i++)
 	{
@@ -237,14 +235,14 @@ void	RequestParser::parseURI(std::string &req)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Invalid URI 3");
+				throw RequestParser::RequestException("INVALID CHAR IN URI");
 			}
 			check_encoded = uri.substr(i, 3);
 			if (this->_escaped_char.find(check_encoded) == std::string::npos)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Invalid URI 4");
+				throw RequestParser::RequestException("INVALID CHAR IN URI");
 			}
 			i += 2;
 		}
@@ -262,7 +260,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 1");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	http += req.substr(0, 5);
 	req.erase(0, 5);
@@ -271,7 +269,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 2");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	while (req[i] && (req[i] >= '0' && req[i] <= '9'))
 		i++;
@@ -280,7 +278,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 3");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	http += req.substr(0, i);
 	req.erase(0, i);
@@ -294,7 +292,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 4");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	http += ".";
 	req.erase(0, 1);
@@ -305,7 +303,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 5");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	http += req.substr(0, i);
 	req.erase(0, i);
@@ -313,7 +311,7 @@ void	RequestParser::parseHTTP(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid HTTP 6");
+		throw RequestParser::RequestException("INVALID HTTP");
 	}
 	req.erase(0, 2);
 	this->_request_http_version = http;
@@ -332,7 +330,7 @@ void	RequestParser::parseHeaders(std::string &req)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Invalid Headers end");
+		throw RequestParser::RequestException("INVALID HEADERS END");
 	}
 	while (!req.empty())
 	{
@@ -344,7 +342,7 @@ void	RequestParser::parseHeaders(std::string &req)
 		{
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Invalid Headers Key");
+			throw RequestParser::RequestException("INVALID HEADERS KEY");
 		}
 		temp_key = req.substr(0, pos);
 		it = std::find_if(temp_key.begin(), temp_key.end(), is_non_printable);
@@ -353,7 +351,7 @@ void	RequestParser::parseHeaders(std::string &req)
 		{
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Invalid Headers Key2");
+			throw RequestParser::RequestException("INVALID HEADERS KEY");
 		}
 		if (req.find_first_not_of(" \t", pos + 1) == pos + 1)
 			temp_value = req.substr(pos + 1, end - pos - 1);
@@ -369,7 +367,7 @@ void	RequestParser::parseHeaders(std::string &req)
 		{
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Invalid Headers Value");
+			throw RequestParser::RequestException("INVALID HEADERS VALUE");
 		}
 		this->_request_headers.insert(std::make_pair(temp_key, temp_value));
 		req.erase(0, end + 2);
@@ -394,7 +392,7 @@ void	RequestParser::validateHeaders(void)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Invalid Header Content-Length");
+				throw RequestParser::RequestException("INVALID HEADER Content-Length");
 			}
 			this->_content_length = std::strtoul(it->second.c_str(), NULL, 0);
 		}
@@ -425,20 +423,20 @@ void	RequestParser::validateHeaders(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("No Host header");
+		throw RequestParser::RequestException("HOST HEADER IS MISSING");
 	}
 	if (this->_request_method == "POST" && this->_cnt_lenght == 0 && this->_transfert_encoding == 0)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("No body length");
+		throw RequestParser::RequestException("BODY LENTGHIS MISSING");
 	}
 }
 
 
 void	RequestParser::parseBody(std::string &req, int clientFd)
 {
-	std::cout << "\033[31mDebut parseBody\033[0m" << std::endl << std::endl;
+	std::cout << "\033[32mParsing Request Body\033[0m" << std::endl << std::endl;
 
 	
 	std::string	buf = req;
@@ -464,28 +462,18 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				{
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(500);
-					throw RequestParser::RequestException("Error from recv()");
+					throw RequestParser::RequestException("ERROR FROM RECV()");
 				}
 				if (bytes_received == 0 && req.size() < this->_content_length)
 				{
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(400);
-					throw RequestParser::RequestException("Error with body size");
+					throw RequestParser::RequestException("ERROR WITH BODY SIZE");
 				}
 			}
 			req += temp_buf.substr(0, bytes_received);
 		}
 		this->_request_body = req;
-		// if (this->_request_body.size() != this->_content_length)
-		// {
-			
-		// 	if (this->_error_class->getErrorCode() == 0)
-		// 		this->_error_class->setErrorCode(400);
-		// 	throw RequestParser::RequestException("Wrong body size 1");
-		// }
-		// std::cout << "size du body: " << this->_request_body.size() << std::endl;
-		// std::cout << "Content-Length: " << this->_content_length << std::endl;
-		//std::cout << this->_request_body << std::endl;
 		return ;
 	}
 	if (this->_transfert_encoding == 1)
@@ -504,7 +492,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					// std::cout << "temp_buf if byte received <= 0: *" << temp_buf << "*" << std::endl;
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(400);
-					throw RequestParser::RequestException("Error with body");
+					throw RequestParser::RequestException("ERROR WITH BODY");
 				}
 				buf += temp_buf;
 				temp_buf.clear();
@@ -519,7 +507,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				{
 					if (this->_error_class->getErrorCode() == 0)
 						this->_error_class->setErrorCode(400);
-					throw RequestParser::RequestException("Error with body chunk size");
+					throw RequestParser::RequestException("ERROR WITH BODY CHUNK SIZE");
 				}
 				else if (chunk_size == 0)
 				{
@@ -536,14 +524,13 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					{
 						if (this->_error_class->getErrorCode() == 0)
 							this->_error_class->setErrorCode(400);
-						throw RequestParser::RequestException("Error with body end");
+						throw RequestParser::RequestException("ERROR WITH BODY END");
 					}
 					return ;
 				}
 				buf.erase(0, pos + 2);
 				while (buf.size() < static_cast<size_t> (chunk_size + 2))
 				{
-					// std::cerr << "prout" << std::endl;
 					temp_buf.resize(BUFFER_SIZE);
 					bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
 					//std::cerr << bytes_received << std::endl;
@@ -551,7 +538,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 					{
 						if (this->_error_class->getErrorCode() == 0)
 							this->_error_class->setErrorCode(400);
-						throw RequestParser::RequestException("Error with body");
+						throw RequestParser::RequestException("ERROR WITH BODY");
 					}
 					temp_buf.resize(bytes_received);
 					buf += temp_buf;

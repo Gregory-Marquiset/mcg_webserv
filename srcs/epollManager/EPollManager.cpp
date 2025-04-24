@@ -209,20 +209,16 @@ void EPollManager::handleClientRequest(int clientFd, Server* serv)
 	std::string request;
 	ssize_t bytes_read;
 
+	std::cout << "\033[36mRECEIVING NEW REQUEST FROM CLIENT_FD : " << clientFd << "\033[0m" << std::endl;
 	while (request.find("\r\n\r\n") == std::string::npos)
 	{
 		buf.resize(BUFFER_SIZE);
 		bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
 		if (bytes_read == 0)
-		{
-			std::cout << "Client " << clientFd << " a fermé la connexion." << std::endl;
-			epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
-			close(clientFd);
-			return;
-		}
+			break;
 		else if (bytes_read < 0)
 		{
-			std::cerr << "Erreur lors de la lecture sur le clientFd: " << clientFd << std::endl;
+			std::cerr << "\033[31mERROR WHILE RECEIVING REQUEST FROM CLIENT_FD: " << clientFd << "\033[0m" << std::endl;
 			epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
 			close(clientFd);
 			return;
@@ -238,22 +234,21 @@ void EPollManager::handleClientRequest(int clientFd, Server* serv)
 
 	// Traiter la requête
 	ProcessRequest process_req(serv, req_parser, err);
-
 	if (err.getErrorCode() == 0)
 		process_req.processRequest();
 
 	ResponseMaker resp(err, process_req);
 	std::string response = resp.getFinalResponse();
-
 	size_t response_size = response.size();
 	ssize_t bytes_sent = send(clientFd, &response[0], response_size, 0);
-	if (bytes_sent <= 0)
-		perror("Error while sending http response");
+	if (bytes_sent < 0)
+		perror("\033[31mERROR WHILE SENDING HTTP RESPONSE\033[30m");
 
 	// Retirer le client du epoll et fermer
 	if (epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL) == -1)
-		perror("epoll_ctl: remove clientFd");
+		perror("\033[31mEPOOL_CTL REMOVE CLIENT_FD\033[0m");
 	close(clientFd);
+	std::cout << std::endl << std::endl << std::endl << std::endl;
 }
 
 void EPollManager::clean() {
