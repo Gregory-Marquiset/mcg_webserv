@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 15:48:48 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 10:01:01 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 07:48:55 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ class	ProcessRequest
 		bool			getAutoIndex(void) const;
 		bool			getIndex(void) const;
 
+		void			processRequest(void);
+
 	private:
 		Server								*_serv_info;
 		RequestParser						_request;
@@ -58,7 +60,6 @@ class	ProcessRequest
 		bool								_autoindex;
 		bool								_index;
 
-		void			processRequest(void);
 		void			compareUriWithLocations(void);
 		void			checkAllowedMethod(void);
 		void			checkMaxBodySize(void);

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 14:54:15 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 07:49:58 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,6 @@ ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement
 _method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(false),
 _autoindex(false), _index(true)
 {
-	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
-	this->processRequest();
 }
 
 ProcessRequest::ProcessRequest(ProcessRequest const &copy)
@@ -121,11 +119,9 @@ bool	ProcessRequest::getIndex(void) const
 
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
-
-
-/* ================= PRIVATE MEMBER FUNCTIONS ======================== */
 void	ProcessRequest::processRequest(void)
 {
+	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
 	try
 	{
 		this->compareUriWithLocations();
@@ -148,6 +144,9 @@ void	ProcessRequest::processRequest(void)
 		std::cerr << req_exc.what() << std::endl;
 	}
 }
+
+
+/* ================= PRIVATE MEMBER FUNCTIONS ======================== */
 
 void	ProcessRequest::compareUriWithLocations(void)
 {

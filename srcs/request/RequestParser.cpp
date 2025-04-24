@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 15:08:17 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 07:36:40 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -457,12 +457,21 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 		{
 			temp_buf.resize(BUFFER_SIZE);
 			bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0);
-			if (bytes_received < 0)
+			if (bytes_received <= 0)
 			{
 				std::cout << "body size: " << req.size() << std::endl;
-				if (this->_error_class->getErrorCode() == 0)
-					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Error receiving body");
+				if (bytes_received < 0)
+				{
+					if (this->_error_class->getErrorCode() == 0)
+						this->_error_class->setErrorCode(500);
+					throw RequestParser::RequestException("Error from recv()");
+				}
+				if (bytes_received == 0 && req.size() < this->_content_length)
+				{
+					if (this->_error_class->getErrorCode() == 0)
+						this->_error_class->setErrorCode(400);
+					throw RequestParser::RequestException("Error with body size");
+				}
 			}
 			req += temp_buf.substr(0, bytes_received);
 		}
