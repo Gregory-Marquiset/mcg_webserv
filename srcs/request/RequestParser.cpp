@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:41:37 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 11:35:08 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 11:47:25 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -524,7 +524,7 @@ void	RequestParser::parseBody(std::string &req, int clientFd)
 				else if (chunk_size == 0)
 				{
 					temp_buf.resize(BUFFER_SIZE);
-					while (bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0) > 0)
+					while ((bytes_received = recv(clientFd, &temp_buf[0], BUFFER_SIZE, 0)) > 0)
 						buf += temp_buf;
 					if (bytes_received < 0)
 					{
