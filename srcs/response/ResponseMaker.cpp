@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 15:45:47 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 16:29:40 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,11 @@ void	ResponseMaker::createGetResponse(void)
 		}
 		std::string	path = this->_req_infos.getFinalPath();
 		std::cout << "Path dans la reponse : " << path << std::endl;
+		if (opendir(path.c_str()) != NULL)
+		{
+			this->_error_class.setErrorCode(403);
+			throw ResponseMaker::ResponseException("FILE IS A DIRECTORY");
+		}
 		if (access(path.c_str(), F_OK) != 0)
 		{
 			this->_error_class.setErrorCode(404);
