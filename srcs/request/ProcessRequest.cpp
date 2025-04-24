@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 10:02:49 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 07:49:58 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,11 +19,9 @@ ProcessRequest::ProcessRequest(void)
 }
 
 ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(&err),
-_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()),
+_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(false),
 _autoindex(false), _index(true)
 {
-	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
-	this->processRequest();
 }
 
 ProcessRequest::ProcessRequest(ProcessRequest const &copy)
@@ -121,11 +119,9 @@ bool	ProcessRequest::getIndex(void) const
 
 
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
-
-
-/* ================= PRIVATE MEMBER FUNCTIONS ======================== */
 void	ProcessRequest::processRequest(void)
 {
+	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
 	try
 	{
 		this->compareUriWithLocations();
@@ -148,6 +144,9 @@ void	ProcessRequest::processRequest(void)
 		std::cerr << req_exc.what() << std::endl;
 	}
 }
+
+
+/* ================= PRIVATE MEMBER FUNCTIONS ======================== */
 
 void	ProcessRequest::compareUriWithLocations(void)
 {
@@ -544,16 +543,16 @@ void	ProcessRequest::manageMultipartCase(void)
 	size_t						token_start;
 	size_t						token_end;
 	
-	int n = 0;
-	for (size_t i = 0; i < body.size(); i++)
-	{
-		if (body[i] == '\r' && body[i + 1] == '\n')
-		{
-			n++;
-			std::cerr << "prout " << n << "\ti = " << i << std::endl;
-		}
-	}
-	std::cerr << "n = " << n << std::endl;
+	// int n = 0;
+	// for (size_t i = 0; i < body.size(); i++)
+	// {
+	// 	if (body[i] == '\r' && body[i + 1] == '\n')
+	// 	{
+	// 		n++;
+	// 		std::cerr << "prout " << n << "\ti = " << i << std::endl;
+	// 	}
+	// }
+	// std::cerr << "n = " << n << std::endl;
 	
 	end = body.find(boundary);
 	while (1)
@@ -566,9 +565,9 @@ void	ProcessRequest::manageMultipartCase(void)
 			throw RequestParser::RequestException("Boundary error");
 		}
 		end = body.find(boundary, boundary.size());
-		std::cout << "start: " << start << std::endl;
-		std::cout << "end: " << end << std::endl;
-		std::cout << "npos: " << std::string::npos << std::endl << std::endl;
+		// std::cout << "start: " << start << std::endl;
+		// std::cout << "end: " << end << std::endl;
+		// std::cout << "npos: " << std::string::npos << std::endl << std::endl;
 		if (end == std::string::npos)
 		{
 			std::cout << "the end" << std::endl;
@@ -582,9 +581,9 @@ void	ProcessRequest::manageMultipartCase(void)
 		token_end = body.find("\"", token_start + 6);
 		type = body.substr(token_start + 6, token_end - token_start - 6);
 		body.erase(0, token_end - 1);
-		std::cout << "token_start: " << start << std::endl;
-		std::cout << "token_end: " << end << std::endl;
-		std::cout << "type: " << type << std::endl << std::endl;
+		// std::cout << "token_start: " << start << std::endl;
+		// std::cout << "token_end: " << end << std::endl;
+		// std::cout << "type: " << type << std::endl << std::endl;
 		if (type == "file" || type == "files[]")
 		{
 			token_start = body.find("filename=\"");

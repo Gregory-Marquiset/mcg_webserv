@@ -57,9 +57,9 @@ void EPollManager::determineDefaultServersAccordingToPort(std::vector<Server>& s
     std::vector<int> portAlreadyAssigned;
 
     for (size_t i = 0; i < servers.size(); ++i) {
-        
+
         for (size_t j = 0; j < servers[i].getServerBlock().getPort().size(); ++j) {
-        
+
             int portToCheck = servers[i].getServerBlock().getPort()[j];
 
             std::map<int, int> res;
@@ -146,7 +146,7 @@ void EPollManager::acceptConnection(int serverFd) {
     Server* server = this->_getServerBasedOnServerFd[serverFd];
 
     if (!listeningSocket || !server) {
-        close(newClientFd); 
+        close(newClientFd);
         return ;
     }
 
@@ -205,66 +205,56 @@ void EPollManager::run() {
 
 void EPollManager::handleClientRequest(int clientFd, Server* serv)
 {
-    std::string buf;
-    std::string request;
-    ssize_t bytes_read;
-    buf.resize(BUFFER_SIZE);
+	std::string buf;
+	std::string request;
+	ssize_t bytes_read;
 
-    while (request.find("\r\n\r\n") == std::string::npos)
-    {
-        buf.resize(BUFFER_SIZE);
-        bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
+	while (request.find("\r\n\r\n") == std::string::npos)
+	{
+		buf.resize(BUFFER_SIZE);
+		bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
 
-        if (bytes_read == 0)
-        {
-            std::cout << "Client " << clientFd << " a fermé la connexion." << std::endl;
-            epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
-            close(clientFd);
-            return;
-        }
-        else if (bytes_read < 0)
-        {
-            std::cerr << "Erreur lors de la lecture sur le clientFd: " << clientFd << std::endl;
-            epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
-            close(clientFd);
-            return;
-        }
+		if (bytes_read == 0)
+		{
+			std::cout << "Client " << clientFd << " a fermé la connexion." << std::endl;
+			epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
+			close(clientFd);
+			return;
+		}
+		else if (bytes_read < 0)
+		{
+			std::cerr << "Erreur lors de la lecture sur le clientFd: " << clientFd << std::endl;
+			epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL);
+			close(clientFd);
+			return;
+		}
+		request.append(buf, 0, bytes_read);
+	}
 
-        request.append(buf, 0, bytes_read);
-    }
+	// Parser la requête
+	ErrorManagement err;
+	RequestParser req_parser(err);
+	req_parser.parseRequest(request, clientFd);
 
-    // Parser la requête
-    ErrorManagement err;
-    RequestParser req_parser(err);
-    req_parser.parseRequest(request, clientFd);
 
-    if (err.getErrorCode() != 0)
-    {
-        std::cerr << "Erreur HTTP détectée: " << err.getErrorCode() << std::endl;
-        // tu peux gérer ici une réponse d'erreur
-        close(clientFd);
-        return;
-    }
+	// Traiter la requête
+	ProcessRequest process_req(serv, req_parser, err);
 
-    // Traiter la requête
-    ProcessRequest process_req(serv, req_parser, err);
-    ResponseMaker resp(err, process_req);
-    std::string response = resp.getFinalResponse();
+	if (err.getErrorCode() == 0)
+		process_req.processRequest();
 
-    size_t response_size = response.size();
-    ssize_t bytes_sent = send(clientFd, &response[0], response_size, 0);
-    if (bytes_sent < 0)
-    {
-        perror("send");
-    }
+	ResponseMaker resp(err, process_req);
+	std::string response = resp.getFinalResponse();
 
-    // Retirer le client du epoll et fermer
-    if (epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL) == -1)
-    {
-        perror("epoll_ctl: remove clientFd");
-    }
+	size_t response_size = response.size();
+	ssize_t bytes_sent = send(clientFd, &response[0], response_size, 0);
+	if (bytes_sent < 0)
+		perror("Error while sending http response");
 
-    close(clientFd);
+	// Retirer le client du epoll et fermer
+	if (epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, clientFd, NULL) == -1)
+		perror("epoll_ctl: remove clientFd");
+	close(clientFd);
 }
 
 void EPollManager::clean() {
