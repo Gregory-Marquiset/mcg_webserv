@@ -9,7 +9,11 @@ LocationBlock::~LocationBlock() {};
 /* ================= SETTERS ======================== */
 
 void LocationBlock::setPath(std::string path) {
-    this->_path = path.substr(9);
+
+    if (path.empty() || path.size() < 9)
+        throw (std::invalid_argument("substr() issue: Error in .conf"));
+    else
+        this->_path = path.substr(9);
 }
 
 void LocationBlock::setPathSpecial(std::string path) {

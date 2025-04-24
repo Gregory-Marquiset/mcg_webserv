@@ -46,9 +46,13 @@ std::string trim(const std::string& str) {
         --end;
     }
 
-   
     if (str.substr(start, end - start).empty()) {
         throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
+    }
+
+    if (end - start < start)
+    {
+        throw (std::invalid_argument("substr() issue: Error in .conf"));
     }
 
     return (str.substr(start, end - start));
