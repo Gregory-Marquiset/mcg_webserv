@@ -213,7 +213,6 @@ void EPollManager::handleClientRequest(int clientFd, Server* serv)
 	{
 		buf.resize(BUFFER_SIZE);
 		bytes_read = recv(clientFd, &buf[0], BUFFER_SIZE, 0);
-
 		if (bytes_read == 0)
 		{
 			std::cout << "Client " << clientFd << " a fermé la connexion." << std::endl;
@@ -248,7 +247,7 @@ void EPollManager::handleClientRequest(int clientFd, Server* serv)
 
 	size_t response_size = response.size();
 	ssize_t bytes_sent = send(clientFd, &response[0], response_size, 0);
-	if (bytes_sent < 0)
+	if (bytes_sent <= 0)
 		perror("Error while sending http response");
 
 	// Retirer le client du epoll et fermer
