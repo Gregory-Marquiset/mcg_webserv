@@ -25,6 +25,10 @@ async function loadSessionData()
 			const el = document.getElementById('password-display');
 			if (el) el.textContent = session.password;
 		}
+		if (session.theme) {
+			const el = document.getElementById('theme-display');
+			if (el) el.textContent = session.theme;
+		}
 		if (session.theme) document.body.classList.add(session.theme);
 		window._SESSION = session;
 	} catch (err) {
