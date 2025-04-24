@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 12:34:20 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/23 14:41:36 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 14:07:22 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,18 +66,17 @@ class	RequestParser
 
 		// Stockage des infos utile dans les headers
 		std::string		_content_type;
-		std::string		_connection;		//Pour close le fd ou pas
-		std::string		_cookie;			//Pour greg
-		//size_t			_size;
+		std::string		_connection;
+		std::string		_cookie;
 		unsigned long	_content_length;
 		bool			_cnt_lenght;
 		bool			_transfert_encoding;
 
 		// Struct de la REQUEST
 		// Request-Line
-		std::string		_request_method;		//GET, POST, DELETE....
-		std::string		_request_uri;			//path de la requete
-		std::string		_request_http_version;	//version HTTP
+		std::string		_request_method;
+		std::string		_request_uri;
+		std::string		_request_http_version;
 		// Headers
 		std::map<std::string, std::string>	_request_headers;
 		// Body

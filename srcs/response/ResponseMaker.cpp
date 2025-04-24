@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 11:17:27 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 15:45:47 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,7 @@ ResponseMaker::ResponseMaker(void)
 
 ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : _error_class(err), _req_infos(req_infos)
 {
-	std::cout << std::endl << "CREATION DE LA REPONSE" << std::endl;
-	std::cout << "Method : " << this->_req_infos.getMethod() << std::endl;
-	std::cout << "HTTP version : " << this->_req_infos.getHTTP() << std::endl;
-	std::cout << std::endl << std::endl;
+	std::cout << std::endl << "\033[32mRESPONSE CREATION\033[0m" << std::endl;
 	try
 	{
 		if (this->_error_class.getErrorCode() != 0)
@@ -50,7 +47,7 @@ ResponseMaker::ResponseMaker(ErrorManagement &err, ProcessRequest &req_infos) : 
 	}
 	catch (ResponseMaker::ResponseException &e)
 	{
-		std::cerr << e.what() << std::endl;
+		std::cerr << "\033[31m" << e.what() << "\033[0m" << std::endl;
 		this->createErrorResponse();
 	}
 }
@@ -101,7 +98,6 @@ void	ResponseMaker::createErrorResponse(void)
 	std::map<int, std::string>	error_files = Utils::get_error_map();
 	int							error_code = this->_error_class.getErrorCode();
 
-	std::cout << "createErrorResponse error code : " << error_code << std::endl;
 	for (std::map<int, std::string>::iterator it = error_files.begin(); it != error_files.end(); it++)
 	{
 		if (error_code == it->first)
@@ -109,12 +105,13 @@ void	ResponseMaker::createErrorResponse(void)
 	}
 	if (error_path.empty() || access(error_path.c_str(), F_OK) != 0 || access(error_path.c_str(), R_OK) != 0)
 	{
-		std::cout << "createErrorResponse 1er if" << std::endl;
+		//std::cout << "createErrorResponse 1er if" << std::endl;
 		response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 		response += "Server: webserv\r\n";
 		response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 		response += "Content-Type: text/plain\r\n";
 		response += "Content-Length: 26\r\n";
+		response += "Connection: close\r\n";
 		response += "\r\n";
 		response += "500 Internal Server Error";
 	}
@@ -124,12 +121,13 @@ void	ResponseMaker::createErrorResponse(void)
 
 		if (!file.is_open())
 		{
-			std::cout << "createErrorResponse 2e if" << std::endl;
+			//std::cout << "createErrorResponse 2e if" << std::endl;
 			response += this->_req_infos.getHTTP() + " 500 Internal Server Error\r\n";
 			response += "Server: webserv\r\n";
 			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 			response += "Content-Type: text/plain\r\n";
 			response += "Content-Length: 26\r\n";
+			response += "Connection: close\r\n";
 			response += "\r\n";
 			response += "500 Internal Server Error";
 		}
@@ -150,6 +148,7 @@ void	ResponseMaker::createErrorResponse(void)
 			response += "Date: " + Utils::getTime(0) + " GMT" + "\r\n";
 			response += "Content-Type: " + Utils::findMIME(error_path) + "\r\n";
 			response += "Content-Length: " + body_size + "\r\n";
+			response += "Connection: close\r\n";
 			response += "\r\n";
 			response += content.str();
 		}
@@ -212,11 +211,7 @@ void	ResponseMaker::createGetResponse(void)
 		if (this->_req_infos.getCgi() == true)
 		{
 			std::string	cgi_return;
-			//std::cout << "FCKING CGI PATH: " << this->_req_infos.getCgiPath() << std::endl;
 			cgi_return = we_checkCGI(this->_req_infos.getCgiPath(), this->_req_infos.getFinalPath(), this->_error_class);
-			
-			// std::cout << "CGI RETURN: " << std::endl;
-			// std::cout << "*" << cgi_return << "*" << std::endl << std::endl;
 			
 			response += this->_req_infos.getHTTP() + " 200 OK\r\n";
 			response += "Server: webserv\r\n";
@@ -226,27 +221,24 @@ void	ResponseMaker::createGetResponse(void)
 			this->_final_response = response;
 			return;
 		}
-
 		std::string	path = this->_req_infos.getFinalPath();
-
 		std::cout << "Path dans la reponse : " << path << std::endl;
-
 		if (access(path.c_str(), F_OK) != 0)
 		{
 			this->_error_class.setErrorCode(404);
-			throw ResponseMaker::ResponseException("Fichier inexistant");
+			throw ResponseMaker::ResponseException("FILE IS MISSING");
 		}
 		if (access(path.c_str(), R_OK) != 0)
 		{
 			this->_error_class.setErrorCode(403);
-			throw ResponseMaker::ResponseException("Accès au fichier interdit");
+			throw ResponseMaker::ResponseException("FILE ACCESS IS FORBIDDEN");
 		}
 		std::ifstream	file(path.c_str());
 
 		if (!file.is_open())
 		{
 			this->_error_class.setErrorCode(404);
-			throw ResponseMaker::ResponseException("Fichier non ouvert");
+			throw ResponseMaker::ResponseException("FILE IS NOT OPENED");
 		}
 
 		std::stringstream	content;
@@ -275,25 +267,24 @@ void	ResponseMaker::createDeleteResponse(void)
 {
 	if (this->_req_infos.getCgi() == true)
 	{
-		//on verra
-		return;
+		this->_error_class.setErrorCode(403);
+		throw ResponseMaker::ResponseException("DELETE METHOD WITH CGI IS NOT ALLOWED");
 	}
 	std::string path = this->_req_infos.getFinalPath();
-	//path += this->_req_infos.getFinalPath();
 	if (access(path.c_str(), F_OK) != 0)
 	{
 		this->_error_class.setErrorCode(404);
-		throw ResponseMaker::ResponseException("Fichier inexistant");
+		throw ResponseMaker::ResponseException("FILE IS MISSING");
 	}
 	if (access(path.c_str(), W_OK) != 0)
 	{
 		this->_error_class.setErrorCode(403);
-		throw ResponseMaker::ResponseException("Accès au fichier interdit");
+		throw ResponseMaker::ResponseException("FILE ACCESS IS FORBIDDEN");
 	}
 	if (remove(path.c_str()) != 0)
 	{
 		this->_error_class.setErrorCode(500);
-		throw ResponseMaker::ResponseException("Erreur lors de la suppresion du fichier");
+		throw ResponseMaker::ResponseException("ERROR WHILE SUPPRESSING THE FILE");
 	}
 	std::string		response;
 

@@ -6,7 +6,7 @@
 /*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/25 16:01:57 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 07:49:58 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 15:18:11 by cdutel           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,9 @@ ProcessRequest::ProcessRequest(void)
 {
 }
 
-ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv), _request(req), _error_class(&err),
-_method(req.getMethod()), _http_version(req.getHTTP()), _request_body(req.getBody()), _headers(req.getHeaders()), _cgi(false),
-_autoindex(false), _index(true)
+ProcessRequest::ProcessRequest(Server *serv, RequestParser &req, ErrorManagement &err) : _serv_info(serv),
+_request(req), _error_class(&err), _method(req.getMethod()), _http_version(req.getHTTP()),
+_request_body(req.getBody()), _headers(req.getHeaders()), _cgi(false), _autoindex(false), _index(true)
 {
 }
 
@@ -121,7 +121,7 @@ bool	ProcessRequest::getIndex(void) const
 /* ================= PUBLIC MEMBER FUNCTIONS ======================== */
 void	ProcessRequest::processRequest(void)
 {
-	std::cout << std::endl << "PROCESS DE LA REQUETE" << std::endl;
+	std::cout << std::endl << "\033[32mPROCESSING THE REQUEST\033[0m" << std::endl;
 	try
 	{
 		this->compareUriWithLocations();
@@ -129,7 +129,6 @@ void	ProcessRequest::processRequest(void)
 		this->checkMaxBodySize();
 		this->addRootPath();
 		this->checkIfUriIsCgi();
-		std::cout << "cgi status: " << this->_cgi << std::endl;
 		if (this->_cgi == true)
 		{
 			return;
@@ -141,7 +140,7 @@ void	ProcessRequest::processRequest(void)
 	}
 	catch (RequestParser::RequestException	&req_exc)
 	{
-		std::cerr << req_exc.what() << std::endl;
+		std::cerr << "\033[31m" << req_exc.what() << "\033[0m" << std::endl;
 	}
 }
 
@@ -165,13 +164,6 @@ void	ProcessRequest::compareUriWithLocations(void)
 	for (it = locations.begin(); it != locations.end(); it++)
 	{
 		location_path = it->getPath();
-		// std::cout << "location path: " << location_path << std::endl;
-		// if (it->getCgiExtension().empty())
-		// {
-		// 	std::cout << "cgi class is empty" << std::endl;
-		// }
-		// else
-		// 	std::cout << "not empty" << std::endl;
 		if (location_path == "/" && last_location_match_size == -1)
 			this->_location_to_use = *it;
 		location_path_size = location_path.size();
@@ -201,7 +193,7 @@ void	ProcessRequest::checkAllowedMethod(void)
 	}
 	if (this->_error_class->getErrorCode() == 0)
 		this->_error_class->setErrorCode(405);
-	throw RequestParser::RequestException("Method not allowed in this location");
+	throw RequestParser::RequestException("METHOD NOT ALLOWED IN THIS LOCATION");
 }
 
 void	ProcessRequest::checkMaxBodySize(void)
@@ -211,7 +203,6 @@ void	ProcessRequest::checkMaxBodySize(void)
 	size_t		multiplier = 0;
 	size_t		max_body_size = 0;
 
-	//std::cout << "str max body: " << str_max_body_size << std::endl;
 	if (str_max_body_size.empty())
 		str_max_body_size += "1M";
 	pos = str_max_body_size.find_first_not_of("0123456789");
@@ -230,20 +221,18 @@ void	ProcessRequest::checkMaxBodySize(void)
 		{
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(500);
-			throw RequestParser::RequestException("Error with Max Body size in config");
+			throw RequestParser::RequestException("ERROR WITH MAX BODY SIZE IN CONFIG");
 		}
 	}
 	std::istringstream	iss(str_max_body_size);
 	iss >> max_body_size;
-	//std::cout << "max body size before mult: " << max_body_size << std::endl;
 	if (multiplier != 0)
 		max_body_size *= multiplier;
-	//std::cout << "max body size after mult: " << max_body_size << std::endl;
 	if (this->_request.getBody().size() > max_body_size)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(413);
-		throw RequestParser::RequestException("Body size is bigger than client max body size");
+		throw RequestParser::RequestException("BODY SIZE IS BIGGER THAN MAX ALLOWED BODY SIZE");
 	}
 }
 
@@ -253,34 +242,21 @@ void	ProcessRequest::checkIfUriIsCgi(void)
 	std::string				uri;
 	std::string				extension;
 	size_t					pos;
-
-	// this->_cgi = true;
-	// this->_cgi_path = "/usr/bin/python3";
-	// return;
 	
 	cgi_ext = this->_location_to_use.getCgiExtension();
 	if (cgi_ext.empty())
-	{
-		std::cout << "prout" << std::endl;
 		return ;
-		// if (this->_error_class->getErrorCode() == 0)
-		// 	this->_error_class->setErrorCode(500);
-		// throw RequestParser::RequestException("Block CGI manquant");
-	}
 	uri = this->_final_path;
 	pos = uri.rfind(".");
 	if (pos == std::string::npos)
 		return ;
 	extension = uri.substr(pos, std::string::npos);
-	//std::cout << "extension: " << extension << std::endl;
 	for (std::vector<CgiHandler>::iterator it = cgi_ext.begin(); it != cgi_ext.end(); it++)
 	{
-		//std::cout << "extension: " << extension << " et it->getKey" << it->getKey() << std::endl;
 		if (extension == it->getKey())
 		{
 			this->setIsCgi(true);
 			this->_cgi_path = it->getValue();
-			std::cout << "cgi_path: " << this->_cgi_path << std::endl;
 			return ;
 		}
 	}
@@ -297,17 +273,12 @@ void	ProcessRequest::addRootPath(void)
 	redir = this->_location_to_use.getRedirection();
 	if (!redir.empty() && this->_request.getMethod() == "GET")
 	{
-		// std::cout << "redir[0] = " << redir[0] << std::endl;
-		// std::cout << "redir[1] = " << redir[1] << std::endl;
 		if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(Utils::strtoi(redir[0]));
 		this->_final_path = redir[1];
-		// std::cout << this->_error_class->getErrorCode() << std::endl;
-		// std::cout << this->_final_path << std::endl;
 		return;
 	}
 
-	std::cout << "Root path: " << this->_location_to_use.getRoot() << std::endl;
 	this->_final_path += this->_location_to_use.getRoot();
 	path_size = this->_final_path.size();
 	if (this->_final_path[path_size - 1] != '/')
@@ -332,7 +303,7 @@ void	ProcessRequest::addRootPath(void)
 			}
 			if (this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(403);
-			throw RequestParser::RequestException("Index is empty");
+			throw RequestParser::RequestException("NO INDEX IS SET");
 		}
 		this->_final_path += index;
 	}
@@ -341,14 +312,13 @@ void	ProcessRequest::addRootPath(void)
 
 void	ProcessRequest::extractDirectoryContent(void)
 {
-	std::cout << "Ca passe dans extract directory content" << std::endl;
 	DIR	*directory = opendir(this->getFinalPath().c_str());
 
 	if (directory == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Can't open directory");
+		throw RequestParser::RequestException("CAN'T OPEN DIRECTORY");
 	}
 
 	std::map<std::string, std::string>	directory_content;
@@ -415,13 +385,13 @@ void	ProcessRequest::processPostRequest(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(409);
-		throw RequestParser::RequestException("Fichier déjà existant");
+		throw RequestParser::RequestException("FILE ALREADY EXIST");
 	}
 	if (opendir("./www/upload") == NULL)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
-		throw RequestParser::RequestException("Dossier \"uploads\" inexistant");
+		throw RequestParser::RequestException("Directory \"uploads\" is missing");
 	}
 	if (this->_request.getContentType() == "application/x-www-form-urlencoded")
 		this->manageFormCase();
@@ -435,13 +405,13 @@ void	ProcessRequest::processPostRequest(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Bad Content Type");
+		throw RequestParser::RequestException("BAD CONTENT TYPE");
 	}
 }
 
 void	ProcessRequest::manageFormCase(void)
 {
-	std::cout << "CAS POST form" << std::endl;
+	//std::cout << "CAS POST form" << std::endl;
 	std::string	path = this->_final_path;
 	std::string	new_path;
 	bool		generate = false;
@@ -453,7 +423,7 @@ void	ProcessRequest::manageFormCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Erreur dans le path pour POST");
+		throw RequestParser::RequestException("ERROR IN THE POST PATH");
 	}
 	if (path.find("./www/upload/") == 0)
 		path.erase(0, 13);
@@ -473,7 +443,7 @@ void	ProcessRequest::manageFormCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Extension interdite pour POST");
+		throw RequestParser::RequestException("FORBIDDEN EXTENSION FOR POST");
 	}
 
 	if (!path.empty())
@@ -498,7 +468,7 @@ void	ProcessRequest::manageFormCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(409);
-		throw RequestParser::RequestException("Fichier déja existant");
+		throw RequestParser::RequestException("FILE ALREADY EXIST");
 	}
 	std::ofstream	file(new_path.c_str());
 
@@ -506,7 +476,7 @@ void	ProcessRequest::manageFormCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
-		throw RequestParser::RequestException("Fichier non crée");
+		throw RequestParser::RequestException("FILE HASN'T BEEN CREATED");
 	}
 	std::string	body = this->getBody();
 
@@ -521,7 +491,7 @@ void	ProcessRequest::manageFormCase(void)
 
 void	ProcessRequest::manageMultipartCase(void)
 {
-	std::cout << "CAS POST multipart" << std::endl;
+	//std::cout << "CAS POST multipart" << std::endl;
 	
 	std::string	request_content_type = this->_request.getContentType();
 	std::string	boundary;
@@ -532,27 +502,15 @@ void	ProcessRequest::manageMultipartCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(400);
-		throw RequestParser::RequestException("Boundary absent");
+		throw RequestParser::RequestException("BOUNDARY IS MISSING");
 	}
 	boundary = request_content_type.substr(pos + 9);
-	std::cout << "Boundary: " << boundary << std::endl;
 	
 	std::string					body = this->_request.getBody();
 	size_t						start;
 	size_t						end;
 	size_t						token_start;
 	size_t						token_end;
-	
-	// int n = 0;
-	// for (size_t i = 0; i < body.size(); i++)
-	// {
-	// 	if (body[i] == '\r' && body[i + 1] == '\n')
-	// 	{
-	// 		n++;
-	// 		std::cerr << "prout " << n << "\ti = " << i << std::endl;
-	// 	}
-	// }
-	// std::cerr << "n = " << n << std::endl;
 	
 	end = body.find(boundary);
 	while (1)
@@ -562,17 +520,14 @@ void	ProcessRequest::manageMultipartCase(void)
 		{
 			if(this->_error_class->getErrorCode() == 0)
 				this->_error_class->setErrorCode(400);
-			throw RequestParser::RequestException("Boundary error");
+			throw RequestParser::RequestException("BOUNDARY ERROR");
 		}
 		end = body.find(boundary, boundary.size());
 		// std::cout << "start: " << start << std::endl;
 		// std::cout << "end: " << end << std::endl;
 		// std::cout << "npos: " << std::string::npos << std::endl << std::endl;
 		if (end == std::string::npos)
-		{
-			std::cout << "the end" << std::endl;
 			break;
-		}
 		std::string	type;
 		std::string	filename = "./www/upload/";
 		std::string	file_body;
@@ -589,16 +544,16 @@ void	ProcessRequest::manageMultipartCase(void)
 			token_start = body.find("filename=\"");
 			token_end = body.find("\"", token_start + 10);
 			filename += body.substr(token_start + 10, token_end - token_start - 10);
-			std::cout << "token_start: " << start << std::endl;
-			std::cout << "token_end: " << end << std::endl;
-			std::cout << "filename: " << filename << std::endl;
+			// std::cout << "token_start: " << start << std::endl;
+			// std::cout << "token_end: " << end << std::endl;
+			// std::cout << "filename: " << filename << std::endl;
 			
 			size_t	pos = body.find("\r\n\r\n");
 			if (pos == std::string::npos)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(400);
-				throw RequestParser::RequestException("Pas de double retour a la ligne");
+				throw RequestParser::RequestException("DOUBLELINE FEED IS MISSING");
 			}
 			body.erase(0, pos + 4);
 			file_body += body.substr(0, end);
@@ -607,7 +562,7 @@ void	ProcessRequest::manageMultipartCase(void)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(409);
-				throw RequestParser::RequestException("Fichier déja existant");
+				throw RequestParser::RequestException("FILE ALREADY EXIST");
 			}
 			std::ofstream	file(filename.c_str());
 		
@@ -615,7 +570,7 @@ void	ProcessRequest::manageMultipartCase(void)
 			{
 				if (this->_error_class->getErrorCode() == 0)
 					this->_error_class->setErrorCode(500);
-				throw RequestParser::RequestException("Fichier non crée");
+				throw RequestParser::RequestException("FILE HASN'T BEEN CREATED");
 			}
 			std::string	body = this->getBody();
 		
@@ -626,7 +581,7 @@ void	ProcessRequest::manageMultipartCase(void)
 
 void	ProcessRequest::manageJsonCase(void)
 {
-	std::cout << "CAS POST json" << std::endl;
+	//std::cout << "CAS POST json" << std::endl;
 	std::string	path = this->_final_path;
 	std::string	new_path;
 	bool		generate = false;
@@ -638,7 +593,7 @@ void	ProcessRequest::manageJsonCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Erreur dans le path pour POST");
+		throw RequestParser::RequestException("ERROR IN THE POST PATH");
 	}
 	if (path.find("./www/upload/") == 0)
 		path.erase(0, 13);
@@ -658,7 +613,7 @@ void	ProcessRequest::manageJsonCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Extension n'est pas .json");
+		throw RequestParser::RequestException("EXTENSION ISN'T .json");
 	}
 
 	if (!path.empty())
@@ -683,7 +638,7 @@ void	ProcessRequest::manageJsonCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(409);
-		throw RequestParser::RequestException("Fichier déja existant");
+		throw RequestParser::RequestException("FILE ALREADY EXIST");
 	}
 	std::ofstream	file(new_path.c_str());
 
@@ -691,7 +646,7 @@ void	ProcessRequest::manageJsonCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
-		throw RequestParser::RequestException("Fichier non crée");
+		throw RequestParser::RequestException("FILE HASN'T BEEN CREATED");
 	}
 	std::string	body = this->getBody();
 
@@ -700,7 +655,7 @@ void	ProcessRequest::manageJsonCase(void)
 
 void	ProcessRequest::manageSimpleCase(void)
 {
-	std::cout << "CAS POST text/plain" << std::endl;
+	//std::cout << "CAS POST text/plain" << std::endl;
 
 	std::string	path = this->_final_path;
 	std::string	new_path;
@@ -713,7 +668,7 @@ void	ProcessRequest::manageSimpleCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Erreur dans le path pour POST");
+		throw RequestParser::RequestException("ERROR IN THE POST PATH");
 	}
 	if (path.find("./www/upload/") == 0)
 		path.erase(0, 13);
@@ -733,7 +688,7 @@ void	ProcessRequest::manageSimpleCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(403);
-		throw RequestParser::RequestException("Extension n'est pas .txt");
+		throw RequestParser::RequestException("EXTENSION ISN'T .txt");
 	}
 
 	if (!path.empty())
@@ -759,7 +714,7 @@ void	ProcessRequest::manageSimpleCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(409);
-		throw RequestParser::RequestException("Fichier déja existant");
+		throw RequestParser::RequestException("FILE ALREADY EXIST");
 	}
 	std::ofstream	file(new_path.c_str());
 
@@ -767,7 +722,7 @@ void	ProcessRequest::manageSimpleCase(void)
 	{
 		if (this->_error_class->getErrorCode() == 0)
 			this->_error_class->setErrorCode(500);
-		throw RequestParser::RequestException("Fichier non crée");
+		throw RequestParser::RequestException("FILE HASN'T BEEN CREATED");
 	}
 	std::string	body = this->getBody();
 
