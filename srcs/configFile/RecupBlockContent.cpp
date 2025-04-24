@@ -33,7 +33,7 @@ std::string RecupBlockContent::storeConfigFile(char *file) {
 std::string trim(const std::string& str) {
 
     if (str.empty()) {
-        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
+        throw (std::invalid_argument("trim() failed: Error in .conf"));
     }
     
     size_t start = 0;
@@ -46,9 +46,13 @@ std::string trim(const std::string& str) {
         --end;
     }
 
-   
     if (str.substr(start, end - start).empty()) {
-        throw (std::invalid_argument("trim(): Empty string passed. Error in .conf"));
+        throw (std::invalid_argument("trim()failed: Error in .conf"));
+    }
+
+    if (end - start < start)
+    {
+        throw (std::invalid_argument("substr() issue: Error in .conf"));
     }
 
     return (str.substr(start, end - start));
