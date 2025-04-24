@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseMaker.cpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
+/*   By: gmarquis <gmarquis@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/24 16:29:40 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/24 16:49:09 by gmarquis         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,7 +211,7 @@ void	ResponseMaker::createGetResponse(void)
 		if (this->_req_infos.getCgi() == true)
 		{
 			std::string	cgi_return;
-			cgi_return = we_checkCGI(this->_req_infos.getCgiPath(), this->_req_infos.getFinalPath(), this->_error_class);
+			cgi_return = we_checkCGI(this->_req_infos.getCgiPath(), this->_req_infos.getFinalPath(), this->_req_infos.getCookie(), this->_error_class);
 			
 			response += this->_req_infos.getHTTP() + " 200 OK\r\n";
 			response += "Server: webserv\r\n";

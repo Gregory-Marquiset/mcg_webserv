@@ -4,12 +4,22 @@
 		<meta charset="UTF-8">
 		<title>Accueil - MCG Webserv</title>
 		<link rel="stylesheet" href="css/style.css">
+		<script src="js/session.js" defer></script>
 		<script src="js/theme.js" defer></script>
 	</head>
 	<body>
+
 		<div class="fixed-top-buttons">
 			<button onclick="toggleTheme()" title="Changer de thème">🎨</button>
 			<a href="login.html" title="Se connecter">🔐</a>
+		</div>
+
+		<div id="session-info" class="section">
+			<p>Session ID : <strong id="sessionid-display">inconnu</strong></p>
+			<p>Utilisateur : <strong id="username-display">inconnu</strong></p>
+			<p>Status : <strong id="status-display">inconnu</strong></p>
+			<p>Email : <strong id="email-display">inconnu</strong></p>
+			<p>Password : <strong id="password-display">inconnu</strong></p>
 		</div>
 
 		<h1>Bienvenue sur MCG Webserv</h1>
@@ -49,5 +59,12 @@
 			<a class="button" href="error/5XX/503.html">503</a>
 			<a class="button" href="error/5XX/504.html">504</a>
 		</div>
+
+		<script>
+			window.addEventListener("DOMContentLoaded", () => {
+				loadSessionData();
+			});
+		</script>
+
 	</body>
 </html>

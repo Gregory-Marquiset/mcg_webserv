@@ -1,67 +1,108 @@
 // update-theme.cpp
 #include <iostream>
-#include <fstream>
 #include <sstream>
+#include <fstream>
 #include <string>
+#include <iomanip>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <cstdlib>
-#include <map>
 
-std::map<std::string, std::string> parsePostData(const std::string& data) {
-	std::map<std::string, std::string> result;
-	std::istringstream stream(data);
-	std::string pair;
+std::string we_getSessionIDFromCookieHeader(const std::string &cookieHeader)
+{
+    std::istringstream ss(cookieHeader);
+    std::string pair;
+    while (std::getline(ss, pair, ';'))
+    {
+        size_t start = pair.find_first_not_of(" ");
+        if (start == std::string::npos)
+            continue;
+        pair = pair.substr(start);
 
-	while (std::getline(stream, pair, '&')) {
-		size_t equal = pair.find('=');
-		if (equal != std::string::npos) {
-			std::string key = pair.substr(0, equal);
-			std::string value = pair.substr(equal + 1);
-			result[key] = value;
-		}
-	}
-	return result;
+        size_t pos = pair.find('=');
+        if (pos == std::string::npos)
+            continue;
+
+        std::string key = pair.substr(0, pos);
+        std::string value = pair.substr(pos + 1);
+
+        if (key == "sessionID")
+            return value;
+    }
+    return "";
 }
 
-void updateThemeInSessionFile(const std::string& sessionID, const std::string& theme) {
-	std::string path = "sessions_bin/session_" + sessionID + ".dat";
-	std::ifstream infile(path);
-	if (!infile)
-		return;
-
-	std::ostringstream buffer;
-	std::string line;
-	while (std::getline(infile, line)) {
-		if (line.find("theme=") == 0)
-			buffer << "theme=" << theme << "\n";
-		else
-			buffer << line << "\n";
-	}
-	infile.close();
-
-	std::ofstream outfile(path);
-	outfile << buffer.str();
-	outfile.close();
+bool we_ensureSessionDirectoryExists()
+{
+    if (access("sessions_bin", F_OK) == -1)
+        return mkdir("sessions_bin", 0755) != -1;
+    return true;
 }
 
-int main() {
-	std::cout << "Content-Type: text/plain\n\n";
+std::string we_generateSessionID()
+{
+    std::ifstream urandom("/dev/urandom", std::ios::in | std::ios::binary);
+    if (!urandom)
+        return "";
 
-	char* lenStr = getenv("CONTENT_LENGTH");
-	if (!lenStr) {
-		std::cout << "No content.\n";
-		return 0;
-	}
+    std::stringstream ss;
+    unsigned char byte;
+    for (int i = 0; i < 16; i++)
+    {
+        urandom.read(reinterpret_cast<char *>(&byte), sizeof(byte));
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+    }
+    return ss.str();
+}
 
-	int len = std::atoi(lenStr);
-	std::string data(len, 0);
-	std::cin.read(&data[0], len);
+bool we_sessionExists(const std::string &id)
+{
+    std::string filename = "sessions_bin/session_" + id + ".dat";
+    return access(filename.c_str(), F_OK) != -1;
+}
 
-	std::map<std::string, std::string> params = parsePostData(data);
-	if (params.count("sessionID") && params.count("theme")) {
-		updateThemeInSessionFile(params["sessionID"], params["theme"]);
-		std::cout << "OK";
-	} else {
-		std::cout << "Missing sessionID or theme";
-	}
-	return 0;
+bool we_createSessionFile(const std::string &id)
+{
+    std::string filename = "sessions_bin/session_" + id + ".dat";
+    std::ofstream file(filename.c_str());
+    if (!file)
+        return false;
+    file << "theme=dark-theme\n"; // valeur par défaut
+    return true;
+}
+
+int main()
+{
+    std::string cookieHeader;
+    char *rawCookie = getenv("HTTP_COOKIE");
+    if (rawCookie)
+        cookieHeader = rawCookie;
+
+    std::string sessionID = we_getSessionIDFromCookieHeader(cookieHeader);
+
+    if (!we_ensureSessionDirectoryExists())
+    {
+        std::cout << "Status: 500 Internal Server Error\n\nErreur serveur.";
+        return 1;
+    }
+
+    bool newSession = false;
+
+    if (sessionID.empty() || !we_sessionExists(sessionID))
+    {
+        sessionID = we_generateSessionID();
+        if (sessionID.empty() || !we_createSessionFile(sessionID))
+        {
+            std::cout << "Status: 500 Internal Server Error\n\nImpossible de créer une session.";
+            return 1;
+        }
+        newSession = true;
+    }
+
+    std::cout << "Status: 200 OK\r\n";
+    if (newSession)
+        std::cout << "Set-Cookie: sessionID=" << sessionID << "; Path=/; HttpOnly\r\n";
+    std::cout << "Content-Type: text/plain\r\n\r\n";
+    std::cout << "Session active: " << sessionID << "\n";
+    return 0;
 }

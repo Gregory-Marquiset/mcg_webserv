@@ -2,9 +2,7 @@ function applyTheme(theme)
 {
 	document.body.classList.remove('light-theme', 'dark-theme');
 	document.body.classList.add(theme);
-	document.cookie = `theme=${theme}; path=/;`;
-	
-	// Envoie le thème au serveur
+
 	const sessionID = getCookieValue("sessionID");
 	if (sessionID) {
 		fetch("/update-theme.cgi", {
@@ -30,6 +28,16 @@ function getCookieValue(name)
 
 window.addEventListener('DOMContentLoaded', () =>
 {
-	const savedTheme = getCookieValue('theme') || 'dark-theme';
-	applyTheme(savedTheme);
+	const tryApplyTheme = () =>
+	{
+		if (window._SESSION && window._SESSION.theme)
+		{
+			applyTheme(window._SESSION.theme);
+		}
+		else
+		{
+			setTimeout(tryApplyTheme, 50);
+		}
+	};
+	tryApplyTheme();
 });
