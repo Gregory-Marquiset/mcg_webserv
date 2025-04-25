@@ -10,8 +10,9 @@
 #include <sys/select.h>
 #include <signal.h>
 #include <errno.h>
-#include "../../includes/response/ResponseMaker.hpp"
 #include <sys/time.h>
+#include <sstream> // ajouté pour stringstream
+#include "../../includes/response/ResponseMaker.hpp"
 
 std::string we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 {
@@ -71,16 +72,17 @@ std::string we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 	return (result);
 }
 
-std::string we_executeCGI(const std::string &binary, const std::string &scriptPath, const std::string &cookieHeader, ErrorManagement &err)
+std::string we_executeCGI(const std::string &binary, const std::string &scriptPath, const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
 {
 	char *argv[] = { (char *)binary.c_str(), (char *)scriptPath.c_str(), NULL };
-	int pipefd[2];
+	int pipefd_out[2];
+	int pipefd_in[2];
 
-	if (pipe(pipefd) == -1)
+	if (pipe(pipefd_out) == -1 || pipe(pipefd_in) == -1)
 	{
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(500);
-		throw ResponseMaker::ResponseException("Erreur : Impossible de créer le pipe\n");
+		throw ResponseMaker::ResponseException("Erreur : Impossible de créer le pipe");
 	}
 
 	pid_t pid = fork();
@@ -89,44 +91,75 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 	{
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(500);
-		throw ResponseMaker::ResponseException("Erreur : Échec du fork()\n");
+		throw ResponseMaker::ResponseException("Erreur : Échec du fork()");
 	}
 
 	if (pid == 0)
 	{
-		if (dup2(pipefd[1], STDOUT_FILENO) == -1)
+		// Enfant
+
+		// Rediriger stdout vers pipefd_out[1]
+		if (dup2(pipefd_out[1], STDOUT_FILENO) == -1)
 		{
-			std::cerr << "Erreur : Impossible de rediriger stdout ( " << strerror(errno) << " )\n";
+			std::cerr << "Erreur : dup2 stdout ( " << strerror(errno) << " )\n";
 			_exit(1);
 		}
-		close(pipefd[0]);
-		close(pipefd[1]);
 
-		// Création des variables d'environnement
+		// Rediriger stdin vers pipefd_in[0]
+		if (dup2(pipefd_in[0], STDIN_FILENO) == -1)
+		{
+			std::cerr << "Erreur : dup2 stdin ( " << strerror(errno) << " )\n";
+			_exit(1);
+		}
+
+		close(pipefd_out[0]);
+		close(pipefd_out[1]);
+		close(pipefd_in[0]);
+		close(pipefd_in[1]);
+
+		// Préparer les variables d'environnement
 		std::vector<std::string> envStrings;
 		std::vector<char *> envp;
 
 		if (!cookieHeader.empty())
 			envStrings.push_back("HTTP_COOKIE=" + cookieHeader);
 
+		envStrings.push_back("REQUEST_METHOD=POST");
+
+		std::stringstream ss;
+		ss << body.length();
+		envStrings.push_back("CONTENT_LENGTH=" + ss.str());
+
+		envStrings.push_back("CONTENT_TYPE=application/x-www-form-urlencoded");
+
 		for (size_t i = 0; i < envStrings.size(); ++i)
 			envp.push_back(const_cast<char *>(envStrings[i].c_str()));
 		envp.push_back(NULL);
 
-		execve((char *)binary.c_str(), argv, envp.data());
+		execve((char *)binary.c_str(), argv, &envp[0]);
 
-		std::cerr << "Erreur : Échec de l'exécution de " << scriptPath << " ( " << strerror(errno) << " )\n";
-		std::cout << "Status: 500 Internal Server Error\n"
-				  << "Content-Type: text/plain\n\n"
-				  << "500 Internal Server Error: CGI execution failed.\n";
+		std::cerr << "Erreur : execve a échoué (" << strerror(errno) << ")\n";
 		_exit(1);
 	}
 	else
 	{
-		close(pipefd[1]);
+		// Parent
+
+		close(pipefd_out[1]);
+		close(pipefd_in[0]);
+
+		// Envoyer le body au CGI
+		if (!body.empty())
+		{
+			ssize_t bytes_written = write(pipefd_in[1], body.c_str(), body.length());
+			if (bytes_written == -1)
+				std::cerr << "Erreur lors de l'envoi du body au CGI ( " << strerror(errno) << " )\n";
+		}
+		close(pipefd_in[1]);
+
 		try
 		{
-			std::string output = we_readWithTimeout(pipefd[0], pid, 5);
+			std::string output = we_readWithTimeout(pipefd_out[0], pid, 5);
 			return (output);
 		}
 		catch (const std::exception &e)
@@ -139,37 +172,37 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 	}
 }
 
-std::string we_checkCGI(const std::string &binary, const std::string &file, const std::string &cookieHeader, ErrorManagement &err)
+std::string we_checkCGI(const std::string &binary, const std::string &file, const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
 {
 	std::string scriptPath = file;
 
 	if (access(scriptPath.c_str(), F_OK) == -1)
 	{
-		std::cerr << "Erreur : Fichier CGI introuvable ( " << scriptPath << " )\n";
+		std::cerr << "Erreur : Fichier CGI introuvable (" << scriptPath << ")\n";
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(404);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(scriptPath.c_str(), X_OK) == -1)
 	{
-		std::cerr << "Erreur : Fichier CGI non exécutable ( " << scriptPath << " )\n";
+		std::cerr << "Erreur : Fichier CGI non exécutable (" << scriptPath << ")\n";
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(403);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(binary.c_str(), F_OK) == -1)
 	{
-		std::cerr << "Erreur : Binaire CGI introuvable ( " << binary << " )\n";
+		std::cerr << "Erreur : Binaire CGI introuvable (" << binary << ")\n";
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(404);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(binary.c_str(), X_OK) == -1)
 	{
-		std::cerr << "Erreur : binaire CGI non exécutable ( " << binary << " )\n";
+		std::cerr << "Erreur : Binaire CGI non exécutable (" << binary << ")\n";
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(403);
 		throw ResponseMaker::ResponseException("");
 	}
-	return (we_executeCGI(binary, scriptPath, cookieHeader, err));
+	return (we_executeCGI(binary, scriptPath, cookieHeader, body, err));
 }

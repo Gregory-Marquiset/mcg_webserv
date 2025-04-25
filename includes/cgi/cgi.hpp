@@ -4,6 +4,6 @@
 
 # include "../WebServ.hpp"
 
-std::string we_checkCGI(const std::string &binary, const std::string &file, const std::string &cookieHeader, ErrorManagement &err);
+std::string we_checkCGI(const std::string &binary, const std::string &file, const std::string &cookieHeader, const std::string &body, ErrorManagement &err);
 
 #endif

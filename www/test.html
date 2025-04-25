@@ -10,13 +10,13 @@
 	</head>
 	<body>
 
-		<div class="fixed-top-buttons">
+		<div class="fixed-top-buttons-left">
 			<button onclick="toggleTheme()" title="Changer de thème">🎨</button>
 			<a href="login.html" title="Se connecter">🔐</a>
 			<a href="index.html" title="Home">🏠</a>
 		</div>
 
-		<div id="session-info" class="section">
+		<div id="session-info" class="fixed-top-buttons-right">
 			<p>Session ID : <strong id="sessionid-display">inconnu</strong></p>
 			<p>Utilisateur : <strong id="username-display">inconnu</strong></p>
 			<p>Status : <strong id="status-display">inconnu</strong></p>
@@ -77,5 +77,11 @@
 			<h2>Logs de requête/réponse</h2>
 			<div id="log"></div>
 		</div>
+
+		<script>
+			window.addEventListener("DOMContentLoaded", () => {
+				loadSessionData();
+			});
+		</script>
 	</body>
 </html>

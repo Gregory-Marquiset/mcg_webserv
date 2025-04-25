@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ResponseMaker.hpp                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: cdutel <cdutel@42student.fr>               +#+  +:+       +#+        */
+/*   By: gmarquis <gmarquis@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:46:03 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/17 01:38:41 by cdutel           ###   ########.fr       */
+/*   Updated: 2025/04/26 00:03:09 by gmarquis         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ class	ResponseMaker
 			private:
 				std::string	_msg;
 		};
+		void	createPostCGIResponse(void);
 
 	private:
 		ErrorManagement	_error_class;

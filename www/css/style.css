@@ -22,7 +22,7 @@ body
 }
 
 /* =================== FIXED TOP BUTTONS =================== */
-.fixed-top-buttons
+.fixed-top-buttons-left
 {
 	position: fixed;
 	top: 1rem;
@@ -32,8 +32,8 @@ body
 	z-index: 1000;
 }
 
-.fixed-top-buttons a,
-.fixed-top-buttons button
+.fixed-top-buttons-left a,
+.fixed-top-buttons-left button
 {
 	all: unset;
 	display: inline-flex;
@@ -53,11 +53,34 @@ body
 	text-decoration: none;
 }
 
-.fixed-top-buttons a:hover,
-.fixed-top-buttons button:hover
+.fixed-top-buttons-left a:hover,
+.fixed-top-buttons-left button:hover
 {
 	background-color: #6c7adf;
 	transform: scale(1.1);
+}
+
+.fixed-top-buttons-right
+{
+	position: fixed;
+	top: 1rem;
+	right: 1rem;
+	display: flex;
+	flex-direction: column;
+	z-index: 1000;
+	background-color: rgba(255, 255, 255, 0.03);
+	backdrop-filter: blur(5px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	padding: 1.5rem;
+	border-radius: 10px;
+	margin: 1rem auto;
+	max-width: 300px;
+	width: 100%;
+}
+
+.fixed-top-buttons-right p
+{
+	margin: 0.5rem 0;
 }
 
 /* =================== TITRES =================== */

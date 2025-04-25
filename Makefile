@@ -19,6 +19,7 @@ SRCS :=		main.cpp\
 			srcs/request/ProcessRequest.cpp\
 			srcs/errorManagement/ErrorManagement.cpp\
 			srcs/response/ResponseMaker.cpp\
+			srcs/response/ResponseMakerPostCGI.cpp\
 			srcs/utils/Utils.cpp\
 			srcs/cgi/cgi.cpp\
 
