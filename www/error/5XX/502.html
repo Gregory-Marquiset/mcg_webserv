@@ -5,15 +5,19 @@
 		<title>502 - MCG Webserv</title>
 		<link rel="stylesheet" href="../../css/style.css">
 		<script src="../../js/theme.js" defer></script>
+		<script src="../../js/session.js" defer></script>
 	</head>
 	<body>
-		<div class="fixed-top-buttons-left">
-			<button onclick="toggleTheme()" title="Changer de thème">🎨</button>
-		</div>
-
 		<h1>502 Bad gateway</h1>
 		<div class="btn_group">
 			<a class="button" href="../../index.html">🏠</a>
 		</div>
 	</body>
+
+	<script>
+		window.addEventListener("DOMContentLoaded", () => {
+			loadSessionData();
+		});
+	</script>
+
 </html>

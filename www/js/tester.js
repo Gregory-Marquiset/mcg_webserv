@@ -13,25 +13,23 @@ document.addEventListener("DOMContentLoaded", () =>
 	});
 
 	document.getElementById( "uploadForm" ).addEventListener( "submit", async (e) =>
+	{
+		e.preventDefault();
+		const fileInput = document.getElementById( "fileInput" );
+		const formData = new FormData();
+	
+		for ( const file of fileInput.files )
+			formData.append( "files[]", file );
+	
+		const response = await fetch( "/upload",
 		{
-			e.preventDefault();
-			const fileInput = document.getElementById( "fileInput" );
-			const formData = new FormData();
-		
-			for ( const file of fileInput.files )
-			{
-				formData.append( "files[]", file );
-			}
-		
-			const response = await fetch( "/upload",
-			{
-				method: "POST",
-				body: formData
-			});
-		
-			const text = await response.text();
-			result.innerText = `Status: ${response.status} ${response.statusText}\n\n${text}`;
+			method: "POST",
+			body: formData
 		});
+	
+		const text = await response.text();
+		result.innerText = `Status: ${response.status} ${response.statusText}\n\n${text}`;
+	});
 		
 
 	window.sendRequest = async function ( url, method = 'GET', body = null )

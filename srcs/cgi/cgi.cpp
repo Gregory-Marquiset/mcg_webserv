@@ -11,7 +11,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <sstream> // ajouté pour stringstream
+#include <sstream>
 #include "../../includes/response/ResponseMaker.hpp"
 
 std::string we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
@@ -96,16 +96,12 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 
 	if (pid == 0)
 	{
-		// Enfant
-
-		// Rediriger stdout vers pipefd_out[1]
 		if (dup2(pipefd_out[1], STDOUT_FILENO) == -1)
 		{
 			std::cerr << "Erreur : dup2 stdout ( " << strerror(errno) << " )\n";
 			_exit(1);
 		}
 
-		// Rediriger stdin vers pipefd_in[0]
 		if (dup2(pipefd_in[0], STDIN_FILENO) == -1)
 		{
 			std::cerr << "Erreur : dup2 stdin ( " << strerror(errno) << " )\n";
@@ -117,7 +113,6 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 		close(pipefd_in[0]);
 		close(pipefd_in[1]);
 
-		// Préparer les variables d'environnement
 		std::vector<std::string> envStrings;
 		std::vector<char *> envp;
 
@@ -143,12 +138,9 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 	}
 	else
 	{
-		// Parent
-
 		close(pipefd_out[1]);
 		close(pipefd_in[0]);
 
-		// Envoyer le body au CGI
 		if (!body.empty())
 		{
 			ssize_t bytes_written = write(pipefd_in[1], body.c_str(), body.length());

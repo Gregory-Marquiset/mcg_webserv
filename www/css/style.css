@@ -1,13 +1,13 @@
 /* =================== THEME =================== */
 body.light-theme
 {
-	background-color: #ffffff;
+	background-color: #bbb4a6;
 	color: #222222;
 }
 
 body.dark-theme
 {
-	background-color: #1e1e1e;
+	background-color: #232128;
 	color: #f0f0f0;
 }
 
@@ -53,11 +53,23 @@ body
 	text-decoration: none;
 }
 
+body.light-theme .fixed-top-buttons-left a,
+body.light-theme .fixed-top-buttons-left button
+{
+	background-color: #673f0e;
+}
+
 .fixed-top-buttons-left a:hover,
 .fixed-top-buttons-left button:hover
 {
 	background-color: #6c7adf;
 	transform: scale(1.1);
+}
+
+body.light-theme .fixed-top-buttons-left a:hover,
+body.light-theme .fixed-top-buttons-left button:hover
+{
+	background-color: #a26213;
 }
 
 .fixed-top-buttons-right
@@ -70,12 +82,19 @@ body
 	z-index: 1000;
 	background-color: rgba(255, 255, 255, 0.03);
 	backdrop-filter: blur(5px);
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	border: 2px solid rgba(255, 255, 255, 0.1);
 	padding: 1.5rem;
 	border-radius: 10px;
 	margin: 1rem auto;
 	max-width: 300px;
 	width: 100%;
+}
+
+body.light-theme .fixed-top-buttons-right
+{
+	background-color: rgba(0, 0, 0, 0.03);
+	color: #222;
+	border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .fixed-top-buttons-right p
@@ -112,6 +131,11 @@ a.button
 	text-align: center;
 }
 
+body.light-theme .a.button
+{
+	background-color: #673f0e;
+}
+
 a.button:hover
 {
 	background-color: #6c7adf;
@@ -121,19 +145,21 @@ a.button:hover
 .section
 {
 	background-color: rgba(255, 255, 255, 0.03);
-	backdrop-filter: blur(5px);
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	backdrop-filter: blur(8px);
+	border: 2px solid rgba(255, 255, 255, 0.1);
 	padding: 1.5rem;
 	border-radius: 10px;
 	margin: 1rem auto;
 	max-width: 700px;
 	width: 100%;
+	color: #f0f0f0;
 }
 
 body.light-theme .section
 {
-	background-color: #f2f2f2;
+	background-color: rgba(0, 0, 0, 0.03);
 	color: #222;
+	border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 label
@@ -159,9 +185,21 @@ button
 	cursor: pointer;
 }
 
+body.light-theme button,
+body.light-theme .button
+{
+	background-color: #673f0e;
+}
+
 button:hover
 {
 	background-color: #6c7adf;
+}
+
+body.light-theme button:hover,
+body.light-theme .button:hover
+{
+	background-color: #a26213;
 }
 
 /* =================== ZONES DE TEXTE =================== */
