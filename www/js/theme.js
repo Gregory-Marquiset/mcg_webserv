@@ -3,6 +3,7 @@ function toggleTheme()
 	const current = document.body.classList.contains('light-theme') ? 'light-theme' : 'dark-theme';
 	const newTheme = current === 'light-theme' ? 'dark-theme' : 'light-theme';
 	applyTheme(newTheme);
+	window.location.reload();
 }
 
 function getCookieValue(name)
@@ -19,7 +20,7 @@ function applyTheme(theme)
 	const sessionID = getCookieValue("sessionID");
 	if (sessionID)
 	{
-		fetch("/cgi_tester/update-theme.cgi",
+		fetch("/cgi_methods/update-theme.cgi",
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },

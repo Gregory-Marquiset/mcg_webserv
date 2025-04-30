@@ -1,6 +1,6 @@
 async function loadSessionData()
 {
-	const res = await fetch('/cgi_tester/session.cgi');
+	const res = await fetch('/cgi_methods/session.cgi');
 	const text = await res.text();
 
 	console.log("[session.cgi output]", text);
@@ -75,7 +75,7 @@ async function deleteSession()
 		const formData = new URLSearchParams();
 		formData.append("sessionID", sessionID);
 
-		const response = await fetch("/cgi_tester/delete-session.cgi",
+		const response = await fetch("/cgi_methods/delete-session.cgi",
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -88,7 +88,7 @@ async function deleteSession()
 		if (response.ok)
 		{
 			alert("Session supprimée !");
-			document.cookie = "sessionID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT"; // Supprime le cookie
+			document.cookie = "sessionID=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT";
 			window.location.reload();
 		}
 		else

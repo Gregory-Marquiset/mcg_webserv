@@ -1,58 +1,43 @@
-#include <iostream>
-#include <unistd.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>
-#include <vector>
-#include <cerrno>
 #include <cstring>
-#include <fstream>
 #include <sys/select.h>
-#include <signal.h>
-#include <errno.h>
 #include <sys/time.h>
-#include <sstream>
+#include <cerrno>
+#include <errno.h>
 #include "../../includes/response/ResponseMaker.hpp"
 
-std::string we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
+std::string	we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 {
-	std::string result;
-	char buffer[1024];
-	fd_set readfds;
-	struct timeval start, now, timeout;
-	long elapsed_sec;
-
-	gettimeofday(&start, NULL);
+	struct timeval	timeout;
+	std::string		result;
+	fd_set			readfds;
+	char			buffer[1024];
+	int				status;
 
 	while (true)
 	{
-		gettimeofday(&now, NULL);
-		elapsed_sec = now.tv_sec - start.tv_sec;
+		FD_ZERO(&readfds);
+		FD_SET(fd, &readfds);
 
-		if (elapsed_sec >= timeout_sec)
+		timeout.tv_sec = timeout_sec;
+		timeout.tv_usec = 0;
+
+		int	activity = select(fd + 1, &readfds, NULL, NULL, &timeout);
+
+		if (activity < 0 && errno != EINTR)
+			throw std::runtime_error("Erreur avec select()");
+
+		if (activity == 0)
 		{
 			kill(child_pid, SIGKILL);
 			waitpid(child_pid, NULL, 0);
 			throw std::runtime_error("Timeout dépassé pour l'exécution CGI");
 		}
 
-		FD_ZERO(&readfds);
-		FD_SET(fd, &readfds);
-
-		timeout.tv_sec = timeout_sec - elapsed_sec;
-		timeout.tv_usec = 0;
-
-		int activity = select(fd + 1, &readfds, NULL, NULL, &timeout);
-
-		if (activity < 0 && errno != EINTR)
-			throw std::runtime_error("Erreur avec select()");
-
-		if (activity == 0)
-			continue;
-
 		if (FD_ISSET(fd, &readfds))
 		{
-			ssize_t bytes_read = read(fd, buffer, sizeof(buffer) - 1);
+			ssize_t	bytes_read = read(fd, buffer, sizeof(buffer) - 1);
+
 			if (bytes_read < 0)
 				throw std::runtime_error("Erreur lors de la lecture du pipe");
 
@@ -62,21 +47,20 @@ std::string we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 			buffer[bytes_read] = '\0';
 			result += buffer;
 		}
-
-		int status;
 		if (waitpid(child_pid, &status, WNOHANG) > 0)
 			break;
 	}
 
 	close(fd);
-	return (result);
+	return result;
 }
 
-std::string we_executeCGI(const std::string &binary, const std::string &scriptPath, const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
+std::string	we_executeCGI(const std::string &binary, const std::string &scriptPath,
+	const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
 {
-	char *argv[] = { (char *)binary.c_str(), (char *)scriptPath.c_str(), NULL };
-	int pipefd_out[2];
-	int pipefd_in[2];
+	char	*argv[] = { (char *)binary.c_str(), (char *)scriptPath.c_str(), NULL };
+	int		pipefd_out[2];
+	int		pipefd_in[2];
 
 	if (pipe(pipefd_out) == -1 || pipe(pipefd_in) == -1)
 	{
@@ -85,7 +69,7 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 		throw ResponseMaker::ResponseException("Erreur : Impossible de créer le pipe");
 	}
 
-	pid_t pid = fork();
+	pid_t	pid = fork();
 
 	if (pid < 0)
 	{
@@ -113,15 +97,15 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 		close(pipefd_in[0]);
 		close(pipefd_in[1]);
 
-		std::vector<std::string> envStrings;
-		std::vector<char *> envp;
+		std::vector<std::string>	envStrings;
+		std::vector<char *>			envp;
 
 		if (!cookieHeader.empty())
 			envStrings.push_back("HTTP_COOKIE=" + cookieHeader);
 
 		envStrings.push_back("REQUEST_METHOD=POST");
 
-		std::stringstream ss;
+		std::stringstream	ss;
 		ss << body.length();
 		envStrings.push_back("CONTENT_LENGTH=" + ss.str());
 
@@ -164,9 +148,10 @@ std::string we_executeCGI(const std::string &binary, const std::string &scriptPa
 	}
 }
 
-std::string we_checkCGI(const std::string &binary, const std::string &file, const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
+std::string	we_checkCGI(const std::string &binary, const std::string &file,
+	const std::string &cookieHeader, const std::string &body, ErrorManagement &err)
 {
-	std::string scriptPath = file;
+	std::string	scriptPath = file;
 
 	if (access(scriptPath.c_str(), F_OK) == -1)
 	{

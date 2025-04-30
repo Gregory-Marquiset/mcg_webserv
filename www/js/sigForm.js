@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () =>
 		formData.append("email", email);
 		formData.append("password", password);
 
-		const response = await fetch("/cgi_tester/signup.cgi",
+		const response = await fetch("/cgi_methods/signup.cgi",
 		{
 			method: "POST",
 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
