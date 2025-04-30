@@ -33,14 +33,19 @@ UP_DIR = www/upload/
 SESS_DIR = www/sessions_bin/
 OBJS_DIR = obj/
 DEPS_DIR = dep/
+CGI_DIR := cgi_bin/
 OBJS = $(SRCS:.cpp=.o)
 OBJS_PREF = $(addprefix $(OBJS_DIR), $(OBJS))
 
 DEPENDENCIES = $(OBJS_PREF:.o=.d)
 
-all: $(NAME)
+all: cgi $(NAME)
 	@$(MK) $(UP_DIR)
 	@$(MK) $(SESS_DIR)
+
+cgi:
+	@echo "$(YELLOW)Building CGI scripts...$(RESET)"
+	@$(MAKE) -C $(CGI_DIR)
 
 $(OBJS_DIR)%.o: %.cpp
 	@echo "$(YELLOW)Compiling $(RESET)$(CYAN)$<$(RESET)..."
@@ -54,11 +59,13 @@ $(NAME): $(OBJS_PREF)
 
 clean:
 	@echo "$(YELLOW)Cleaning object files, dependencies $(CYAN)$(OBJS_DIR) $(DEPS_DIR) $(RESET)..."
+	@$(MAKE) -C $(CGI_DIR) clean
 	$(RM) $(OBJS_DIR)
 	$(RM) $(DEPS_DIR)
 
 fclean: clean
 	@echo "$(YELLOW)Removing executable and utils directories $(CYAN)$(NAME) $(UP_DIR) $(SESS_DIR)$(RESET)..."
+	@$(MAKE) -C $(CGI_DIR) fclean
 	$(RM) $(NAME)
 	$(RM) $(UP_DIR)
 	$(RM) $(SESS_DIR)
