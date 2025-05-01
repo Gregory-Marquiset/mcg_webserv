@@ -25,7 +25,6 @@ void ResponseMaker::createPostCGIResponse(void)
 		this->_final_response = response;
 		return;
 	}
-	// Si jamais y a une erreur
 	this->_error_class.setErrorCode(500);
 	throw ResponseMaker::ResponseException("POST CGI ERROR");
 }

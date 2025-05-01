@@ -6,7 +6,7 @@
 /*   By: gmarquis <gmarquis@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/06 17:54:07 by cdutel            #+#    #+#             */
-/*   Updated: 2025/04/26 00:05:56 by gmarquis         ###   ########.fr       */
+/*   Updated: 2025/05/01 18:46:27 by gmarquis         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -271,10 +271,31 @@ void	ResponseMaker::createGetResponse(void)
 
 void	ResponseMaker::createDeleteResponse(void)
 {
+	// if (this->_req_infos.getCgi() == true)
+	// {
+	// 	this->_error_class.setErrorCode(403);
+	// 	throw ResponseMaker::ResponseException("DELETE METHOD WITH CGI IS NOT ALLOWED");
+	// }
 	if (this->_req_infos.getCgi() == true)
 	{
-		this->_error_class.setErrorCode(403);
-		throw ResponseMaker::ResponseException("DELETE METHOD WITH CGI IS NOT ALLOWED");
+		std::string	response;
+		std::string	cgi_return;
+
+		cgi_return = we_checkCGI(
+			this->_req_infos.getCgiPath(),
+			this->_req_infos.getFinalPath(),
+			this->_req_infos.getCookie(),
+			this->_req_infos.getBody(),
+			this->_error_class
+		);
+
+		response += this->_req_infos.getHTTP() + " 200 OK\r\n";
+		response += "Server: webserv\r\n";
+		response += "Date: " + Utils::getTime(0) + " GMT\r\n";
+		response += cgi_return;
+
+		this->_final_response = response;
+		return;
 	}
 	std::string path = this->_req_infos.getFinalPath();
 	if (access(path.c_str(), F_OK) != 0)

@@ -1,4 +1,6 @@
-SRCS := src/delete-session.cpp \
+SRCS := src/delete-handler.cpp \
+		src/delete-session.cpp \
+		src/post-handler.cpp \
         src/session.cpp \
         src/signup.cpp \
         src/update-theme.cpp
