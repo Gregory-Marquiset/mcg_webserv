@@ -1,9 +1,8 @@
-SRCS := src/delete-handler.cpp \
-		src/delete-session.cpp \
+SRCS :=	src/delete-session.cpp \
 		src/post-handler.cpp \
-        src/session.cpp \
-        src/signup.cpp \
-        src/update-theme.cpp
+		src/session.cpp \
+		src/signup.cpp \
+		src/update-theme.cpp
 
 CXX := c++
 CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -g3 -MMD -MP

@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () =>
 	const result = document.getElementById("result");
 	const log = document.getElementById("log");
 
-	// Formulaire HTTP général
 	document.getElementById("httpForm").addEventListener("submit", async (e) =>
 	{
 		e.preventDefault();
@@ -13,7 +12,6 @@ document.addEventListener("DOMContentLoaded", () =>
 		sendRequest(url, method, body);
 	});
 
-	// Formulaire d'upload
 	document.getElementById("uploadForm").addEventListener("submit", async (e) =>
 	{
 		e.preventDefault();
@@ -32,7 +30,6 @@ document.addEventListener("DOMContentLoaded", () =>
 		result.innerText = `Status: ${response.status} ${response.statusText}\n\n${text}`;
 	});
 
-	// Formulaire POST CGI (création de fichier)
 	const postForm = document.getElementById("postCgiForm");
 	if (postForm)
 	{
@@ -40,35 +37,19 @@ document.addEventListener("DOMContentLoaded", () =>
 		{
 			e.preventDefault();
 			const filename = document.getElementById("filename-post").value;
+			const content = document.getElementById("content-post").value;
+
+			const bodyData = `filename=${encodeURIComponent(filename)}&content=${encodeURIComponent(content)}`;
 			const res = await fetch("/cgi_methods/post-handler.cgi", {
 				method: "POST",
 				headers: { "Content-Type": "application/x-www-form-urlencoded" },
-				body: `filename=${encodeURIComponent(filename)}`
+				body: bodyData
 			});
 			const text = await res.text();
 			document.getElementById("cgiPostDeleteResult").textContent = text;
 		});
 	}
 
-	// Formulaire DELETE CGI (suppression de fichier)
-	const deleteForm = document.getElementById("deleteCgiForm");
-	if (deleteForm)
-	{
-		deleteForm.addEventListener("submit", async (e) =>
-		{
-			e.preventDefault();
-			const filename = document.getElementById("filename-delete").value;
-			const res = await fetch("/cgi_methods/delete-handler.cgi", {
-				method: "DELETE",
-				headers: { "Content-Type": "application/x-www-form-urlencoded" },
-				body: `filename=${encodeURIComponent(filename)}`
-			});
-			const text = await res.text();
-			document.getElementById("cgiPostDeleteResult").textContent = text;
-		});
-	}
-
-	// Fonction d'envoi de requête HTTP
 	window.sendRequest = async function (url, method = 'GET', body = null)
 	{
 		const response = await fetch(url, {
@@ -87,7 +68,6 @@ document.addEventListener("DOMContentLoaded", () =>
 		}, null, 2);
 	};
 
-	// Affichage des cookies
 	window.showCookies = function ()
 	{
 		document.getElementById('cookies').innerText = document.cookie || 'Aucun cookie';
