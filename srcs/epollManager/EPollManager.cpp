@@ -146,6 +146,7 @@ void EPollManager::acceptConnection(int serverFd) {
     Server* server = this->_getServerBasedOnServerFd[serverFd];
 
     if (!listeningSocket || !server) {
+        epoll_ctl(this->_epollFd, EPOLL_CTL_DEL, newClientFd, NULL);
         close(newClientFd);
         return ;
     }
@@ -172,7 +173,7 @@ void EPollManager::run() {
             break;
         }
 
-        int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1); // n c est le fd sur lequel epollin a lu quelque chose
+        int n = epoll_wait(this->_epollFd, this->_events.data(), MAX_EVENTS, -1); // n c est le nombre d evenements actifs
         if (n == -1) {
             if (exitFlag == 1) {
                 break;
