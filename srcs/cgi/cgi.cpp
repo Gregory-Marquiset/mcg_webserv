@@ -2,8 +2,6 @@
 #include <cstring>
 #include <sys/select.h>
 #include <sys/time.h>
-#include <cerrno>
-#include <errno.h>
 #include "../../includes/response/ResponseMaker.hpp"
 
 std::string	we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
@@ -24,8 +22,8 @@ std::string	we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 
 		int	activity = select(fd + 1, &readfds, NULL, NULL, &timeout);
 
-		if (activity < 0 && errno != EINTR)
-			throw std::runtime_error("Erreur avec select()");
+		if (activity < 0)
+			throw std::runtime_error("select() Error");
 
 		if (activity == 0)
 		{
@@ -52,7 +50,7 @@ std::string	we_readWithTimeout(int fd, pid_t child_pid, int timeout_sec)
 	}
 
 	close(fd);
-	return result;
+	return (result);
 }
 
 std::string	we_executeCGI(const std::string &binary, const std::string &scriptPath,
@@ -82,13 +80,13 @@ std::string	we_executeCGI(const std::string &binary, const std::string &scriptPa
 	{
 		if (dup2(pipefd_out[1], STDOUT_FILENO) == -1)
 		{
-			std::cerr << "Erreur : dup2 stdout ( " << strerror(errno) << " )\n";
+			std::cerr << "Erreur : dup2 stdout" << std::endl;
 			_exit(1);
 		}
 
 		if (dup2(pipefd_in[0], STDIN_FILENO) == -1)
 		{
-			std::cerr << "Erreur : dup2 stdin ( " << strerror(errno) << " )\n";
+			std::cerr << "Erreur : dup2 stdin" << std::endl;
 			_exit(1);
 		}
 
@@ -117,7 +115,7 @@ std::string	we_executeCGI(const std::string &binary, const std::string &scriptPa
 
 		execve((char *)binary.c_str(), argv, &envp[0]);
 
-		std::cerr << "Erreur : execve a échoué (" << strerror(errno) << ")\n";
+		std::cerr << "Erreur : execve a échoué" << std::endl;
 		_exit(1);
 	}
 	else
@@ -129,7 +127,7 @@ std::string	we_executeCGI(const std::string &binary, const std::string &scriptPa
 		{
 			ssize_t bytes_written = write(pipefd_in[1], body.c_str(), body.length());
 			if (bytes_written == -1)
-				std::cerr << "Erreur lors de l'envoi du body au CGI ( " << strerror(errno) << " )\n";
+				std::cerr << "Erreur lors de l'envoi du body au CGI" << std::endl;
 		}
 		close(pipefd_in[1]);
 
@@ -155,28 +153,28 @@ std::string	we_checkCGI(const std::string &binary, const std::string &file,
 
 	if (access(scriptPath.c_str(), F_OK) == -1)
 	{
-		std::cerr << "Erreur : Fichier CGI introuvable (" << scriptPath << ")\n";
+		std::cerr << "Erreur : Fichier CGI introuvable (" << scriptPath << ")" << std::endl;
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(404);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(scriptPath.c_str(), X_OK) == -1)
 	{
-		std::cerr << "Erreur : Fichier CGI non exécutable (" << scriptPath << ")\n";
+		std::cerr << "Erreur : Fichier CGI non exécutable (" << scriptPath << ")" << std::endl;
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(403);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(binary.c_str(), F_OK) == -1)
 	{
-		std::cerr << "Erreur : Binaire CGI introuvable (" << binary << ")\n";
+		std::cerr << "Erreur : Binaire CGI introuvable (" << binary << ")" << std::endl;
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(404);
 		throw ResponseMaker::ResponseException("");
 	}
 	if (access(binary.c_str(), X_OK) == -1)
 	{
-		std::cerr << "Erreur : Binaire CGI non exécutable (" << binary << ")\n";
+		std::cerr << "Erreur : Binaire CGI non exécutable (" << binary << ")" << std::endl;
 		if (err.getErrorCode() == 0)
 			err.setErrorCode(403);
 		throw ResponseMaker::ResponseException("");
